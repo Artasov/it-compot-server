@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>{% block title %} {% endblock %}</title>
+    {% block link_content_css %}{% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+
+    <link rel="icon" type="image/png" href="{% static 'core/img/logo.png' %}">
+    <link href="{% static 'core/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'core/css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'core/css/buttons.css' %}" rel="stylesheet">
+    <link href="{% static 'core/css/inputs.css' %}" rel="stylesheet">
+
+    <script defer src="{% static 'Core/js/bootstrap.bundle.min.js' %}"></script>
+    <script defer src="{% static 'Core/js/check_device.js' %}"></script>
+    <script defer src="{% static 'Core/js/base.js' %}"></script>
+    <script defer src="{% static 'Core/js/buttons.js' %}"></script>
+    <script defer src="{% static 'Core/js/inputs.js' %}"></script>
+
+    {% block head_scripts %}{% endblock %}
+    <meta name="description" content="{% block meta_description %}{% endblock %}">
+    <meta property="og:description" content="{% block meta_og_description %}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{% endblock %} it-compot">
+    {# Отключает формирование ссылки у номера телефона на iOS #}
+    <meta name="format-detection" content="telephone=no">
+    {# Автор страницы #}
+    <meta name="Author" content="Nikita Artasov">
+    {# Авторские права #}
+    <meta name="Copyright" content="Nikita Artasov">
+    {# Адрес автора #}
+    <meta name="Address" content="Russia">
+    {# локализация сайта, для русскоязычного сайта ru_RU #}
+    <meta property="og:locale" content="ru_RU">
+    {# тип контента, по умолчанию используется article #}
+    <meta property="og:type" content="article">
+    {# заголовок страницы, который будет выводиться в записи социальной сети #}
+    <meta property="og:title" content="it-compot">
+    {# ссылка на изображение, которое будет публиковаться в записи #}
+    {#    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'core/img/logo.png' %}">#}
+    {# ссылка на текущую страницу #}
+    <meta property="og:url" content="{{ request.path }}">
+    {# название сайта #}
+    <meta property="og:site_name" content="it-compot">
+    {# Тип карты, по умолчанию используется summary #}
+    <meta name="twitter:card" content="summary">
+    {# Имя/логин автора #}
+    <meta name="twitter:site" content="Nikita Artasov">
+    {# Название страницы #}
+    <meta name="twitter:title" content="it-compot">
+    {# Описание страницы #}
+    <meta name="twitter:description" content="{% block meta_twitter_description %}{% endblock %}">
+    {# Ссылка на изображение #}
+    {#    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'Core/img/logo.png' %}">#}
+    <meta id="theme" content="{{ theme }}">
+</head>
+<body class="bg-dark">
+<div id="wrapper" class="wrapper d-flex flex-column overflow-hidden position-relative">
+    {% include 'core/includes/header.html' %}
+    <main class="no_scrollbar overflow-y-scroll d-flex flex-column flex-grow-1" style="margin-top: 0;">
+        <div id="loading_spinner_block">
+            <div id="loading_spinner_block-help">
+                <div id="loading_spinner" class="spinner-border fs-4 text-white-50 opacity-50" role="status"></div>
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+    {% include 'core/includes/footer.html' %}
+</div>
+</body>
+</html>
+
+

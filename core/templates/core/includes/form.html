@@ -1,0 +1,28 @@
+{% load Core_tags %}
+{% if success %}
+    <span class="text-success fw-bold text-center">{{ success }}</span>
+{% endif %}
+{% if form.non_field_errors %}
+    <ul class="errorlist">
+        {% for error in form.non_field_errors %}
+            <li class="text-center"><span class="fw-bold text-danger">{{ error }}</span></li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% for field in form %}
+    {% if field.errors %}
+        <ul class="errorlist">
+            {% for error in field.errors %}
+                <li><span class="fw-bold text-danger">{{ error }}</span></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endfor %}
+{% if not errors_only %}
+    {% for field in form %}
+        <div class="mb-3 form__group fs-5">
+            {{ field }}
+            {{ field.label_tag|remove_colons|safe }}
+        </div>
+    {% endfor %}
+{% endif %}

@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}it-compot | Teacher Salary{% endblock %}
+
+{% block meta_keywords %}Teacher Salary{% endblock %}
+{% block meta_description %}Teacher Salary{% endblock %}
+{% block meta_og_description %}Зарплата педагога{% endblock %}
+{% block meta_twitter_description %}Teacher Salary{% endblock %}
+
+{% block content %}
+    <div id="content" class="mt-4 px-3 d-none rounded-top-4 overflow-hidden"
+         data-bs-theme="dark">
+        <h1 class="text-white fs-1 text-center mt-4">{{ email }} salary</h1>
+        <p class="fs-2 mt-4 text-white-90 fw-bold">Итог: <span style="color: #8dff97">{{ sum_salary }} ₽</span></p>
+        <div class="mt-2 overflow-scroll no_scrollbar">
+            {% if teacher_salary_rows %}
+                <table class="table table-bordered table-hover white-space-no-wrap">
+                    <thead class="table-dark fs-5">
+                    <tr>
+                        <th>Группа</th>
+                        <th>Название</th>
+                        <th>Дисциплина</th>
+                        <th>Уровень</th>
+                        <th>Тип</th>
+                        <th>Ученик</th>
+                        <th>Дата</th>
+                        <th>Пропуск</th>
+                        <th>Время</th>
+                        <th>Дата начала</th>
+                        <th>Дата окончания</th>
+                        <th>Монетки</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in teacher_salary_rows %}
+                        {% if not forloop.first %}
+                            <tr>
+                                {% for cell in row %}
+                                    {% if forloop.counter != 11 %}
+                                        <td>{{ cell }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Нет данных о зарплате.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
