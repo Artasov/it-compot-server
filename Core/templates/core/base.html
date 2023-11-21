@@ -7,11 +7,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 
-    <link rel="icon" type="image/png" href="{% static 'core/img/logo.png' %}">
-    <link href="{% static 'core/css/bootstrap.min.css' %}" rel="stylesheet">
-    <link href="{% static 'core/css/style.css' %}" rel="stylesheet">
-    <link href="{% static 'core/css/buttons.css' %}" rel="stylesheet">
-    <link href="{% static 'core/css/inputs.css' %}" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'Core/img/logo.png' %}">
+    <link href="{% static 'Core/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'Core/css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'Core/css/buttons.css' %}" rel="stylesheet">
+    <link href="{% static 'Core/css/inputs.css' %}" rel="stylesheet">
 
     <script defer src="{% static 'Core/js/bootstrap.bundle.min.js' %}"></script>
     <script defer src="{% static 'Core/js/check_device.js' %}"></script>
@@ -38,7 +38,7 @@
     {# заголовок страницы, который будет выводиться в записи социальной сети #}
     <meta property="og:title" content="it-compot">
     {# ссылка на изображение, которое будет публиковаться в записи #}
-    {#    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'core/img/logo.png' %}">#}
+    {#    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'Core/img/logo.png' %}">#}
     {# ссылка на текущую страницу #}
     <meta property="og:url" content="{{ request.path }}">
     {# название сайта #}
@@ -57,7 +57,7 @@
 </head>
 <body class="bg-dark">
 <div id="wrapper" class="wrapper d-flex flex-column overflow-hidden position-relative">
-    {% include 'core/includes/header.html' %}
+    {% include 'Core/includes/header.html' %}
     <main class="no_scrollbar overflow-y-scroll d-flex flex-column flex-grow-1" style="margin-top: 0;">
         <div id="loading_spinner_block">
             <div id="loading_spinner_block-help">
@@ -66,7 +66,7 @@
         </div>
         {% block content %}{% endblock %}
     </main>
-    {% include 'core/includes/footer.html' %}
+    {% include 'Core/includes/footer.html' %}
 </div>
 </body>
 </html>

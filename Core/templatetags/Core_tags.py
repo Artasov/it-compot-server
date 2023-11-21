@@ -6,7 +6,7 @@ from django.utils.datetime_safe import datetime
 
 # from Core.forms import UserLoginForm
 # from Core.models import CompanyData
-from core.services.services import get_plural_form_number
+from Core.services.services import get_plural_form_number
 
 register = template.Library()
 

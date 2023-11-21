@@ -15,7 +15,7 @@ from django.shortcuts import render, redirect
 
 from config.settings import DEVELOPER_EMAIL
 from mailing.services.services import send_text_email
-from core.error_messages import USER_EMAIL_NOT_EXISTS, USER_USERNAME_NOT_EXISTS
+from Core.error_messages import USER_EMAIL_NOT_EXISTS, USER_USERNAME_NOT_EXISTS
 import urllib.parse, urllib.request
 from django.http import HttpResponseNotAllowed, HttpResponse
 

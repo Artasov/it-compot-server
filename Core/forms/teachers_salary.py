@@ -1,7 +1,7 @@
 from django import forms
 
 from config.settings import TEACHER_SALARY_PASSWORD
-from core.error_messages import TEACHER_EMAIL_NOT_FOUND, TEACHER_SALARY_PASSWORD_WRONG
+from Core.error_messages import TEACHER_EMAIL_NOT_FOUND, TEACHER_SALARY_PASSWORD_WRONG
 
 
 class GetTeacherSalaryForm(forms.Form):
