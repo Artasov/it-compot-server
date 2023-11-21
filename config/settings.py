@@ -16,7 +16,7 @@ DEV = bool(int(env('DEV')))
 ALLOWED_HOSTS = str(env('ALLOWED_HOSTS')).split(',')
 
 LOCAL_APPS = [
-    'core',
+    'Core',
 ]
 
 THIRD_APPS = []
@@ -41,12 +41,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = 'Core.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'core' / 'templates'],
+        'DIRS': [BASE_DIR / 'Core' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -87,7 +87,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.parent / 'static'
 STATICFILES_DIRS = [
-    BASE_DIR / 'core' / 'static',
+    BASE_DIR / 'Core' / 'static',
 ]
 if DEBUG:
     MEDIA_URL = '/media/'

@@ -1,9 +1,8 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from core.error_messages import TEACHER_EMAIL_NOT_FOUND
-from core.forms.teachers_salary import GetTeacherSalaryForm
-from service.common.common import create_virtual_csv
+from Core.error_messages import TEACHER_EMAIL_NOT_FOUND
+from Core.forms.teachers_salary import GetTeacherSalaryForm
 from service.hollihop.classes.exeptions import TeacherNotFound
 from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
 
@@ -20,11 +19,11 @@ def teacher_salary(request):
                     continue
                 sum_salary += int(row[-1])
 
-            return render(request, 'core/other/teachers_salary_result.html', {
+            return render(request, 'Core/other/teachers_salary_result.html', {
                 'teacher_salary_rows': teacher_salary_rows,
                 'sum_salary': sum_salary,
                 'email': email
             })
         except TeacherNotFound:
             form.add_error(None, TEACHER_EMAIL_NOT_FOUND)
-    return render(request, 'core/other/teachers_salary.html', {'form': form})
+    return render(request, 'Core/other/teachers_salary.html', {'form': form})
