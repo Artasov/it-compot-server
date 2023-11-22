@@ -23,6 +23,21 @@ register = template.Library()
 #     except CompanyData.DoesNotExist:
 #         return f'"{company_data_param}" not found in CompanyData.'
 
+@register.simple_tag()
+def get_beauty_int(price):
+    price = str(int(price))
+    done_str = ''
+    count_symbols = 0
+    for i in range(len(price) - 1, -1, -1):
+        if count_symbols < 3:
+            done_str += price[i]
+            count_symbols += 1
+        else:
+            done_str += ' '
+            done_str += price[i]
+            count_symbols = 1
+    return done_str[::-1]
+
 
 @register.filter
 def remove_colons(value):
