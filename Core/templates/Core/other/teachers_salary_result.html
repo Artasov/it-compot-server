@@ -11,7 +11,10 @@
 {% block content %}
     <div id="content" class="mt-4 px-3 d-none rounded-top-4 overflow-y-scroll"
          data-bs-theme="dark">
-        <h1 class="text-white fs-1 text-center mt-4">{{ email }} salary</h1>
+        <h1 class="text-white fs-1 text-center mt-4">
+            Зарплата<br>
+            {{ teacher_salary_rows.1.11 }}<br>
+            {{ email }} </h1>
         <p class="fs-2 mt-4 text-white-90 fw-bold">Итог: <span style="color: #8dff97">{% get_beauty_int sum_salary %} ₽</span></p>
         <div class="mt-2 overflow-scroll no_scrollbar">
             {% if teacher_salary_rows %}
@@ -19,16 +22,16 @@
                     <thead class="table-dark fs-5">
                     <tr>
                         <th>Группа</th>
-                        <th>Название</th>
+{#                        <th>Название</th>#}
                         <th>Дисциплина</th>
-                        <th>Уровень</th>
+{#                        <th>Уровень</th>#}
                         <th>Тип</th>
                         <th>Ученик</th>
                         <th>Дата</th>
                         <th>Пропуск</th>
                         <th>Время</th>
-                        <th>Дата начала</th>
-                        <th>Дата окончания</th>
+{#                        <th>Дата начала</th>#}
+{#                        <th>Дата окончания</th>#}
                         <th>Монетки</th>
                     </tr>
                     </thead>
@@ -37,7 +40,7 @@
                         {% if not forloop.first %}
                             <tr>
                                 {% for cell in row %}
-                                    {% if forloop.counter != 12 %}
+                                    {% if forloop.counter != 12 and forloop.counter != 2 and forloop.counter != 4 and forloop.counter != 10 and forloop.counter != 11 %}
                                         <td>{{ cell }}</td>
                                     {% endif %}
                                 {% endfor %}

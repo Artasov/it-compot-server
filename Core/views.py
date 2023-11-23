@@ -17,7 +17,10 @@ def teacher_salary(request):
             for i, row in enumerate(teacher_salary_rows):
                 if i == 0:
                     continue
-                sum_salary += int(row[-1])
+                try:
+                    sum_salary += int(row[-1])
+                except ValueError:
+                    pass
 
             return render(request, 'Core/other/teachers_salary_result.html', {
                 'teacher_salary_rows': teacher_salary_rows,
