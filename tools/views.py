@@ -45,7 +45,7 @@ def parse_teachers_schedule_ui(request):
                 range_name = f'{first_sheet_title}!A1'
 
                 response = client.update_sheet_with_df(range_name, schedule_dataframe)
-                context['success'] = 'Готов, проверьте таблицу'
+                context['success'] = 'Готово, проверьте таблицу'
             except Exception as e:
                 form.add_error(None, f'Произошла ошибка при загрузке данных: {e}')
     else:
