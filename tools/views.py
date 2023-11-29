@@ -16,7 +16,7 @@ from tools.forms.teachers_salary import GetTeacherSalaryForm
 
 def parse_teachers_schedule_ui(request):
     context = {}
-    if request.method != 'POST':
+    if request.method == 'POST':
         form = LoadHHTeachersScheduleXLSXForm(request.POST, request.FILES)
         if form.is_valid():
             teachers_schedule_xlsx = form.cleaned_data['file']
