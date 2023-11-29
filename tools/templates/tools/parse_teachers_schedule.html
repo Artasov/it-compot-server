@@ -1,0 +1,30 @@
+{% extends 'Core/base.html' %}
+{% load static %}
+{% block title %}it-compot | Teachers Schedule{% endblock %}
+
+{% block meta_keywords %}Teachers Schedule{% endblock %}
+{% block meta_description %}Teachers Schedule{% endblock %}
+{% block meta_og_description %}Расписание педагогов{% endblock %}
+{% block meta_twitter_description %}Teachers Schedule{% endblock %}
+
+{% block content %}
+<div id="content" class="container d-none  fcc flex-grow-1"
+     data-bs-theme="dark"
+     style="max-width: 400px;">
+    <div class="row disable-tap-and-selection ">
+        <h1 class="text-dark-emphasis fs-1 text-center">Расписание педагогов</h1>
+
+        <form class="px-3 py-1 text-center"
+              method="post" enctype="multipart/form-data"
+              action="{% url 'tools:parse_teachers_schedule' %}">{% csrf_token %}
+
+            {% include 'Core/includes/form.html' with form=form %}
+
+            <div class="text-center pt-3 pb-1">
+                <button type="submit" id="button" data-text="GENERATE" data-text-done=""
+                        class="btn-13 fw-bold bg-transparent text-dark-emphasis"></button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

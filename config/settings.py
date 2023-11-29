@@ -17,6 +17,7 @@ ALLOWED_HOSTS = str(env('ALLOWED_HOSTS')).split(',')
 
 LOCAL_APPS = [
     'Core',
+    'tools',
 ]
 
 THIRD_APPS = []
@@ -95,6 +96,8 @@ else:
     MEDIA_URL = '/static/media/'
 MEDIA_ROOT = BASE_DIR.parent / 'static' / 'media'
 
+SERVICE_ROOT = BASE_DIR / 'service'
+
 DEVELOPER_EMAIL = 'ivanhvalevskey@gmail.com'
 
 # HolliHop
@@ -107,3 +110,5 @@ TABLE_TEACHERS_SALARY = ('1T5Np2RdqBCdmo7IUm9FGBG6mZWY138arUWPJOBs-slY', '690189
 
 # Other
 TEACHER_SALARY_PASSWORD = env('TEACHER_SALARY_PASSWORD')
+
+GOOGLE_API_JSON_CREDS_PATH = os.path.join(BASE_DIR, 'it-compot-web-client_creds.json')
