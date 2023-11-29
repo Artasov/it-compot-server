@@ -7,6 +7,13 @@
 {% block meta_og_description %}Расписание педагогов{% endblock %}
 {% block meta_twitter_description %}Teachers Schedule{% endblock %}
 
+{% block link_content_css %}
+    <style>
+        .popover{
+            font-size: 1rem !important;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
     <div id="content" class="container d-none  fcc flex-grow-1"
@@ -15,11 +22,12 @@
         <div class="row disable-tap-and-selection">
             <h1 class="text-dark-emphasis fs-1 text-center">Teachers Schedule</h1>
 
+
             <button type="button"
                     class="fs-5 mb-2 mx-auto badge rounded-pill text-white-70 bg-black-25 text-white-50 popover-dismiss"
                     data-bs-container="body" data-bs-toggle="popover"
                     data-bs-placement="bottom" data-bs-trigger="focus" style="width: min-content" data-bs-content="
-                Выгрузите .xlsx файл по ссылке ниже. Изменяйте только даты, если требуется. Загрузите скачанный файл ниже.
+                Выгрузите .xlsx файл по ссылке ниже (она подготовлена). Изменяйте только даты, если требуется. Загрузите скачанный файл ниже.
                 Добавьте сервисный аккаунт в вашу таблицу для парсинга и назначьте его редактором, его email ниже. Впишите id таблицы в поле ниже.
                 Нажмите Parse и ожидайте перезагрузки страницы с результатом выполнения. Если ваша таблица не пустая, перед загрузкой она автоматически очистится.">
                 Гайд
