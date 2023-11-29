@@ -7,24 +7,52 @@
 {% block meta_og_description %}Расписание педагогов{% endblock %}
 {% block meta_twitter_description %}Teachers Schedule{% endblock %}
 
+
 {% block content %}
-<div id="content" class="container d-none  fcc flex-grow-1"
-     data-bs-theme="dark"
-     style="max-width: 400px;">
-    <div class="row disable-tap-and-selection ">
-        <h1 class="text-dark-emphasis fs-1 text-center">Расписание педагогов</h1>
+    <div id="content" class="container d-none  fcc flex-grow-1"
+         data-bs-theme="dark"
+         style="max-width: 400px;">
+        <div class="row disable-tap-and-selection">
+            <h1 class="text-dark-emphasis fs-1 text-center">Teachers Schedule</h1>
 
-        <form class="px-3 py-1 text-center"
-              method="post" enctype="multipart/form-data"
-              action="{% url 'tools:parse_teachers_schedule' %}">{% csrf_token %}
-
-            {% include 'Core/includes/form.html' with form=form %}
-
-            <div class="text-center pt-3 pb-1">
-                <button type="submit" id="button" data-text="GENERATE" data-text-done=""
-                        class="btn-13 fw-bold bg-transparent text-dark-emphasis"></button>
+            <button type="button"
+                    class="fs-5 mb-2 mx-auto badge rounded-pill text-white-70 bg-black-25 text-white-50 popover-dismiss"
+                    data-bs-container="body" data-bs-toggle="popover"
+                    data-bs-placement="bottom" data-bs-trigger="focus" style="width: min-content" data-bs-content="
+                Выгрузите .xlsx файл по ссылке ниже. Изменяйте только даты, если требуется. Загрузите скачанный файл ниже.
+                Добавьте сервисный аккаунт в вашу таблицу для парсинга и назначьте его редактором, его email ниже. Впишите id таблицы в поле ниже.
+                Нажмите Parse и ожидайте перезагрузки страницы с результатом выполнения. Если ваша таблица не пустая, перед загрузкой она автоматически очистится.">
+                Гайд
+            </button>
+            <a href="https://it-school.t8s.ru/Table/TeachersTime?Submitted=True&Page=0&School=-1&Step=0%3A00&Week=true&Week=false&UnitedColumns=false&Inverted=true&Inverted=false"
+               class="text-center fw-bold" target="_blank">
+                Выгрузить расписание с HH
+            </a>
+            <div class="text-white-90">
+                <div class="fs-7 text-secondary ps-2" style="transform: translateY(50%);">Service Account Email</div>
+                <div class="frc align-items-center bg-black-20 py-1 px-2 gap-3">
+                    <p class="enable-tap-and-selection m-0 text-center fs-5 overflow-x-scroll no_scrollbar"
+                       style="max-width: 230px;" id="service-account">
+                        xlartas@itkompot.iam.gserviceaccount.com
+                    </p>
+                    <img src="{% static 'Core/img/copy.png' %}" style="width: 32px;" class="btn-copy-1 btn-copy" data-selector-for-copy-inner="#service-account" alt="">
+                </div>
             </div>
-        </form>
+            <form class="px-3 py-1 text-center"
+                  method="post" enctype="multipart/form-data"
+                  action="{% url 'tools:parse_teachers_schedule' %}">{% csrf_token %}
+
+                {% include 'Core/includes/form.html' with form=form %}
+
+                <div class="text-center pt-3 pb-1">
+                    <button type="submit" id="button" data-text="PARSE" data-text-done=""
+                            class="btn-13 fw-bold bg-transparent text-dark-emphasis"></button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
+
+    <script>
+        const popover = new bootstrap.Popover('.popover-dismiss', {trigger: 'focus'})
+    </script>
 {% endblock %}

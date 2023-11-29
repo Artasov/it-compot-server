@@ -2,6 +2,29 @@ async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function initCopyBtns() {
+    const copyBtns = document.querySelectorAll('.btn-copy');
+    for (const copyBtn of copyBtns) {
+        copyBtn.addEventListener('click', () => {
+            const selectorForCopyInner = copyBtn.getAttribute('data-selector-for-copy-inner');
+            copyInnerHtml(selectorForCopyInner)
+        })
+    }
+}
+initCopyBtns();
+function copyInnerHtml(selector) {
+    const element = document.querySelector(selector);
+    const content = element.innerHTML;
+
+    navigator.clipboard.writeText(content)
+        .then(() => {
+            console.log("Содержимое скопировано!");
+        })
+        .catch(err => {
+            console.error("Ошибка при копировании: ", err);
+        });
+}
+
 function getCookie(name) {
     const value = "; " + document.cookie;
     const parts = value.split("; " + name + "=");
