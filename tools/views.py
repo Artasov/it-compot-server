@@ -6,7 +6,7 @@ from django.shortcuts import render
 from Core.error_messages import TEACHER_EMAIL_NOT_FOUND
 from service.hollihop.classes.exeptions import TeacherNotFound
 from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
-from service.tools.gsheet.common import GSheetsClient
+from service.tools.gsheet.classes.gsheetsclient import GSheetsClient
 from service.tools.techers_daily_schedule import create_schedule, \
     parse_teachers_schedule_from_dj_mem
 
@@ -37,7 +37,13 @@ def parse_teachers_schedule_ui(request):
                     gsheet_id
                 )
 
-                range_name = 'Лист1!A1'
+                # Получение первого листа
+                sheets_titles = client.get_sheets_titles()
+                if not sheets_titles:
+                    raise ValueError("Документ не содержит ни одного листа.")
+                first_sheet_title = sheets_titles[0]
+                range_name = f'{first_sheet_title}!A1'
+
                 response = client.update_sheet_with_df(range_name, schedule_dataframe)
                 context['success'] = 'Готов, проверьте таблицу'
             except Exception as e:

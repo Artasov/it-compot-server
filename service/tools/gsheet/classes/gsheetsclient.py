@@ -17,6 +17,13 @@ class GSheetsClient:
         service = build('sheets', 'v4', credentials=credentials)
         return service
 
+    def get_sheets_titles(self):
+        # Получаем метаданные о листах
+        sheet_metadata = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()
+        sheets = sheet_metadata.get('sheets', '')
+        titles = [sheet.get('properties', {}).get('title', '') for sheet in sheets]
+        return titles
+
     def update_sheet(self, range_name, values):
         # Вставляем данные в таблицу
         body = {'values': values}
