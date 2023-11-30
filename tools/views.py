@@ -22,7 +22,7 @@ def parse_teachers_schedule_ui(request):
         if form.is_valid():
             teachers_schedule_xlsx = form.cleaned_data['file']
             gdoc_id = form.cleaned_data['gdoc_id']
-            new_glist_name = form.cleaned_data['new_glist_name']
+            new_glist_name = form.cleaned_data['new_glist_name'].replace('.', '_').replace(':', '_')
             try:
                 teachers_activities = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
                 schedule_dataframe = create_schedule(teachers_activities)
