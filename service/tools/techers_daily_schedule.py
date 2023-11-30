@@ -27,7 +27,7 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     teachers_schedule = {}
 
-    teachers = df.iloc[1, 1:].dropna()
+    teachers = df.iloc[1, 1:3].dropna()
 
     for index, row in df.iterrows():
         if index < 2:
@@ -88,15 +88,29 @@ def fill_schedule(activities):
 
 
 def create_schedule(teachers_activities):
-    all_schedules = []
+    # Создаем список для данных расписания
+    schedule_list = []
+
     for teacher, activities in teachers_activities.items():
         teacher_schedule = fill_schedule(activities)
         for entry in teacher_schedule:
-            all_schedules.append({
-                'Имя': teacher.split('\n')[0],
-                **entry
-            })
-    return pd.DataFrame(all_schedules)
+            schedule_list.append([
+                teacher.split('\n')[0],  # Имя учителя
+                entry['Начало интервала'],
+                entry['Конец интервала'],
+                entry['Занятость']
+            ])
+
+    # Создаем DataFrame без указания заголовков столбцов
+    schedule_df = pd.DataFrame(schedule_list)
+
+    # Вставляем заголовки как первую строку данных
+    headers = ['Имя', 'Начало интервала', 'Конец интервала', 'Занятость']
+    schedule_df.loc[-1] = headers  # Добавляем заголовки в начало DataFrame
+    schedule_df.index = schedule_df.index + 1  # Сдвигаем индекс
+    schedule_df.sort_index(inplace=True)  # Сортируем индекс
+
+    return schedule_df
 
 # def parse_teachers_schedule_from_file(file_path: str) -> Dict[Any, list]:
 #     """

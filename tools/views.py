@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pandas as pd
 from django.conf import settings
 from django.shortcuts import render
 
@@ -25,12 +26,13 @@ def parse_teachers_schedule_ui(request):
                 teachers_activities = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
                 schedule_dataframe = create_schedule(teachers_activities)
 
-                # Вставляем дату выгрузки в начало DataFrame
+                # Добавляем строку с датой выгрузки перед заголовками
                 current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                schedule_dataframe.loc[-1] = ['Дата выгрузки:', current_date] + [''] * (
-                        schedule_dataframe.shape[1] - 2)  # Предполагаем, что у DataFrame есть как минимум две колонки
-                schedule_dataframe.index = schedule_dataframe.index + 1  # Сдвигаем индекс
-                schedule_dataframe = schedule_dataframe.sort_index()  # Сортируем индекс
+                date_row = [f'Дата выгрузки: {current_date}'] + [''] * (len(schedule_dataframe.columns) - 1)
+
+                # Добавляем строку с датой выгрузки в DataFrame
+                date_df = pd.DataFrame([date_row], columns=schedule_dataframe.columns)
+                schedule_dataframe = pd.concat([date_df, schedule_dataframe], ignore_index=True)
 
                 client = GSheetsClient(
                     settings.GOOGLE_API_JSON_CREDS_PATH,
@@ -53,6 +55,7 @@ def parse_teachers_schedule_ui(request):
 
     context['form'] = form
     return render(request, 'tools/parse_teachers_schedule.html', context)
+
 
 
 def teacher_salary(request):

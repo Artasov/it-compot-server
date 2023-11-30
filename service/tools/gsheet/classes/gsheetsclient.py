@@ -37,9 +37,10 @@ class GSheetsClient:
         return response
 
     def update_sheet_with_df(self, range_name, df):
-        # Преобразование DataFrame в список списков
+        # Передаем DataFrame в Google Sheets без изменений
         values = df.fillna('').values.tolist()
         body = {'values': values}
+
         request = self.service.spreadsheets().values().update(
             spreadsheetId=self.spreadsheet_id,
             range=range_name,
