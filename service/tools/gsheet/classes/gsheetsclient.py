@@ -17,6 +17,22 @@ class GSheetsClient:
         service = build('sheets', 'v4', credentials=credentials)
         return service
 
+    def create_sheet(self, sheet_title):
+        # Создаем запрос на добавление нового листа
+        body = {
+            'requests': [{
+                'addSheet': {
+                    'properties': {
+                        'title': sheet_title
+                    }
+                }
+            }]
+        }
+        request = self.service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet_id, body=body)
+        response = request.execute()
+        return response.get('replies')[0].get('addSheet').get('properties').get('sheetId')
+
     def get_sheets_titles(self):
         # Получаем метаданные о листах
         sheet_metadata = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()

@@ -21,41 +21,28 @@ def parse_teachers_schedule_ui(request):
         form = LoadHHTeachersScheduleXLSXForm(request.POST, request.FILES)
         if form.is_valid():
             teachers_schedule_xlsx = form.cleaned_data['file']
-            gsheet_id = form.cleaned_data['gsheet_id']
+            gdoc_id = form.cleaned_data['gdoc_id']
+            new_glist_name = form.cleaned_data['new_glist_name']
             try:
                 teachers_activities = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
                 schedule_dataframe = create_schedule(teachers_activities)
 
-                # Добавляем строку с датой выгрузки перед заголовками
-                current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                date_row = [f'Дата выгрузки: {current_date}'] + [''] * (len(schedule_dataframe.columns) - 1)
+                client = GSheetsClient(settings.GOOGLE_API_JSON_CREDS_PATH, gdoc_id)
 
-                # Добавляем строку с датой выгрузки в DataFrame
-                date_df = pd.DataFrame([date_row], columns=schedule_dataframe.columns)
-                schedule_dataframe = pd.concat([date_df, schedule_dataframe], ignore_index=True)
+                # Создаем новый лист
+                client.create_sheet(new_glist_name)
 
-                client = GSheetsClient(
-                    settings.GOOGLE_API_JSON_CREDS_PATH,
-                    gsheet_id
-                )
-
-                # Получение первого листа
-                sheets_titles = client.get_sheets_titles()
-                if not sheets_titles:
-                    raise ValueError("Документ не содержит ни одного листа.")
-                first_sheet_title = sheets_titles[0]
-                range_name = f'{first_sheet_title}!A1'
-
-                response = client.update_sheet_with_df(range_name, schedule_dataframe)
+                # Обновляем данные на новом листе
+                range_name = f'{new_glist_name}!A1'
+                client.update_sheet_with_df(range_name, schedule_dataframe)
                 context['success'] = 'Готово, проверьте таблицу'
             except Exception as e:
-                form.add_error(None, f'Произошла ошибка при загрузке данных: {e}')
+                context['error'] = f'Произошла ошибка при загрузке данных: {e}'
     else:
         form = LoadHHTeachersScheduleXLSXForm()
 
     context['form'] = form
     return render(request, 'tools/parse_teachers_schedule.html', context)
-
 
 
 def teacher_salary(request):
