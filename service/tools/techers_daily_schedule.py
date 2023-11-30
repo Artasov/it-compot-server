@@ -27,7 +27,7 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     teachers_schedule = {}
 
-    teachers = df.iloc[1, 1:3].dropna()
+    teachers = df.iloc[1, 1:].dropna()
 
     for index, row in df.iterrows():
         if index < 2:
