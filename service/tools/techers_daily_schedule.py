@@ -22,12 +22,26 @@ def read_xlsx(file_path):
         return f"Ошибка при чтении файла: {e}"
 
 
+def find_header_row(df, header_name):
+    for i, row in df.iterrows():
+        if row[0] == header_name:
+            return i
+    return -1  # Возвращает -1, если заголовок не найден
+
+
 def parse_teachers_schedule_from_dj_mem(uploaded_file):
     df = pd.read_excel(uploaded_file, engine='openpyxl')
 
+    # Находим строку с заголовком "Имя"
+    header_row_index = find_header_row(df, "Имя")
+    if header_row_index == -1:
+        return "Заголовок 'Имя' не найден в первом столбце"
+
     teachers_schedule = {}
 
-    teachers = df.iloc[1, 1:].dropna()
+    # Используем найденную строку для извлечения имен преподавателей
+    teachers = df.iloc[header_row_index, 1:].dropna()
+    print(teachers)
 
     for index, row in df.iterrows():
         if index < 2:
@@ -111,37 +125,3 @@ def create_schedule(teachers_activities):
     schedule_df.sort_index(inplace=True)  # Сортируем индекс
 
     return schedule_df
-
-# def parse_teachers_schedule_from_file(file_path: str) -> Dict[Any, list]:
-#     """
-#     HH xlsx teacher schedule file parser to teacher dict
-#     :param file_path: path_to_xlsx_teacher_schedule
-#     :return: dict {'teacher_name': ['time and actions', 'time and actions'], 'teacher_name': ['...}
-#     """
-#     df = pd.read_excel(file_path, engine='openpyxl')
-#
-#     teachers_schedule = {}
-#
-#     # Get the teacher names from the second row, starting from the third column
-#     teachers = df.iloc[1, 1:]
-#
-#     # Iterate over the DataFrame starting from the third row
-#     for index, row in df.iterrows():
-#         # Skip header and teacher name rows
-#         if index < 2:
-#             continue
-#
-#         # Iterate over each teacher column starting from the third column
-#         for i, teacher in enumerate(teachers):
-#             # Adjust column index to start from third column
-#             col_index = i + 1
-#             cell_value = row[col_index]
-#
-#             # Check if the cell is not empty and not a time slot
-#             if pd.notna(cell_value) and not isinstance(cell_value, dt.time):
-#                 # If the cell is not empty, add it to the teacher's schedule
-#                 if teacher not in teachers_schedule:
-#                     teachers_schedule[teacher] = []
-#                 teachers_schedule[teacher].append(str(cell_value))
-#
-#     return teachers_schedule
