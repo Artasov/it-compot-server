@@ -1,0 +1,33 @@
+{% extends 'Core/base.html' %}
+{% load static %}
+{% block title %}it-compot | Menu{% endblock %}
+
+{% block meta_keywords %}Menu{% endblock %}
+{% block meta_description %}Menu{% endblock %}
+{% block meta_og_description %}Menu{% endblock %}
+{% block meta_twitter_description %}Menu{% endblock %}
+
+
+{% block content %}
+    <div id="content" class="container d-none  fcc flex-grow-1"
+         data-bs-theme="dark"
+         style="max-width: 400px;">
+        <div class="row disable-tap-and-selection">
+
+            <h2 class="text-dark-emphasis fs-1 text-center">It-compot</h2>
+            <h2 class="text-dark-emphasis fs-3">Tools</h2>
+            <ul class="ps-5">
+                <li>
+                    <a href="{% url 'tools:parse_teachers_schedule' %}"
+                       class="fs-5 text-dark-emphasis link">
+                        Teachers Schedule</a>
+                </li>
+                <li>
+                    <a href="{% url 'tools:teachers_salary' %}"
+                       class="fs-5 text-dark-emphasis link">
+                        Teachers Salary</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
