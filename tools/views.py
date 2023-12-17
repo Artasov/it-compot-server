@@ -10,7 +10,7 @@ from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from service.hollihop.classes.exeptions import TeacherNotFound
 from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
 from service.tools.gsheet.classes.gsheetsclient import GSheetsClient
-from service.tools.techers_daily_schedule import create_schedule, \
+from service.tools.teachers_daily_schedule import create_schedule, \
     parse_teachers_schedule_from_dj_mem
 
 from tools.forms.other import LoadHHTeachersScheduleXLSXForm
