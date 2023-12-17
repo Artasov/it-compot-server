@@ -1,25 +1,8 @@
-from itertools import islice
-from typing import Any, Dict
-
 import pandas as pd
 import datetime as dt
 
 import re
 from datetime import datetime, timedelta
-
-
-def read_xlsx(file_path):
-    """
-    Читает .xlsx файл и возвращает его содержимое в виде pandas DataFrame.
-
-    :param file_path: Путь к файлу .xlsx
-    :return: pandas DataFrame с содержимым файла
-    """
-    try:
-        data = pd.read_excel(file_path, engine='openpyxl')
-        return data
-    except Exception as e:
-        return f"Ошибка при чтении файла: {e}"
 
 
 def find_header_row(df, header_name):
@@ -40,7 +23,7 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
     teachers_schedule = {}
 
     # Используем найденную строку для извлечения имен преподавателей
-    teachers = df.iloc[header_row_index, 1:].dropna()
+    teachers = df.iloc[header_row_index, 1:4].dropna()
     print(teachers)
 
     for index, row in df.iterrows():

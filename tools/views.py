@@ -1,10 +1,12 @@
 from datetime import datetime
+from pprint import pprint
 
 import pandas as pd
 from django.conf import settings
 from django.shortcuts import render
 
 from Core.error_messages import TEACHER_EMAIL_NOT_FOUND
+from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from service.hollihop.classes.exeptions import TeacherNotFound
 from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
 from service.tools.gsheet.classes.gsheetsclient import GSheetsClient
@@ -24,9 +26,8 @@ def parse_teachers_schedule_ui(request):
             gdoc_id = form.cleaned_data['gdoc_id']
             new_glist_name = form.cleaned_data['new_glist_name'].replace('.', '_').replace(':', '_')
             try:
-                teachers_activities = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
-                schedule_dataframe = create_schedule(teachers_activities)
-
+                teachers_parsed_schedule = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
+                schedule_dataframe = create_schedule(teachers_parsed_schedule)
                 client = GSheetsClient(settings.GOOGLE_API_JSON_CREDS_PATH, gdoc_id)
 
                 # Создаем новый лист
