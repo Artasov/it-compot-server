@@ -25,20 +25,20 @@ def parse_teachers_schedule_ui(request):
             teachers_schedule_xlsx = form.cleaned_data['file']
             gdoc_id = form.cleaned_data['gdoc_id']
             new_glist_name = form.cleaned_data['new_glist_name'].replace('.', '_').replace(':', '_')
-            try:
-                teachers_parsed_schedule = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
-                schedule_dataframe = create_schedule(teachers_parsed_schedule)
-                client = GSheetsClient(settings.GOOGLE_API_JSON_CREDS_PATH, gdoc_id)
+            # try:
+            teachers_parsed_schedule = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
+            schedule_dataframe = create_schedule(teachers_parsed_schedule)
+            client = GSheetsClient(settings.GOOGLE_API_JSON_CREDS_PATH, gdoc_id)
 
-                # Создаем новый лист
-                client.create_sheet(new_glist_name)
+            # Создаем новый лист
+            client.create_sheet(new_glist_name)
 
-                # Обновляем данные на новом листе
-                range_name = f'{new_glist_name}!A1'
-                client.update_sheet_with_df(range_name, schedule_dataframe)
-                context['success'] = 'Готово, проверьте таблицу'
-            except Exception as e:
-                form.add_error(None, f'Произошла ошибка при загрузке данных: {e}')
+            # Обновляем данные на новом листе
+            range_name = f'{new_glist_name}!A1'
+            client.update_sheet_with_df(range_name, schedule_dataframe)
+            context['success'] = '  Готово, проверьте таблицу'
+            # except Exception as e:
+            #     form.add_error(None, f'Произошла ошибка при загрузке данных: {e}')
     else:
         form = LoadHHTeachersScheduleXLSXForm()
 

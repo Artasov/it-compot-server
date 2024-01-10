@@ -2,8 +2,9 @@ from pprint import pprint
 
 import pandas as pd
 import datetime as dt
+
 import re
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
@@ -12,58 +13,135 @@ def find_header_row(df, header_name):
     for i, row in df.iterrows():
         if row[0] == header_name:
             return i
-    return -1
+    return -1  # Возвращает -1, если заголовок не найден
+
+
+def is_time_overlap(interval1, interval2):
+    start1, end1 = interval1
+    start2, end2 = interval2
+    return max(start1, start2) < min(end1, end2)
+
+
+def parse_activity(activity: str) -> dict:
+    # Извлекаем временной интервал
+    interval_match = re.search(r'\d{1,2}:\d{2}-\d{1,2}:\d{2}', activity)
+    if interval_match:
+        start_time, end_time = interval_match.group(0).split('-')
+        time_interval = [datetime.strptime(start_time, '%H:%M').time(), datetime.strptime(end_time, '%H:%M').time()]
+    else:
+        time_interval = 'Временной интервал не найден'
+
+    # Извлекаем интервал дат или одиночную дату
+    date_interval_match = re.search(r'\d{1,2}\.\d{2}\.\d{2,4}(?:-\d{1,2}\.\d{2}(?:\.\d{2,4})?)?', activity)
+    if date_interval_match:
+        date_interval_str = date_interval_match.group(0)
+        if '-' in date_interval_str:
+            start_date, end_date = date_interval_str.split('-')
+            # Добавляем год к концу интервала, если он отсутствует
+            if len(end_date.split('.')) == 2:
+                end_date_year = int(start_date.split('.')[2]) + 1 if int(start_date.split('.')[1]) > int(
+                    end_date.split('.')[1]) else int(start_date.split('.')[2])
+                end_date += f'.{end_date_year}'
+            date_interval = [datetime.strptime(start_date, '%d.%m.%y').date(),
+                             datetime.strptime(end_date, '%d.%m.%y').date()]
+        else:
+            date_interval = [datetime.strptime(date_interval_str, '%d.%m.%y').date()]
+    else:
+        date_interval = 'Интервал дат не найден'
+
+    # Очищаем строку от временного интервала, дат, дней недели в скобках и лишних символов
+    desc = re.sub(r'\d{1,2}:\d{2}-\d{1,2}:\d{2}', '', activity)  # Удаляем временной интервал
+    desc = re.sub(r'\(.*?\d{1,2}\.\d{2}\.\d{2,4}.*?\)', '', desc)
+    desc = re.sub(date_interval_match.group(0) if date_interval_match else '', '', desc)  # Удаляем даты
+    desc = re.sub(r'\(\w{1,2}\/?\w{0,2}\/?\w{0,2}\)', '', desc)  # Удаляем дни недели в скобках
+    desc = re.sub(r'\s*\-\s*', ' ', desc)  # Удаляем дефисы с окружающими пробелами
+    desc = re.sub(r'\n', ' ', desc)  # Заменяем переносы строк пробелами
+    desc = re.sub(r'\s{2,}', ' ', desc)  # Удаляем повторяющиеся пробелы
+    desc = re.sub(r'\(\w+(?:\/\w+)*\)', '', desc)  # Удаляем дни недели в скобках(много)
+    desc = desc.strip()  # Убираем пробелы в начале и конце строки
+
+    return {
+        'desc': desc,
+        'time_interval': time_interval,
+        'date_interval': date_interval
+    }
 
 
 def parse_teachers_schedule_from_dj_mem(uploaded_file):
+    teachers_schedules = []
     df = pd.read_excel(uploaded_file, engine='openpyxl')
+    # Находим строку с заголовком "Имя"
     header_row_index = find_header_row(df, "Имя")
     if header_row_index == -1:
         return "Заголовок 'Имя' не найден в первом столбце"
 
-    teachers_schedule = {}
-    all_teachers = CustomHHApiV2Manager().get_short_names_teachers()
+    teachers = list(df.iloc[header_row_index, 1:])
+    # Дублируем имя преподавателя если он распределен на две колонки.
+    for i, teacher in enumerate(teachers):
+        if str(teacher) == 'nan':
+            teachers[i] = teachers[i - 1]
 
-    teachers = df.iloc[header_row_index, 1:].dropna()
+    # Перебираем колонки с преподами
+    for i, teacher in enumerate(teachers):
+        teacher_schedule_info = {
+            'name': teacher.split('\n')[0],
+            'date': re.search(r'\d{2}\.\d{2}\.\d{2}', teacher.split('\n')[1]).group(0),
+            'activities': []
+        }
+        activity_list = df.iloc[2:, i + 1].dropna().tolist()
+        for activity in activity_list:
+            teacher_schedule_info['activities'].append(parse_activity(activity))
+        teachers_schedules.append(teacher_schedule_info)
+
+    # Объединение записей с одинаковыми именами преподавателей
+    for i, ts in enumerate(teachers_schedules):
+        if i == len(teachers_schedules) - 1:
+            break
+        if ts['name'] == teachers_schedules[i + 1]['name']:
+            activities1 = ts['activities']
+            activities2 = teachers_schedules[i + 1]['activities']
+            s_activities = activities1 if len(activities1) < len(activities2) else activities2
+            l_activities = activities2 if len(activities1) < len(activities2) else activities1
+            selected_activities = []
+
+            for activity1 in l_activities:
+                is_overlap = False
+                for activity2 in s_activities:
+                    if is_time_overlap(activity1['time_interval'], activity2['time_interval']):
+                        is_overlap = True
+                        teacher_date = datetime.strptime(ts['date'], '%d.%m.%y').date()
+                        if activity1['date_interval'][0] == teacher_date:
+                            selected_activities.append(activity1)
+                        elif activity2['date_interval'][0] == teacher_date:
+                            selected_activities.append(activity2)
+                        break
+
+                if not is_overlap:
+                    selected_activities.append(activity1)
+
+            ts['activities'] = selected_activities
+            teachers_schedules[i] = ts
+            del teachers_schedules[i + 1]
+
+    working_teachers = teachers_schedules
+
+    all_teachers = CustomHHApiV2Manager().get_short_names_teachers()  # Все имена преподаватели
+
+    # Добавим преподавателей не работающих в этот день и проставим занятость 'Выходной'
     for teacher in all_teachers:
-        if not any(teacher in t for t in teachers):
-            teachers_schedule[teacher] = ['Выходной']
+        if not any(w_teacher['name'].lower() == teacher.lower() for w_teacher in working_teachers):
+            working_teachers.append({
+                'name': teacher,
+                'date': working_teachers[0]['date'],
+                'activities': [{
+                    'desc': 'Выходной',
+                    'time_interval': [datetime.strptime('00:00', '%H:%M').time(),
+                                      datetime.strptime('23:59', '%H:%M').time()],
+                    'date_interval': working_teachers[0]['date']
+                }]
+            })
 
-    for index, row in df.iterrows():
-        if index < 2:
-            continue
-
-        for i, teacher in enumerate(teachers):
-            col_index = i + 1
-            cell_value = row[col_index]
-
-            if pd.notna(cell_value) and not isinstance(cell_value, dt.time):
-                teacher_key = ' '.join(teacher.replace('\n', ' ').strip().split()[:3])
-                teacher_key = re.sub(r'[\(\)\d]', '', teacher_key).strip()
-
-                if teacher_key == 'Имя':
-                    continue
-
-                # Находим соответствующий ключ в teachers_schedule
-                matched_key = next((key for key in teachers_schedule if key.lower() == teacher_key.lower()), None)
-                if matched_key is not None:
-                    teachers_schedule[matched_key].append(str(cell_value))
-                else:
-                    teachers_schedule[teacher_key] = [str(cell_value)]
-
-    return teachers_schedule
-
-
-def parse_time_activity(activity_str):
-    match = re.search(r'([^\d\n]+)?(\d{1,2}:\d{2})-(\d{1,2}:\d{2})', activity_str)
-    if match:
-        description = match.group(1).strip() if match.group(1) else 'Не указано'
-        start_time = dt.datetime.strptime(match.group(2), '%H:%M')
-        end_time = dt.datetime.strptime(match.group(3), '%H:%M')
-        description = re.sub(r'\n.*', '', description).strip()
-        return start_time, end_time, description
-    else:
-        raise ValueError(f'Cannot parse the activity string: {activity_str}')
+    return working_teachers
 
 
 def fill_schedule(activities):
@@ -76,16 +154,15 @@ def fill_schedule(activities):
         full_day_schedule.append({
             'Начало интервала': current_time.strftime('%H:%M'),
             'Конец интервала': (current_time + timedelta(minutes=5)).strftime('%H:%M'),
-            'Занятость': 'Пусто'
+            'Занятость': 'Не указано'
         })
         current_time += timedelta(minutes=5)
 
     for activity in activities:
-        if activity == 'Выходной':
-            for interval in full_day_schedule:
-                interval['Занятость'] = 'Выходной'
-        else:
-            start_time, end_time, description = parse_time_activity(activity)
+        if activity['time_interval'] != 'Временной интервал не найден':
+            start_time = datetime.combine(dt.date.today(), activity['time_interval'][0])
+            end_time = datetime.combine(dt.date.today(), activity['time_interval'][1])
+            description = activity['desc']
             while start_time < end_time:
                 interval_start_str = start_time.strftime('%H:%M')
                 interval_end_str = (start_time + timedelta(minutes=5)).strftime('%H:%M')
@@ -100,22 +177,26 @@ def fill_schedule(activities):
 
 
 def create_schedule(teachers_activities):
+    # Создаем список для данных расписания
     schedule_list = []
 
-    for teacher, activities in teachers_activities.items():
-        teacher_schedule = fill_schedule(activities)
+    for teacher in teachers_activities:
+        teacher_schedule = fill_schedule(teacher['activities'])
         for entry in teacher_schedule:
             schedule_list.append([
-                teacher.split('\n')[0],
+                teacher['name'],  # Имя учителя
                 entry['Начало интервала'],
                 entry['Конец интервала'],
                 entry['Занятость']
             ])
 
+    # Создаем DataFrame без указания заголовков столбцов
     schedule_df = pd.DataFrame(schedule_list)
+
+    # Вставляем заголовки как первую строку данных
     headers = ['Имя', 'Начало интервала', 'Конец интервала', 'Занятость']
-    schedule_df.loc[-1] = headers
-    schedule_df.index = schedule_df.index + 1
-    schedule_df.sort_index(inplace=True)
+    schedule_df.loc[-1] = headers  # Добавляем заголовки в начало DataFrame
+    schedule_df.index = schedule_df.index + 1  # Сдвигаем индекс
+    schedule_df.sort_index(inplace=True)  # Сортируем индекс
 
     return schedule_df
