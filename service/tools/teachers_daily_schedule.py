@@ -32,20 +32,31 @@ def parse_activity(activity: str) -> dict:
         time_interval = 'Временной интервал не найден'
 
     # Извлекаем интервал дат или одиночную дату
-    date_interval_match = re.search(r'\d{1,2}\.\d{2}\.\d{2,4}(?:-\d{1,2}\.\d{2}(?:\.\d{2,4})?)?', activity)
+    date_interval_match = re.search(r'\d{1,2}\.\d{2}(?:\.\d{2,4})?(?:-\d{1,2}\.\d{2}(?:\.\d{2,4})?)?', activity)
     if date_interval_match:
         date_interval_str = date_interval_match.group(0)
+        current_year = datetime.now().year
+
+        def process_date(date_str):
+            parts = date_str.split('.')
+            if len(parts) == 2:  # Only day and month provided
+                return datetime.strptime(date_str, '%d.%m').replace(year=current_year)
+            elif len(parts[2]) == 2:  # Two digits year provided
+                return datetime.strptime(date_str, '%d.%m.%y')
+            else:  # Full year provided
+                return datetime.strptime(date_str, '%d.%m.%Y')
+
         if '-' in date_interval_str:
-            start_date, end_date = date_interval_str.split('-')
-            # Добавляем год к концу интервала, если он отсутствует
-            if len(end_date.split('.')) == 2:
-                end_date_year = int(start_date.split('.')[2]) + 1 if int(start_date.split('.')[1]) > int(
-                    end_date.split('.')[1]) else int(start_date.split('.')[2])
-                end_date += f'.{end_date_year}'
-            date_interval = [datetime.strptime(start_date, '%d.%m.%y').date(),
-                             datetime.strptime(end_date, '%d.%m.%y').date()]
+            start_date_str, end_date_str = date_interval_str.split('-')
+            start_date = process_date(start_date_str)
+            end_date = process_date(end_date_str)
+            if start_date > end_date:  # If the start date is after the end date, assume the interval spans across years
+                end_date = end_date.replace(year=end_date.year + 1)
         else:
-            date_interval = [datetime.strptime(date_interval_str, '%d.%m.%y').date()]
+            start_date = process_date(date_interval_str)
+            end_date = start_date.replace(year=start_date.year + 10)  # Добавляем 10 лет к одиночной дате
+
+        date_interval = [start_date.date(), end_date.date()]
     else:
         date_interval = 'Интервал дат не найден'
 
@@ -83,16 +94,32 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     # Перебираем колонки с преподами
     for i, teacher in enumerate(teachers):
+        teacher_name = teacher.split('\n')[0]
+        teacher_date_line = teacher.split('\n')[1]
+
+        date_match = re.search(r'\d{2}\.\d{2}(?:\.\d{2})?', teacher_date_line)
+
+        if date_match:
+            found_date = date_match.group(0)
+            if len(found_date) == 5:  # format is dd.mm
+                # Append the current year
+                current_year = datetime.now().strftime("%y")
+                full_date = found_date + '.' + current_year
+            else:
+                full_date = found_date
+        else:
+            full_date = 'Date not found'
+
         teacher_schedule_info = {
-            'name': teacher.split('\n')[0],
-            'date': re.search(r'\d{2}\.\d{2}\.\d{2}', teacher.split('\n')[1]).group(0),
+            'name': teacher_name,
+            'date': datetime.strptime(full_date, '%d.%m.%y').date(),
             'activities': []
         }
         activity_list = df.iloc[2:, i + 1].dropna().tolist()
         for activity in activity_list:
             teacher_schedule_info['activities'].append(parse_activity(activity))
         teachers_schedules.append(teacher_schedule_info)
-
+    # pprint(teachers_schedules)
     # Объединение записей с одинаковыми именами преподавателей
     for i, ts in enumerate(teachers_schedules):
         if i == len(teachers_schedules) - 1:
@@ -109,10 +136,13 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
                 for activity2 in s_activities:
                     if is_time_overlap(activity1['time_interval'], activity2['time_interval']):
                         is_overlap = True
-                        teacher_date = datetime.strptime(ts['date'], '%d.%m.%y').date()
-                        if activity1['date_interval'][0] == teacher_date:
+                        if 'не работаю' in activity1['desc'].lower():
+                            selected_activities.append(activity2)
+                        elif 'не работаю' in activity2['desc'].lower():
                             selected_activities.append(activity1)
-                        elif activity2['date_interval'][0] == teacher_date:
+                        elif activity1['date_interval'][0] == ts['date']:
+                            selected_activities.append(activity1)
+                        elif activity2['date_interval'][0] == ts['date']:
                             selected_activities.append(activity2)
                         break
 
@@ -140,6 +170,14 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
                     'date_interval': working_teachers[0]['date']
                 }]
             })
+
+    # Форматируем активность.
+    for i in range(len(working_teachers)):
+        for j in range(len(working_teachers[i]['activities'])):
+            if 'не работаю' in working_teachers[i]['activities'][j]['desc'].lower():
+                working_teachers[i]['activities'][j]['desc'] = 'Не работает'
+            else:
+                working_teachers[i]['activities'][j]['desc'] = 'Урок'
 
     return working_teachers
 
