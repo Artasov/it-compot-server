@@ -136,14 +136,14 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
                 for activity2 in s_activities:
                     if is_time_overlap(activity1['time_interval'], activity2['time_interval']):
                         is_overlap = True
-                        if 'не работаю' in activity1['desc'].lower():
-                            selected_activities.append(activity2)
-                        elif 'не работаю' in activity2['desc'].lower():
-                            selected_activities.append(activity1)
-                        elif activity1['date_interval'][0] == ts['date']:
+                        if activity1['date_interval'][0] == ts['date']:
                             selected_activities.append(activity1)
                         elif activity2['date_interval'][0] == ts['date']:
                             selected_activities.append(activity2)
+                        elif 'не работаю' in activity1['desc'].lower():
+                            selected_activities.append(activity2)
+                        elif 'не работаю' in activity2['desc'].lower():
+                            selected_activities.append(activity1)
                         break
 
                 if not is_overlap:
