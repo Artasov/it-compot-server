@@ -13,11 +13,11 @@
          data-bs-theme="dark">
         <h1 class="text-white fs-1 text-center mt-4">
             Зарплата<br>
-            {{ teacher_salary_rows.1.11 }}<br>
+            {{ teacher_month_lessons_list.1.teacher }}<br>
             {{ email }} </h1>
         <p class="fs-2 mt-4 text-white-90 fw-bold">Итог: <span style="color: #8dff97">{% get_beauty_int sum_salary %} ₽</span></p>
         <div class="mt-2 overflow-scroll no_scrollbar">
-            {% if teacher_salary_rows %}
+            {% if teacher_month_lessons_list %}
                 <table class="table table-sm table-bordered table-hover white-space-no-wrap">
                     <thead class="table-dark fs-5">
                     <tr>
@@ -36,14 +36,17 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for row in teacher_salary_rows %}
+                    {% for lesson in teacher_month_lessons_list %}
                         {% if not forloop.first %}
                             <tr>
-                                {% for cell in row %}
-                                    {% if forloop.counter != 12 and forloop.counter != 2 and forloop.counter != 4 and forloop.counter != 10 and forloop.counter != 11 %}
-                                        <td>{{ cell }}</td>
-                                    {% endif %}
-                                {% endfor %}
+                                <td>{{ lesson.gid }}</td>
+                                <td>{{ lesson.discipline }}</td>
+                                <td>{{ lesson.type }}</td>
+                                <td>{{ lesson.student }}</td>
+                                <td>{{ lesson.date }}</td>
+                                <td>{{ lesson.skip }}</td>
+                                <td>{{ lesson.duration }}</td>
+                                <td>{{ lesson.money }}</td>
                             </tr>
                         {% endif %}
                     {% endfor %}
