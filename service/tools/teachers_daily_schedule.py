@@ -176,7 +176,7 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
                     'desc': 'Выходной',
                     'time_interval': [datetime.strptime('00:00', '%H:%M').time(),
                                       datetime.strptime('23:59', '%H:%M').time()],
-                    'date_interval': working_teachers[0]['date']
+                    'date_interval': [working_teachers[0]['date']]
                 }]
             })
 
@@ -193,8 +193,15 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
 def fill_schedule(activities):
     full_day_schedule = []
-    start_of_day = dt.datetime.strptime('00:00', '%H:%M')
-    end_of_day = dt.datetime.strptime('23:55', '%H:%M')
+    date = activities[0]['date_interval'][0]
+    is_weekend = date.weekday() >= 5
+    if is_weekend:
+        start_of_day = dt.datetime.combine(date, dt.time(9, 0))  # 09:00 на выходных
+        end_of_day = dt.datetime.combine(date, dt.time(21, 0))  # 21:00 всегда
+    else:
+        start_of_day = dt.datetime.combine(date, dt.time(15, 0))  # 15:00 в будни
+        end_of_day = dt.datetime.combine(date, dt.time(21, 0))  # 21:00 всегда
+
     current_time = start_of_day
 
     while current_time <= end_of_day:
