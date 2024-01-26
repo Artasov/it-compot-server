@@ -191,9 +191,8 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
     return working_teachers
 
 
-def fill_schedule(activities):
+def fill_schedule(activities, date):
     full_day_schedule = []
-    date = activities[0]['date_interval'][0]
     is_weekend = date.weekday() >= 5
     if is_weekend:
         start_of_day = dt.datetime.combine(date, dt.time(9, 0))  # 09:00 на выходных
@@ -235,7 +234,7 @@ def create_schedule(teachers_activities):
     schedule_list = []
 
     for teacher in teachers_activities:
-        teacher_schedule = fill_schedule(teacher['activities'])
+        teacher_schedule = fill_schedule(teacher['activities'], teacher['date'])
         for entry in teacher_schedule:
             schedule_list.append([
                 teacher['name'],  # Имя учителя
