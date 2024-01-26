@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from config.settings import TABLE_TEACHERS_SALARY
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from service.hollihop.classes.exeptions import TeacherNotFound
@@ -11,9 +9,6 @@ def get_teachers_salary():
         spreadsheet_id=TABLE_TEACHERS_SALARY[0],
         gid=TABLE_TEACHERS_SALARY[1]
     )
-
-
-
 
 
 def get_teacher_salary_by_email(email: str) -> list:
