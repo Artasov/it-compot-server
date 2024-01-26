@@ -1,3 +1,5 @@
+import traceback
+
 import pandas as pd
 from django.conf import settings
 from django.shortcuts import render
@@ -5,7 +7,7 @@ from django.shortcuts import render
 from Core.error_messages import TEACHER_EMAIL_NOT_FOUND
 from service.hollihop.classes.exeptions import TeacherNotFound
 from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
-from service.tools.gsheet.classes.gsheetsclient import GSheetsClient
+from service.tools.gsheet.classes.gsheetsclient import GSheetsClient, ListAlreadyExists
 from service.tools.teachers_daily_schedule import create_schedule, \
     parse_teachers_schedule_from_dj_mem
 from tools.forms.other import LoadHHTeachersScheduleXLSXForm
@@ -17,11 +19,11 @@ def parse_teachers_schedule_ui(request):
     if request.method == 'POST':
         form = LoadHHTeachersScheduleXLSXForm(request.POST, request.FILES)
         if form.is_valid():
+            # try:
+            teachers_schedule_xlsx = form.cleaned_data['file']
+            gdoc_id = form.cleaned_data['gdoc_id']
+            new_glist_name = form.cleaned_data['new_glist_name'].replace('.', '_').replace(':', '_')
             try:
-                teachers_schedule_xlsx = form.cleaned_data['file']
-                gdoc_id = form.cleaned_data['gdoc_id']
-                new_glist_name = form.cleaned_data['new_glist_name'].replace('.', '_').replace(':', '_')
-                # try:
                 teachers_parsed_schedule = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
                 schedule_dataframe = create_schedule(teachers_parsed_schedule)
                 client = GSheetsClient(settings.GOOGLE_API_JSON_CREDS_PATH, gdoc_id)
@@ -33,10 +35,13 @@ def parse_teachers_schedule_ui(request):
                 range_name = f'{new_glist_name}!A1'
                 client.update_list_with_df(range_name, schedule_dataframe)
                 context['success'] = '  Готово, проверьте таблицу'
+            except ListAlreadyExists as e:
+                form.add_error(None, f'List with this name \'{new_glist_name}\' already exists, delete or rename.')
             except Exception as e:
+                traceback_str = ''.join(traceback.format_tb(e.__traceback__))
                 form.add_error(None,
                                f'Произошла ошибка при загрузке данных: '
-                               f'{e}\n\nTraceback:\b{e.__traceback__}')
+                               f'{e}\n\nTraceback:\b{traceback_str}')
     else:
         form = LoadHHTeachersScheduleXLSXForm()
 

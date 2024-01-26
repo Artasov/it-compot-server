@@ -1,6 +1,12 @@
+import traceback
+
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+
+class ListAlreadyExists(Exception):
+    pass
 
 
 class GSheetsClient:
@@ -35,7 +41,7 @@ class GSheetsClient:
             response = request.execute()
         except HttpError as e:
             if 'already exists' in str(e):
-                raise HttpError(f'List with this name \'{sheet_title}\' already exists, delete or rename.')
+                raise ListAlreadyExists()
             else:
                 raise e
         return response.get('replies')[0].get('addSheet').get('properties').get('sheetId')
