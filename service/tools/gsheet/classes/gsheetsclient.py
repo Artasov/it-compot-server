@@ -34,7 +34,7 @@ class GSheetsClient:
                 spreadsheetId=self.spreadsheet_id, body=body)
             response = request.execute()
         except HttpError as e:
-            if 'already_exists' in str(e):
+            if 'already exists' in str(e):
                 raise HttpError(f'List with this name \'{sheet_title}\' already exists, delete or rename.')
             else:
                 raise e

@@ -34,7 +34,9 @@ def parse_teachers_schedule_ui(request):
                 client.update_list_with_df(range_name, schedule_dataframe)
                 context['success'] = '  Готово, проверьте таблицу'
             except Exception as e:
-                form.add_error(None, f'Произошла ошибка при загрузке данных: {e}')
+                form.add_error(None,
+                               f'Произошла ошибка при загрузке данных: '
+                               f'{e}\n\nTraceback:\b{e.__traceback__}')
     else:
         form = LoadHHTeachersScheduleXLSXForm()
 
