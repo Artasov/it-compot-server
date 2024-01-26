@@ -39,12 +39,21 @@ def parse_activity(activity: str) -> dict:
 
         def process_date(date_str):
             parts = date_str.split('.')
-            if len(parts) == 2:  # Only day and month provided
-                return datetime.strptime(date_str, '%d.%m').replace(year=current_year)
-            elif len(parts[2]) == 2:  # Two digits year provided
-                return datetime.strptime(date_str, '%d.%m.%y')
-            else:  # Full year provided
-                return datetime.strptime(date_str, '%d.%m.%Y')
+
+            try:
+                if len(parts) == 2:  # Only day and month provided
+                    date_obj = datetime.strptime(date_str+f'.{current_year}', '%d.%m.%Y')
+                elif len(parts[2]) == 2:  # Two digits year provided
+                    date_obj = datetime.strptime(date_str, '%d.%m.%y')
+                else:  # Full year provided
+                    date_obj = datetime.strptime(date_str, '%d.%m.%Y')
+
+                # Проверяем валидность даты (например, не 30 февраля)
+                date_obj.replace(year=date_obj.year)
+                return date_obj
+            except ValueError:
+                print(f'date_str={date_str}')
+                return None
 
         if '-' in date_interval_str:
             start_date_str, end_date_str = date_interval_str.split('-')
