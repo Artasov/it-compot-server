@@ -1,5 +1,6 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 
 class GSheetsClient:
@@ -17,30 +18,36 @@ class GSheetsClient:
         service = build('sheets', 'v4', credentials=credentials)
         return service
 
-    def create_sheet(self, sheet_title):
+    def create_list(self, sheet_title):
         # Создаем запрос на добавление нового листа
-        body = {
-            'requests': [{
-                'addSheet': {
-                    'properties': {
-                        'title': sheet_title
+        try:
+            body = {
+                'requests': [{
+                    'addSheet': {
+                        'properties': {
+                            'title': sheet_title
+                        }
                     }
-                }
-            }]
-        }
-        request = self.service.spreadsheets().batchUpdate(
-            spreadsheetId=self.spreadsheet_id, body=body)
-        response = request.execute()
+                }]
+            }
+            request = self.service.spreadsheets().batchUpdate(
+                spreadsheetId=self.spreadsheet_id, body=body)
+            response = request.execute()
+        except HttpError as e:
+            if 'already_exists' in str(e):
+                raise HttpError(f'List with this name \'{sheet_title}\' already exists, delete or rename.')
+            else:
+                raise e
         return response.get('replies')[0].get('addSheet').get('properties').get('sheetId')
 
-    def get_sheets_titles(self):
+    def get_lists_titles(self):
         # Получаем метаданные о листах
         sheet_metadata = self.service.spreadsheets().get(spreadsheetId=self.spreadsheet_id).execute()
         sheets = sheet_metadata.get('sheets', '')
         titles = [sheet.get('properties', {}).get('title', '') for sheet in sheets]
         return titles
 
-    def update_sheet(self, range_name, values):
+    def update_list(self, range_name, values):
         # Вставляем данные в таблицу
         body = {'values': values}
         request = self.service.spreadsheets().values().update(
@@ -52,7 +59,7 @@ class GSheetsClient:
         response = request.execute()
         return response
 
-    def update_sheet_with_df(self, range_name, df):
+    def update_list_with_df(self, range_name, df):
         # Передаем DataFrame в Google Sheets без изменений
         values = df.fillna('').values.tolist()
         body = {'values': values}
@@ -66,7 +73,7 @@ class GSheetsClient:
         response = request.execute()
         return response
 
-    def clear_sheet(self, range_name):
+    def clear_list(self, range_name):
         # Очищаем данные в таблице
         request = self.service.spreadsheets().values().clear(
             spreadsheetId=self.spreadsheet_id,
