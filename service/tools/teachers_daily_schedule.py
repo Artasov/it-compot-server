@@ -166,6 +166,8 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     all_teachers = CustomHHApiV2Manager().get_short_names_teachers()  # Все имена преподаватели
 
+    for teacher in working_teachers:
+        pprint(teacher)
     # Добавим преподавателей не работающих в этот день и проставим занятость 'Выходной'
     for teacher in all_teachers:
         if not any(w_teacher['name'].lower() == teacher.lower() for w_teacher in working_teachers):
@@ -183,6 +185,8 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
     # Форматируем активность.
     for i in range(len(working_teachers)):
         for j in range(len(working_teachers[i]['activities'])):
+            if 'выходной' in working_teachers[i]['activities'][j]['desc'].lower():
+                continue
             if 'не работаю' in working_teachers[i]['activities'][j]['desc'].lower():
                 working_teachers[i]['activities'][j]['desc'] = 'Не работает'
             else:
