@@ -2,7 +2,6 @@ from datetime import timedelta
 
 from django import template
 from django.utils import timezone
-from django.utils.datetime_safe import datetime
 
 # from Core.forms import UserLoginForm
 # from Core.models import CompanyData
@@ -48,8 +47,7 @@ def remove_colons(value):
 
 @register.filter
 def time_since(value):
-    now = datetime.now(timezone.utc)
-    value = value.replace(tzinfo=timezone.utc)
+    now = timezone.now()
     delta = now - value
     if delta <= timedelta(minutes=1):
         return 'Минуту назад'
