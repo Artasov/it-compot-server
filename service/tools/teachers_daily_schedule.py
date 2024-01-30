@@ -63,7 +63,7 @@ def parse_activity(activity: str) -> dict:
                 end_date = end_date.replace(year=end_date.year + 1)
         else:
             start_date = process_date(date_interval_str)
-            end_date = start_date.replace(year=start_date.year + 10)  # Добавляем 10 лет к одиночной дате
+            end_date = start_date.replace(year=start_date.year + 10)  # Add 10 years to a single date
 
         date_interval = [start_date.date(), end_date.date()]
     else:
