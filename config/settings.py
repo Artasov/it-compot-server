@@ -1,36 +1,29 @@
 import os
 from pathlib import Path
 
-import environ
-
-env = environ.Env()
-
+env = os.environ.get
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DATA_DIR = BASE_DIR / 'data'
-
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-
+HTTPS = bool(int(env('HTTPS') or 0))
+MAIN_DOMAIN = str(env('MAIN_DOMAIN') or '127.0.0.1')
+ALLOWED_HOSTS = str((env('ALLOWED_HOSTS') or '') + f',{MAIN_DOMAIN}').split(',')
+ALLOWED_HOSTS.append('localhost')
+ROOT_URLCONF = 'Core.urls'
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = bool(int(env('DEBUG')))
 DEV = bool(int(env('DEV')))
-ALLOWED_HOSTS = str(env('ALLOWED_HOSTS')).split(',')
 
-LOCAL_APPS = [
-    'Core',
-    'tools',
-]
-
-THIRD_APPS = []
-
-DJANGO_APPS = [
+INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'Core',
+    'tools',
 ]
-INSTALLED_APPS = LOCAL_APPS + THIRD_APPS + DJANGO_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -41,8 +34,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-ROOT_URLCONF = 'Core.urls'
 
 TEMPLATES = [
     {
