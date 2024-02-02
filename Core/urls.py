@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', menu),
     path('tools/', include(('tools.urls', 'tools'), namespace='tools')),
+    path('api/v1/tools/', include('tools.urls_api')),
 
     # На удаление, так как есть tools/teachers_salary/
     path('teachers_salary/',

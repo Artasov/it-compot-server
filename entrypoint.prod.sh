@@ -3,9 +3,11 @@
 ############
 #   PROD   #
 ############
+/usr/sbin/chronyd
 
+chronyc tracking
 # Collect static files into one folder without asking for confirmation
-#python manage.py collectstatic --noinput &&
+python manage.py collectstatic --noinput &&
 # Apply migrations to the database
 python manage.py migrate
 # Bind gunicorn

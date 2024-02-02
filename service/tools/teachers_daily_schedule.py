@@ -164,7 +164,7 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     working_teachers = teachers_schedules
 
-    all_teachers = CustomHHApiV2Manager().get_short_names_teachers()  # Все имена преподаватели
+    all_teachers = CustomHHApiV2Manager().getActiveTeachersShortNames()  # Все имена преподаватели
 
     for teacher in working_teachers:
         pprint(teacher)

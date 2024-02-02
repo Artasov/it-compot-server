@@ -2,258 +2,181 @@
 //@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap')
 @import "vars"
 button, input[type="submit"], input[type="reset"]
-	background: none
-	color: inherit
-	border: none
-	padding: 0
-	font: inherit
-	cursor: pointer
-	outline: inherit
+  background: none
+  color: inherit
+  border: none
+  padding: 0
+  font: inherit
+  cursor: pointer
+  outline: inherit
 
 ul
-	margin: 0
-	padding: 0
-	list-style: none
+  margin: 0
+  padding: 0
+  list-style: none
 
-html
-	font-size: 16px
-	min-height: 100%
-
-.bg-image
-	position: fixed
-	top: 0
-	left: 0
-	width: 100vw
-	height: 100vh
-	object-fit: cover
-	background-size: cover
-	filter: blur(6px)
-	transform: scale(1.2)
-	z-index: -1
-	opacity: 50%
 
 body
-	font-size: 16px
-	font-family: 'Nunito', sans-serif
-	//font-family: 'Outfit', sans-serif
-	font-weight: 500
-	min-width: 320px
-	min-height: 100vh
-	max-height: 100vh
+  font-size: 16px
+  font-family: 'Nunito', sans-serif
+  //font-family: 'Outfit', sans-serif
+  font-weight: 500
+  min-width: 320px
+  min-height: 100vh
+  max-height: 100vh
 
 .wrapper
-	min-height: 100vh
-	max-height: 100vh
+  min-height: 100vh
+  max-height: 100vh
 
-.bg-main-color
-	background: rgb(26, 27, 30)
-	background: linear-gradient(180deg, rgba(26, 27, 30, 1) 0%, rgba(33, 33, 33, 0) 100%)
-
-$header_height: 80px
-header
-	height: $header_height
-	font-size: 20px
-	position: fixed
-	z-index: 100
-	
-	.header-logo
-		filter: invert(1)
-	
-	#auth_block
-		background-color: rgba(#222, .3)
-
-nav
-	max-width: 800px
-	border-radius: 1rem
-	
-	.nav-link
-		transition: all 300ms ease
-		
-		&:hover
-			transform: scale(1.1)
 
 #loading_spinner_block
-	position: absolute
-	top: 0
-	left: 0
-	height: 100%
-	width: 100%
-	display: flex
-	flex-direction: column
-	justify-content: center
-	
-	#loading_spinner_block-help
-		text-align: center
-		transform: scale(4)
-	
-	#loading_spinner
-		z-index: 300
+  position: absolute
+  top: 0
+  left: 0
+  height: 100%
+  width: 100%
+  display: flex
+  flex-direction: column
+  justify-content: center
+
+  #loading_spinner_block-help
+    text-align: center
+    transform: scale(4)
+
+  #loading_spinner
+    z-index: 300
 
 
 textarea, textarea:active, textarea:focus
-	outline: none
-	background: rgba(#000, .3)
-	backdrop-filter: blur(20px)
-	border-radius: 0.7em
-	width: 100%
-	border: 1px solid $primary
-	
-	&::placeholder
-		font-size: 2rem
+  outline: none
+  background: rgba(#000, .3)
+  backdrop-filter: blur(20px)
+  border-radius: 0.7em
+  width: 100%
+  border: 1px solid $primary
 
+  &::placeholder
+    font-size: 2rem
 
-.telegram-auth
-	max-width: 40px !important
-	max-height: 40px !important
-	overflow: hidden !important
-	position: absolute !important
-	top: 0 !important
-	left: 0 !important
-	opacity: 0 !important
-
-
-#TelegramBtn, #TelegramBtnHeader
-	position: relative
-
-.w-minc
-	width: min-content
 
 .popover
-	background: rgba(0, 0, 0, 0.2) !important
-	backdrop-filter: blur(20px)
-	
-	.popover-body
-		color: rgba(#fff, 0.8)
-	
-	.popover-arrow
-		&:after, &:before
-			border-color: rgba(#000, .0) !important
+  background: rgba(0, 0, 0, 0.2) !important
+  backdrop-filter: blur(20px)
+
+  .popover-body
+    color: rgba(#fff, 0.8)
+
+  .popover-arrow
+    &:after, &:before
+      border-color: rgba(#000, .0) !important
 
 .tooltip
-	backdrop-filter: blur(30px) !important
-	background: rgba(0, 0, 0, 0) !important
-	padding: 0 !important
-	border-radius: 0.375rem !important
-	
-	.tooltip-inner
-		border: 1px solid #111
-		color: rgba(#fff, .8)
-		background: rgba(0, 0, 0, .4) !important
-	
-	.tooltip-arrow
-		transform: translate3d(81px, .42rem, 0px) !important
-		
-		&:after, &:before
-			border-color: rgba(#000, .0) !important
+  backdrop-filter: blur(30px) !important
+  background: rgba(0, 0, 0, 0) !important
+  padding: 0 !important
+  border-radius: 0.375rem !important
+
+  .tooltip-inner
+    border: 1px solid #111
+    color: rgba(#fff, .8)
+    background: rgba(0, 0, 0, .4) !important
+
+  .tooltip-arrow
+    transform: translate3d(81px, .42rem, 0px) !important
+
+    &:after, &:before
+      border-color: rgba(#000, .0) !important
 
 .no_scrollbar
-	img
-	
-	&::-webkit-scrollbar
-		width: 0
-		height: 0
-	-ms-overflow-style: none
-	overflow: -moz-scrollbars-none
+  &::-webkit-scrollbar
+    width: 0
+    height: 0
+  -ms-overflow-style: none
+  overflow: -moz-scrollbars-none
 
-._pc
-	.backdrop-blur-10-header
-		backdrop-filter: none
-
-.backdrop-blur-10-header
-	backdrop-filter: blur(10px)
 
 .btn-close
-	box-shadow: 0 0 0 !important
+  box-shadow: 0 0 0 !important
 
 ._pc
-	.only_pc
-		display: block !important
+  .only_pc
+    display: block !important
 
 ._touch
-	.only_pc
-		display: none !important
+  .only_pc
+    display: none !important
 
 ._pc
-	.only_touch
-		display: none !important
+  .only_touch
+    display: none !important
 
 ._touch
-	.only_touch
-		display: block !important
-	
-	nav
-		box-shadow: 0 10px 20px rgba(#000, 0.2)
+  .only_touch
+    display: block !important
+
+  nav
+    box-shadow: 0 10px 20px rgba(#000, 0.2)
 
 .text-primary
-	color: $primary !important
+  color: $primary !important
 
 .dropdown-toggle-without_arrow
-	&:after
-		content: none
+  &:after
+    content: none
 
 .backdrop-blur-10
-	transition: all 200ms ease
-	backdrop-filter: blur(10px) !important
+  transition: all 200ms ease
+  backdrop-filter: blur(10px) !important
 
 .backdrop-blur-20
-	transition: all 200ms ease
-	backdrop-filter: blur(20px) !important
-
-.dropdown-menu-u1
-	transition: all 100ms ease
-	border: 0
-	border-radius: 1rem
-	box-shadow: 0 0 30px rgba(#000, .4)
-	
-	.dropdown-item
-		transition: all 200ms ease
-		border-radius: 0.6rem
-		
-		&:hover, &:focus
-			background: transparent
-			color: white !important
-		
-		&:active
-			background-color: $primary
+  transition: all 200ms ease
+  backdrop-filter: blur(20px) !important
 
 
 .disable-tap-and-selection
-	-webkit-tap-highlight-color: transparent
-	user-select: none
-	-moz-user-select: none
-	-ms-user-select: none
+  -webkit-tap-highlight-color: transparent
+  user-select: none
+  -moz-user-select: none
+  -ms-user-select: none
 
-.enable-tap-and-selection
-	user-select: text
-	-moz-user-select: all
-	-ms-user-select: text
+.invertH
+  transform: scaleX(-1)
 
-.g-recaptcha
-	margin: 0 auto
-	filter: sepia(1%) invert(0.86) hue-rotate(210deg) saturate(4) contrast(1.3)
-	opacity: 60%
-	border-radius: 4px
-	overflow: hidden
-	width: min-content
+.invertW
+  transform: scaleY(-1)
 
-.g-recaptcha-pc
-	width: 302px
-	height: 76px
 
-.g-recaptcha-touch
-	width: 331px
-	height: 82.5px
+.invert100
+  filter: invert(1)
 
-.g-recaptcha-pc-compact
-	width: 158px
-	height: 138px
+.invert90
+  filter: invert(.9)
 
-.g-recaptcha-touch-compact
-	width: 174px
-	height: 152px
+.invert80
+  filter: invert(.8)
 
-.invert
-	filter: invert(1)
+.invert70
+  filter: invert(.7)
+
+.invert60
+  filter: invert(.6)
+
+.invert50
+  filter: invert(.5)
+
+.invert40
+  filter: invert(.4)
+
+.invert30
+  filter: invert(.3)
+
+.invert20
+  filter: invert(.2)
+
+.invert10
+  filter: invert(.1)
+
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -265,234 +188,412 @@ textarea:-webkit-autofill:focus,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus
-	-webkit-text-fill-color: transparent
-	background-color: transparent
-	-webkit-box-shadow: 0 0 0 1000px transparent inset
+  -webkit-text-fill-color: transparent
+  background-color: transparent
+  -webkit-box-shadow: 0 0 0 1000px transparent inset
 
 input[type="password"]:-webkit-autofill,
 input[type="password"]:-webkit-autofill:hover,
 input[type="password"]:-webkit-autofill:focus,
 input[type="password"]:-webkit-autofill:active
-	background: transparent
-	-webkit-box-shadow: 0 0 0 1000px transparent inset
+  background: transparent
+  -webkit-box-shadow: 0 0 0 1000px transparent inset
 
 progress
-	border-radius: 7px
-	width: 80%
-	height: 22px
-	box-shadow: 0 0 5px rgba(#000, .7)
+  border-radius: 7px
+  width: 80%
+  height: 22px
+  box-shadow: 0 0 5px rgba(#000, .7)
 
 progress::-webkit-progress-bar
-	background-color: transparent
-	border-radius: 7px
+  background-color: transparent
+  border-radius: 7px
 
 progress::-webkit-progress-value
-	border-radius: 7px
-	background-color: $primary
+  border-radius: 7px
+  background-color: $primary
 
+.text-left
+  text-align: left
 
-.text-nowrap
-	white-space: nowrap
+.text-right
+  text-align: right
 
-.lh-1
-	line-height: 0.5em
 
 .color-inherit
-	color: inherit
+  color: inherit
 
 .left-0
-	left: 0
+  left: 0 !important
+
+.left-10
+  left: 10px !important
+
+.left-20
+  left: 20px !important
+
+.left-30
+  left: 30px !important
+
+.left-40
+  left: 40px !important
+
+.left-50
+  left: 50px !important
 
 .right-0
-	right: 0
+  right: 0
+
+.right-10
+  right: 10px !important
+
+.right-20
+  right: 20px !important
+
+.right-30
+  right: 30px !important
+
+.right-40
+  right: 40px !important
+
+.right-50
+  right: 50px !important
+
+.top-0
+  top: 0 !important
+
+.top-10
+  top: 10px !important
+
+.top-20
+  top: 20px !important
+
+.top-30
+  top: 30px !important
+
+.top-40
+  top: 40px !important
+
+.top-50
+  top: 50px !important
+
+.bottom-0
+  bottom: 0 !important
+
+.bottom-10
+  bottom: 10px !important
+
+.bottom-20
+  bottom: 20px !important
+
+.bottom-30
+  bottom: 30px !important
+
+.bottom-40
+  bottom: 40px !important
+
+.bottom-50
+  bottom: 50px !important
 
 .bg-black-10
-	background-color: rgba(#000, .1) !important
+  background-color: rgba(#000, .1) !important
 
 .bg-black-15
-	background-color: rgba(#000, .15) !important
+  background-color: rgba(#000, .15) !important
 
 .bg-black-20
-	background-color: rgba(#000, .2) !important
+  background-color: rgba(#000, .2) !important
 
 .bg-black-25
-	background-color: rgba(#000, .25) !important
+  background-color: rgba(#000, .25) !important
 
 .bg-black-30
-	background-color: rgba(#000, .3) !important
+  background-color: rgba(#000, .3) !important
 
 .bg-black-35
-	background-color: rgba(#000, .35) !important
+  background-color: rgba(#000, .35) !important
 
 .bg-black-40
-	background-color: rgba(#000, .4) !important
+  background-color: rgba(#000, .4) !important
 
 .bg-black-45
-	background-color: rgba(#000, .45) !important
+  background-color: rgba(#000, .45) !important
 
 .fw-1
-	font-weight: 100 !important
+  font-weight: 100 !important
 
 .fw-2
-	font-weight: 200 !important
+  font-weight: 200 !important
 
 .fw-3
-	font-weight: 300 !important
+  font-weight: 300 !important
 
 .fw-4
-	font-weight: 400 !important
+  font-weight: 400 !important
 
 .fw-5
-	font-weight: 500 !important
+  font-weight: 500 !important
 
 .fw-6
-	font-weight: 600 !important
+  font-weight: 600 !important
 
 .fw-7
-	font-weight: 700 !important
+  font-weight: 700 !important
 
 .fw-8
-	font-weight: 800 !important
+  font-weight: 800 !important
 
 .fw-9
-	font-weight: 900 !important
+  font-weight: 900 !important
 
 .fw-10
-	font-weight: 1000 !important
+  font-weight: 1000 !important
 
 .text-white-95
-	color: rgb(242, 242, 242) !important
+  color: rgb(242, 242, 242) !important
 
 .text-white-90
-	color: rgb(230, 230, 230) !important
+  color: rgb(230, 230, 230) !important
 
 .text-white-85
-	color: rgb(217, 217, 217) !important
+  color: rgb(217, 217, 217) !important
 
 .text-white-80
-	color: rgb(204, 204, 204) !important
+  color: rgb(204, 204, 204) !important
 
 .text-white-75
-	color: rgb(191, 191, 191) !important
+  color: rgb(191, 191, 191) !important
 
 .text-white-70
-	color: rgb(178, 178, 178) !important
+  color: rgb(178, 178, 178) !important
 
 .text-white-65
-	color: rgb(166, 166, 166) !important
+  color: rgb(166, 166, 166) !important
 
 .text-white-60
-	color: rgb(153, 153, 153) !important
+  color: rgb(153, 153, 153) !important
 
 .text-white-55
-	color: rgb(140, 140, 140) !important
+  color: rgb(140, 140, 140) !important
+
+.text-white-45
+  color: rgb(127, 127, 127) !important
+
+.text-white-40
+  color: rgb(114, 114, 114) !important
+
+.text-white-35
+  color: rgb(101, 101, 101) !important
+
+.text-white-30
+  color: rgb(88, 88, 88) !important
 
 .border-black-10
-	border-color: rgba(#000, .1) !important
+  border-color: rgba(#000, .1) !important
 
 .border-black-15
-	border-color: rgba(#000, .15) !important
+  border-color: rgba(#000, .15) !important
 
 .border-black-20
-	border-color: rgba(#000, .2) !important
+  border-color: rgba(#000, .2) !important
 
 .border-black-25
-	border-color: rgba(#000, .25) !important
+  border-color: rgba(#000, .25) !important
 
 .border-black-30
-	border-color: rgba(#000, .3) !important
+  border-color: rgba(#000, .3) !important
 
 .border-black-35
-	border-color: rgba(#000, .35) !important
+  border-color: rgba(#000, .35) !important
 
 .border-black-40
-	border-color: rgba(#000, .4) !important
+  border-color: rgba(#000, .4) !important
 
 .border-black-45
-	border-color: rgba(#000, .45) !important
+  border-color: rgba(#000, .45) !important
 
 .bg-clip-padding
-	-moz-background-clip: padding
-	-webkit-background-clip: padding
-	background-clip: padding-box
+  -moz-background-clip: padding
+  -webkit-background-clip: padding
+  background-clip: padding-box
 
 .flex-col
-	display: flex
-	flex-direction: column
+  display: flex
+  flex-direction: column
 
 .fcc
-	display: flex
-	flex-direction: column
-	justify-content: center
+  display: flex
+  flex-direction: column
+  justify-content: center
 
 .fcb
-	display: flex
-	flex-direction: column
-	justify-content: space-between
+  display: flex
+  flex-direction: column
+  justify-content: space-between
 
 .fca
-	display: flex
-	flex-direction: column
-	justify-content: space-around
+  display: flex
+  flex-direction: column
+  justify-content: space-around
 
 .frc
-	display: flex
-	flex-direction: row
-	justify-content: center
+  display: flex
+  flex-direction: row
+  justify-content: center
 
 .frb
-	display: flex !important
-	flex-direction: row !important
-	justify-content: space-between
+  display: flex !important
+  flex-direction: row !important
+  justify-content: space-between
 
 .fra
-	display: flex !important
-	flex-direction: row !important
-	justify-content: space-around
+  display: flex !important
+  flex-direction: row !important
+  justify-content: space-around
+
+
+.fccc
+  display: flex
+  flex-direction: column
+  justify-content: center
+  align-items: center
+
+.fcbc
+  display: flex
+  flex-direction: column
+  justify-content: space-between
+  align-items: center
+
+.fcac
+  display: flex
+  flex-direction: column
+  justify-content: space-around
+  align-items: center
+
+.frcc
+  display: flex
+  flex-direction: row
+  justify-content: center
+  align-items: center
+
+.frbc
+  display: flex !important
+  flex-direction: row !important
+  justify-content: space-between
+  align-items: center
+
+.frac
+  display: flex !important
+  flex-direction: row !important
+  justify-content: space-around
+  align-items: center
+
+
+.fcsc
+  display: flex
+  flex-direction: column
+  justify-content: start
+  align-items: center
+
+.frsc
+  display: flex
+  flex-direction: row
+  justify-content: start
+  align-items: center
+
 
 .h-min-content
-	height: min-content !important
+  height: min-content !important
 
 .h-max-content
-	height: max-content !important
+  height: max-content !important
 
 .w-min-content
-	width: min-content !important
+  width: min-content !important
 
 .w-max-content
-	width: max-content !important
+  width: max-content !important
+
+.w-100vw
+  width: 100vw !important
+
+.h-100vh
+  height: 100vh !important
+
+.w-90
+  width: 90% !important
+
+.w-80
+  width: 80% !important
+
+.w-70
+  width: 70% !important
+
+.w-60
+  width: 60% !important
+
+.w-50
+  width: 50% !important
+
+.w-40
+  width: 40% !important
+
+.w-30
+  width: 30% !important
+
+.h-90
+  height: 90% !important
+
+.h-80
+  height: 80% !important
+
+.h-70
+  height: 70% !important
+
+.h-60
+  height: 60% !important
+
+.h-50
+  height: 50% !important
+
+.h-40
+  height: 40% !important
+
+.h-30
+  height: 30% !important
+
 
 .hover-scale-20
-	transition: transform 300ms ease
-	
-	&:hover
-		transform: scale(1.2)
+  transition: transform 300ms ease
+
+  &:hover
+    transform: scale(1.2)
 
 .hover-scale-10
-	transition: transform 300ms ease
-	
-	&:hover
-		transform: scale(1.1)
+  transition: transform 300ms ease
+
+  &:hover
+    transform: scale(1.1)
 
 .hover-scale-5
-	transition: transform 300ms ease
-	
-	&:hover
-		transform: scale(1.05) !important
+  transition: transform 300ms ease
+
+  &:hover
+    transform: scale(1.05) !important
 
 
 .rotate360anim
-	animation: rotate360 10s linear infinite
+  animation: rotate360 10s linear infinite
 
 .white-space-no-wrap
-	white-space: nowrap !important
-	
+  white-space: nowrap !important
+
 .fs-7
-	font-size: 0.8rem !important
+  font-size: 0.8rem !important
 
 
 @keyframes rotate360
-	0%
-		transform: rotate(0deg)
-	100%
-		transform: rotate(360deg)
+  0%
+    transform: rotate(0deg)
+  100%
+    transform: rotate(360deg)

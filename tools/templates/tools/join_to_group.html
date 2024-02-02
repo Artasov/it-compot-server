@@ -1,0 +1,85 @@
+{% extends 'Core/base.html' %}
+{% load static %}
+{% block title %}it-compot | Запись в группу{% endblock %}
+
+{% block meta_keywords %}Запись в группу{% endblock %}
+{% block meta_description %}Запись в группу{% endblock %}
+{% block meta_og_description %}Запись в группу{% endblock %}
+{% block meta_twitter_description %}Запись в группу{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'tools/css/join_to_group.css' %}">
+    <script defer type="module" src="{% static 'tools/js/join_to_group.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container d-none  fcc flex-grow-1"
+         style="max-width: 700px;">
+        <div class="fcc gap-2 disable-tap-and-selection py-3">
+            <h1 class="fs-1 text-center mb-0 mt-3">Запись в группу</h1>
+            <div class="group_loading_status_container frsc justify-content-center justify-content-sm-start gap-3">
+                <div class="p-1">
+                    <div class="spinner-border" style="color: #888"></div>
+                </div>
+                <h4 class="m-0 frsc gap-0 gap-sm-2 flex-column flex-sm-row w-min-content text-nowrap">
+                    <span>Ищем группы для вас</span>
+                    <span class="text-secondary fs-6 text-opacity-50 mt-0 mt-sm-1">( Это может занять минутку )</span>
+                </h4>
+            </div>
+            <p class="px-2" style="text-indent: 1rem">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab accusamus aliquam, aliquid
+                consequuntur
+                cupiditate dignissimos dolore ea eligendi est, eum fugit id illum incidunt inventore itaque
+                laboriosam
+                magni maiores odio omnis perferendis quidem reiciendis, repellendus reprehenderit suscipit voluptas?
+                Accusamus animi aperiam, architecto dolorem dolorum enim fugiat in iusto libero minima molestiae
+                necessitatibus numquam optio quibusdam recusandae saepe totam vel voluptas, voluptatibus voluptatum?
+            </p>
+
+            <div class="d-none">
+                <p class="text-center fs-5 fw-bold">Выберите удобную для вас группу.</p>
+                <ul class="result_container frc flex-wrap gap-2">
+
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+{#    Модальное окно Bootstrap для подтверждения записи в группу #}
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Подтверждение записи в группу</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body confirmation-modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-success" id="confirmJoin">Подтвердить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{#    Модальное окно Bootstrap для ошибок #}
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-2 border-danger">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-danger" id="errorModalLabel">Ошибка</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body error-modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

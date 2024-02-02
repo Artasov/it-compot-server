@@ -1,5 +1,19 @@
 import csv
+from datetime import datetime
 from io import StringIO
+
+
+def calculate_age(birthdate_str: str) -> int:
+    # Преобразование строки с датой рождения в объект datetime
+    birthdate = datetime.strptime(birthdate_str, '%Y-%m-%d')
+    # Получение текущей даты
+    today = datetime.today()
+    # Вычисление разницы в годах
+    age = today.year - birthdate.year
+    # Проверка, был ли уже день рождения в этом году
+    if (today.month, today.day) < (birthdate.month, birthdate.day):
+        age -= 1
+    return age
 
 
 def create_virtual_csv(data) -> StringIO:

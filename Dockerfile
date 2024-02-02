@@ -18,16 +18,14 @@ RUN dos2unix /srv/entrypoint.prod.sh
 RUN apk del dos2unix
 RUN chmod +x /srv/entrypoint.prod.sh
 
-RUN python manage.py collectstatic --noinput
-#################################
-# Стадия подготовки Nginx образа
-#################################
-FROM nginx:alpine AS nginx
-# Копирование статических файлов из предыдущей стадии
-COPY --from=base /static /static
-COPY --from=base /media /media
-# Копирование конфигурации Nginx (если есть изменения)
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+# Установка Chrony для синхронизации времени
+RUN apk add --no-cache chrony
+
+# Запуск Chrony и настройка времени при старте контейнера
+RUN echo "server pool.ntp.org iburst" >> /etc/chrony/chrony.conf
+
+# RUN python manage.py collectstatic --noinput
+
 
 
 ###########

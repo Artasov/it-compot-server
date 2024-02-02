@@ -1,10 +1,13 @@
 import traceback
+from pprint import pprint
+from time import time
 
 import pandas as pd
 from django.conf import settings
 from django.shortcuts import render
 
 from Core.error_messages import TEACHER_EMAIL_NOT_FOUND
+from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from service.hollihop.classes.exeptions import TeacherNotFound
 from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
 from service.tools.gsheet.classes.gsheetsclient import GSheetsClient, ListAlreadyExists
@@ -12,6 +15,78 @@ from service.tools.teachers_daily_schedule import create_schedule, \
     parse_teachers_schedule_from_dj_mem
 from tools.forms.other import LoadHHTeachersScheduleXLSXForm
 from tools.forms.teachers_salary import GetTeacherSalaryForm
+
+"""
+ 'Информатика Junior (Scratch + компьютерная грамотность)',
+ 'Программирование Scratch + математика',
+ 'Город программистов Джуниор',
+ 'Город программистов',
+ 'Python GameDev (Разработка 2D-игр 1 ступень)',
+ 'Python GameDev (Разработка 2D и 3D-игр 2 ступень)',
+ 'Программирование Python (начальный уровень)',
+ 'Программирование Python не игры',
+ 'Web-программирование (1 ступень frontend)',
+ 'Web-программирование (2 ступень backend)',
+ 'Web-дизайн',
+ 'Графический дизайн Junior',
+ 'Графический дизайн',
+ 'Медиа вне программы',
+ 'Школа блогеров',
+ '3D-моделирование (Blender)',
+ '3D-моделирование 2 год',
+ 'Программирование вне программы',
+ 'Внутренние мероприятия',
+ 'Хакатон',
+ 'Марафон IT-профессий',
+ '(ОУ) Scratch программирование',
+ '(ОУ) Python программирование',
+ '(ОУ) Школа блогеров / дизайн',
+ '(ОУ) Веб-программирование',
+ '(ОУ) 3D-моделирование',
+ '(ОУ) Дизайн',
+ '(ОУ) Школа блогера',
+ '(ОУ) Информатика Junior',
+ '(ОУ) Программирование (разработка сайтов или игр)',
+ '(ОУ) Web-дизайн',
+ '(ОУ) вне программы',
+ 'Клуб',
+ 'Программирование Roblox',
+ 'Архив не могу удалить (',
+ '(архив, не могу удалить)',
+ '(ОУ) Марафон профессий (удалить)',
+ 'Разработка чат-ботов',
+ '(0)Разработка приложений на Пайтон',
+ 'Разработка мобильных приложений на Python для Android',
+ 'Мастер анимации - создаем мультфильмы',
+ 'Разработка мобильных приложений для Android в App Inventor',
+ 'Первые шаги в программировании и английском.  джуниор',
+ 'Первые шаги в 3д-моделировании.  Создай свой мир майнкрафта',
+ 'Видеомонтаж на компьютере - прокачка навыков',
+ 'Академия Заработка',
+ 'Урок диагностика',
+ 'Нейросети'
+"""
+"""
+Easy
+Easy-medium
+Medium
+Medium-hard
+Hard
+Very hard
+"""
+
+
+# pprint(await HHManager.getDisciplines())
+
+
+async def join_to_group(request):
+
+    # print(f'RESULT: {len(groups_available)}')
+    # pprint(groups_available)
+
+    return render(request, 'tools/join_to_group.html', {
+        'theme': 'light'
+    })
 
 
 def parse_teachers_schedule_ui(request):

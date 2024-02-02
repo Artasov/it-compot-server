@@ -1,16 +1,28 @@
 version: '3.8'
 
 services:
+  #  nginx:
+  #    build:
+  #      context: .
+  #      dockerfile: DockerfileNginxStaticMediaStorage
+  #      target: nginx
+  #    image: nginx:latest
+  #    ports:
+  #      - "80:80"
+  #    depends_on:
+  #      - web
+  #    networks:
+  #      - net
+
   nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: nginx
-    image: nginx:latest
+    image: nginx:alpine
     ports:
       - "80:80"
     depends_on:
-      - web
+      web:
+        condition: service_healthy
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - net
 
@@ -59,6 +71,7 @@ services:
       target: prod
     environment:
       - SECRET_KEY=${SECRET_KEY}
+      - HOLLIHOP_AUTHKEY=${HOLLIHOP_AUTHKEY}
       - DEBUG=${DEBUG}
       - DEV=${DEV}
       - SITE_ID=${SITE_ID}
@@ -71,10 +84,12 @@ services:
       - SQL_USER=${SQL_USER}
       - SQL_PASSWORD=${SQL_PASSWORD}
       - SQL_PORT=${SQL_PORT}
-      - REDIS_URL=${REDIS_URL}
-      - REDIS_CACHE_URL=${REDIS_URL}
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_EXTERNAL_ENDPOINT_USE_HTTPS=${MINIO_EXTERNAL_ENDPOINT_USE_HTTPS}
+      - MINIO_USE_HTTPS=${MINIO_USE_HTTPS}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_CACHE_URL=${REDIS_URL}
       - TZ=${TZ}
     volumes:
       - ./:/srv
@@ -94,9 +109,35 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     networks:
       - net
+    cap_add:
+      - SYS_TIME
 
+  minio:
+    hostname: minio
+    image: minio/minio:latest
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address :9001
+    volumes:
+      - ./data/minio/data:/data
+      - ./data/minio/config:/root/.minio
+    networks:
+      - net
+    healthcheck:
+      test: [ "CMD", "echo", "'MinIO is up'" ]
+      #      interval: 30s
+      timeout: 4s
+      retries: 10
+      start_period: 5s
 
 networks:
   net:

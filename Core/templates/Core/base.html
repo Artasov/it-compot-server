@@ -3,7 +3,7 @@
 <html lang="ru">
 <head>
     <title>{% block title %} {% endblock %}</title>
-    {% block link_content_css %}{% endblock %}
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 
@@ -16,10 +16,10 @@
 
     <script src="{% static 'Core/js/bootstrap.bundle.min.js' %}"></script>
     <script defer src="{% static 'Core/js/check_device.js' %}"></script>
-    <script defer src="{% static 'Core/js/base.js' %}"></script>
     <script defer src="{% static 'Core/js/inputs.js' %}"></script>
-
-    {% block head_scripts %}{% endblock %}
+    <script defer src="{% static 'Core/js/base.js' %}"></script>
+    <script defer src="{% static 'Core/js/initCopyBtns.js' %}"></script>
+    {% block head %}{% endblock %}
     <meta name="description" content="{% block meta_description %}{% endblock %}">
     <meta property="og:description" content="{% block meta_og_description %}{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}{% endblock %} it-compot">
@@ -55,13 +55,14 @@
     {#    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'Core/img/logo.png' %}">#}
     <meta id="theme" content="{{ theme }}">
 </head>
-<body class="bg-dark">
+
+<body data-bs-theme="{% if theme %}{{ theme }}{% else %}dark{% endif %}">
 <div id="wrapper" class="wrapper d-flex flex-column overflow-hidden position-relative">
     {% include 'Core/includes/header.html' %}
     <main class="no_scrollbar overflow-y-scroll d-flex flex-column flex-grow-1" style="margin-top: 0;">
         <div id="loading_spinner_block">
             <div id="loading_spinner_block-help">
-                <div id="loading_spinner" class="spinner-border fs-4 text-white-50 opacity-50" role="status"></div>
+                <div id="loading_spinner" class="spinner-border fs-4" style="color: #888" role="status"></div>
             </div>
         </div>
         {% block content %}{% endblock %}
