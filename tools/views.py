@@ -85,7 +85,7 @@ async def join_to_group(request):
     # pprint(groups_available)
 
     return render(request, 'tools/join_to_group.html', {
-        'theme': 'light'
+        # 'theme': 'light'
     })
 
 

@@ -23,6 +23,9 @@ function raiseErrorModal(error) {
 }
 
 function raiseSuccessModal(contentElement) {
+    const successModalBodyEl = document.querySelector('.success-modal-body');
+    successModalBodyEl.innerHTML = '';
+    successModalBodyEl.appendChild(contentElement);
     document.querySelector('.success-modal-body').appendChild(contentElement)
     const successModal = new bootstrap.Modal(document.getElementById('successModal'), {
         keyboard: true
