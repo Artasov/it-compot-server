@@ -76,14 +76,7 @@ Very hard
 """
 
 
-# pprint(await HHManager.getDisciplines())
-
-
 async def join_to_group(request):
-
-    # print(f'RESULT: {len(groups_available)}')
-    # pprint(groups_available)
-
     return render(request, 'tools/join_to_group.html', {
         # 'theme': 'light'
     })

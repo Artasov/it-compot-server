@@ -65,3 +65,23 @@ def student_to_group(request):
         return Response({'success': True}, status=status.HTTP_200_OK)
     else:
         return Response({'success': False}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StudentAlreadyStudyingOnDisciplineSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField()
+    discipline = serializers.CharField(max_length=400)
+
+
+@api_view(('GET',))
+def get_is_student_on_discipline(request):
+    serializer = StudentToGroupSerializer(data=request.POST)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    data = serializer.validated_data
+    HHManager = CustomHHApiV2Manager()
+    result = async_to_sync(HHManager.getEdUnitStudents)(
+        studentClientId=data.get('student_id'),
+        edUnitDisciplines=data.get('discipline'),
+    )
+    print(result)
+    return Response(True, status=status.HTTP_200_OK)
