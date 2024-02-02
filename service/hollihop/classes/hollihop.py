@@ -50,6 +50,25 @@ class HolliHopApiV2Manager:
             response = await self.fetch(session, f"{url}?{urlencode(params)}")
             return response
 
+    @staticmethod
+    async def post_fetch(session, url, data):
+        async with session.post(url, json=data) as response:
+            return await response.json()
+
+    async def api_post_call(self, endpoint, **params):
+        url = f"https://{self.domain}/Api/V2/{endpoint}"
+        params['authkey'] = self.authkey
+        async with aiohttp.ClientSession() as session:
+            response = await self.post_fetch(session, url, params)
+            return response
+
+    async def addEdUnitStudent(self, **kwargs):
+        required_params = ['edUnitId', 'studentClientId']
+        if not all(param in kwargs for param in required_params):
+            raise ValueError(f"Missing required parameters: {', '.join(required_params)}")
+        response = await self.api_post_call('AddEdUnitStudent', **kwargs)
+        return response
+
     async def getDisciplines(self, **kwargs):
         disciplines = await self.api_call('GetDisciplines', **kwargs)
         return disciplines.get('Disciplines', [])
@@ -145,7 +164,8 @@ class HolliHopApiV2Manager:
 
     async def getEdUnits(self, **kwargs):
         edUnits = await self.api_call_pagination('GetEdUnits', **kwargs)
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        print(
+            '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         print(edUnits)
         result_list = []
         for result in edUnits:

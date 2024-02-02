@@ -1,5 +1,6 @@
 import Client from "../../../../static/Core/js/classes/Client.js";
 
+
 async function getAvailableFormingGroups() {
     try {
         return await Client.sendGet(
@@ -14,14 +15,19 @@ async function getAvailableFormingGroups() {
 }
 
 function raiseErrorModal(error) {
-    // Установка текста ошибки в тело модального окна
     document.querySelector('.error-modal-body').textContent = error;
-
-    // Инициализация и показ модального окна с помощью Bootstrap
     const errorModal = new bootstrap.Modal(document.getElementById('errorModal'), {
         keyboard: true
     });
     errorModal.show();
+}
+
+function raiseSuccessModal(contentElement) {
+    document.querySelector('.success-modal-body').appendChild(contentElement)
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'), {
+        keyboard: true
+    });
+    successModal.show();
 }
 
 async function postJoinStudentToGroup(student_id, group_id) {
@@ -41,6 +47,7 @@ async function postJoinStudentToGroup(student_id, group_id) {
     }
 }
 
+
 function createGroupEl(group) {
     // Создаем элемент списка
     const li = document.createElement('li');
@@ -54,8 +61,8 @@ function createGroupEl(group) {
     // Добавляем информацию о дате и времени
     const dateP = document.createElement('p');
     const timeP = document.createElement('p');
-    // Используем последний элемент расписания для даты и времени
-    const schedule = group.ScheduleItems[group.ScheduleItems.length - 1];
+    // Используем первый элемент расписания для даты и времени
+    const schedule = group.ScheduleItems[0];
     dateP.textContent = schedule.BeginDate;
     timeP.textContent = `${schedule.BeginTime} - ${schedule.EndTime}`;
     li.appendChild(dateP);
@@ -80,61 +87,65 @@ function createGroupEl(group) {
     return li;
 }
 
-function joinStudentToGroup(student_id, group_id) {
-    console.log('SENT')
-    console.log(student_id)
-    console.log(group_id)
-    postJoinStudentToGroup(student_id, group_id).then(response => {
-        console.log(response)
+function joinStudentToGroup(student_id, group) {
+    postJoinStudentToGroup(student_id, group['Id']).then(response => {
+        if (response.success) {
+            const groupPreview = createGroupEl(group);
+            groupPreview.classList.remove('bg-primary');
+            groupPreview.classList.add('bg-success', 'pointer-events-none', 'fs-5');
+            raiseSuccessModal(groupPreview)
+        }
     })
 }
 
-const resultContainerEl = document.querySelector('.result_container');
-const groupLoadingStatusContainerEl = document.querySelector('.group_loading_status_container');
+// Если параметров в запросе достаточно
+if (Object.keys(Client.getParamsFromCurrentURL()).length === 4) {
+    const resultContainerEl = document.querySelector('.result_container');
+    const groupLoadingStatusContainerEl = document.querySelector('.group_loading_status_container');
+
+    getAvailableFormingGroups().then(groups => {
+        console.log(groups);
+        for (const group of groups) {
+            const groupEl = createGroupEl(group)
+
+            // Измените обработчик событий для groupEl
+            groupEl.addEventListener('click', () => {
+                const studentId = Client.getParamsFromCurrentURL()['student_id'];
+                const groupId = group.Id;
+                const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'), {
+                    keyboard: false
+                });
+                confirmationModal.show();
+
+                const modalBodyEl = document.querySelector('.confirmation-modal-body');
+                modalBodyEl.innerHTML = '';
+                const groupPreview = createGroupEl(group);
+                groupPreview.classList.add('pointer-events-none', 'fs-5');
+                const submitQuestionText = document.createElement('p');
+                submitQuestionText.className = 'text-center mb-0 mt-2 fs-5';
+                submitQuestionText.innerHTML = 'Вы действительно хотите записаться в выбранную группу?';
+                modalBodyEl.appendChild(groupPreview);
+                modalBodyEl.appendChild(submitQuestionText);
 
 
-getAvailableFormingGroups().then(groups => {
-    console.log(groups);
-    for (const group of groups) {
-        const groupEl = createGroupEl(group)
-
-        // Измените обработчик событий для groupEl
-        groupEl.addEventListener('click', () => {
-            const studentId = Client.getParamsFromCurrentURL()['student_id'];
-            const groupId = group.Id;
-            const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'), {
-                keyboard: false
+                document.getElementById('confirmJoin').onclick = () => {
+                    joinStudentToGroup(studentId, group);
+                    confirmationModal.hide();
+                };
             });
-            confirmationModal.show();
-
-            const modalBodyEl = document.querySelector('.confirmation-modal-body');
-            modalBodyEl.innerHTML = '';
-            const groupPreview = createGroupEl(group);
-            groupPreview.classList.remove('bg-primary');
-            groupPreview.classList.add('bg-success');
-            const submitQuestionText = document.createElement('p');
-            submitQuestionText.className = 'text-center mb-0 mt-2 fs-5';
-            submitQuestionText.innerHTML = 'Вы действительно хотите записаться в выбранную группу?';
-            modalBodyEl.appendChild(groupPreview);
-            modalBodyEl.appendChild(submitQuestionText);
 
 
-            document.getElementById('confirmJoin').onclick = () => {
-                joinStudentToGroup(studentId, groupId);
-                confirmationModal.hide();
-            };
-        });
+            resultContainerEl.appendChild(groupEl);
+        }
 
-
-        resultContainerEl.appendChild(groupEl);
-    }
-
-    resultContainerEl.parentElement.classList.remove('d-none');
-    groupLoadingStatusContainerEl.innerHTML = '';
-    groupLoadingStatusContainerEl.className = '';
-    const successEl = document.createElement('p');
-    successEl.className = 'text-center fw-bold text-success fs-5 m-0';
-    successEl.innerHTML = 'Ура! Найденные группы ниже :)';
-    groupLoadingStatusContainerEl.appendChild(successEl);
-});
-
+        resultContainerEl.parentElement.classList.remove('d-none');
+        groupLoadingStatusContainerEl.innerHTML = '';
+        groupLoadingStatusContainerEl.className = '';
+        const successEl = document.createElement('p');
+        successEl.className = 'text-center fw-bold text-success fs-5 m-0';
+        successEl.innerHTML = 'Готово! Найденные группы ниже.';
+        groupLoadingStatusContainerEl.appendChild(successEl);
+    });
+} else {
+    raiseErrorModal(`Неверное количество параметров.`);
+}
