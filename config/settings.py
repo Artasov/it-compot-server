@@ -33,9 +33,20 @@ REDIS_URL = env('REDIS_URL', REDIS_BASE_URL + '0')
 REDIS_CACHE_URL = env('REDIS_CACHE_URL', REDIS_BASE_URL + '1')
 DJANGO_REDIS_LOGGER = 'RedisLogger'
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+SESSION_ENGINE = 'redis_sessions.session'
+# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# SESSION_ENGINE = "django.contrib.sessions.backends.db"
+# SESSION_CACHE_ALIAS = "default"
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
+# SESSION_SAVE_EVERY_REQUEST = True
+SESSION_REDIS = {
+    'host': '127.0.0.1',
+    'port': 6379,
+    'db': 0,
+    'prefix': 'session',
+    'socket_timeout': 1,
+    'retry_on_timeout': False
+}
 
 # Static and media files
 STATIC_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}/static/' if not DEV else '/static/'
@@ -291,7 +302,6 @@ if DEV and DEBUG:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 WSGI_APPLICATION = None  # 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
-
 
 log = logging.getLogger('base')
 
