@@ -23,7 +23,9 @@ RUN apk add --no-cache chrony
 # Запуск Chrony и настройка времени при старте контейнера
 RUN echo "server pool.ntp.org iburst" >> /etc/chrony/chrony.conf
 
-# RUN python manage.py collectstatic --noinput
+# Установка Supervisor
+RUN apk update && apk add supervisor
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 ###########
 # DEV #
