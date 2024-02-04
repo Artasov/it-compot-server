@@ -104,17 +104,22 @@ INSTALLED_APPS = [
     'Core',
     'tools',
 ]
-
 DATABASES = {
     'default': {
-        'ENGINE': env('SQL_ENGINE', 'django.db.backends.sqlite3') if not DEV else 'django.db.backends.sqlite3',
-        'NAME': env('SQL_DATABASE_NAME', BASE_DIR / 'db.sqlite3') if not DEV else BASE_DIR / 'db.sqlite3',
-        'USER': env('SQL_USER', 'admin') if not DEV else 'admin',
-        'PASSWORD': env('SQL_PASSWORD', 'admin') if not DEV else 'admin',
-        'HOST': env('SQL_HOST', 'localhost') if not DEV else 'localhost',
-        'PORT': env('SQL_PORT', '5432') if not DEV else '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': env('SQL_ENGINE', 'django.db.backends.sqlite3') if not DEV else 'django.db.backends.sqlite3',
+#         'NAME': env('SQL_DATABASE_NAME', BASE_DIR / 'db.sqlite3') if not DEV else BASE_DIR / 'db.sqlite3',
+#         'USER': env('SQL_USER', 'admin') if not DEV else 'admin',
+#         'PASSWORD': env('SQL_PASSWORD', 'admin') if not DEV else 'admin',
+#         'HOST': env('SQL_HOST', 'localhost') if not DEV else 'localhost',
+#         'PORT': env('SQL_PORT', '5432') if not DEV else '5432',
+#     }
+# }
 if not DEV:
     CACHES = {
         'default': {
