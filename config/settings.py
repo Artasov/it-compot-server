@@ -31,10 +31,11 @@ MAIN_DOMAIN = env('MAIN_DOMAIN', '127.0.0.1')
 REDIS_BASE_URL = 'redis://127.0.0.1:6379/'
 REDIS_URL = env('REDIS_URL', REDIS_BASE_URL + '0')
 REDIS_CACHE_URL = env('REDIS_CACHE_URL', REDIS_BASE_URL + '1')
+DJANGO_REDIS_LOGGER = 'RedisLogger'
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
-DJANGO_REDIS_LOGGER = 'RedisLogger'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
 
 # Static and media files
 STATIC_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}/static/' if not DEV else '/static/'
@@ -107,13 +108,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'django_celery_beat',
     'rest_framework',
     'adrf',
     'channels',
+    'django_celery_beat',
 
     'Core',
     'tools',
+
 ]
 # DATABASES = {
 #     'default': {
@@ -131,16 +133,15 @@ DATABASES = {
         'PORT': env('SQL_PORT', '5432') if not DEV else '5432',
     }
 }
-if not DEV:
-    CACHES = {
-        'default': {
-            "BACKEND": "django_redis.cache.RedisCache",
-            'LOCATION': REDIS_CACHE_URL,
-            'OPTIONS': {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
+CACHES = {
+    'default': {
+        "BACKEND": "django_redis.cache.RedisCache",
+        'LOCATION': REDIS_CACHE_URL,
+        'OPTIONS': {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
