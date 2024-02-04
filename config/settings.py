@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -42,6 +43,10 @@ if DEV:
     STATIC_ROOT = BASE_DIR.parent / 'static'
     MEDIA_ROOT = BASE_DIR.parent / 'media'
 else:
+    STATIC_URL = None
+    MEDIA_URL = None
+    STATIC_ROOT = None
+    MEDIA_ROOT = None
     MINIO_ENDPOINT = 'minio:9000'
     MINIO_EXTERNAL_ENDPOINT = f'{MAIN_DOMAIN}:9000'  # For external access use Docker hostname and MinIO port
     MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = bool(int(env('MINIO_EXTERNAL_ENDPOINT_USE_HTTPS') or 0))
@@ -276,5 +281,20 @@ if DEV and DEBUG:
     }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = None  # 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
+
+
+log = logging.getLogger('base')
+
+log.info(f'{BASE_DIR=}')
+log.info(f'{MAIN_DOMAIN=}')
+log.info(f'{ALLOWED_HOSTS=}')
+log.info(f'{DEBUG=}')
+log.info(f'{DEV=}')
+log.info(f'{ASGI_APPLICATION=}')
+log.info(f'{WSGI_APPLICATION=}')
+log.info(f'{STATIC_URL=}')
+log.info(f'{MEDIA_URL=}')
+log.info(f'{STATIC_ROOT=}')
+log.info(f'{MEDIA_ROOT=}')

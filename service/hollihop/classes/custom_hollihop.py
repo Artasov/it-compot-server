@@ -114,6 +114,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         edUnitsFromToday = await self.get_ed_units(
             # id=18111,
             queryTeacherPrices='true',
+            disciplines=discipline,
             # queryDays='true',
             dateFrom=now.strftime("%Y-%m-%d"),
             maxTake=10000,

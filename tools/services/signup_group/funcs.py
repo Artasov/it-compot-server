@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+from pprint import pprint
 
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
@@ -28,7 +29,6 @@ async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> 
         discipline=discipline,
         age=age
     )
-
     groups_available = sort_groups_by_datetime(groups_available)
 
     groups_result = []
