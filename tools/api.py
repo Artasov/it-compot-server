@@ -1,10 +1,10 @@
 import logging
 
-from adrf.decorators import api_view
+from asgiref.sync import async_to_sync
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from Core.services.common import acontroller, semaphore_handler
 from tools.serializers import (
     StudentAlreadyStudyingOnDisciplineSerializer,
     FormingGroupParamsSerializer,
@@ -18,31 +18,30 @@ from tools.services.signup_group.funcs import (
 log = logging.getLogger('base')
 
 
-@acontroller('Получение групп для записи на вводный модуль.', True)
-@semaphore_handler
+# @controller('Получение групп для записи на вводный модуль.', True)
 @api_view(('GET',))
-async def get_forming_groups_for_join(request) -> Response:
+# @semaphore_handler
+def get_forming_groups_for_join(request) -> Response:
     serializer = FormingGroupParamsSerializer(data=request.GET)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     from tools.services.signup_group.funcs import get_forming_groups_for_join
-    return Response(
-        data=await get_forming_groups_for_join(
-            level=serializer.validated_data.get('level'),
-            discipline=serializer.validated_data.get('discipline'),
-            age=serializer.validated_data.get('age'),
-        ), status=status.HTTP_200_OK
-    )
+    get_forming_groups_for_join_sync = async_to_sync(get_forming_groups_for_join)
+    return Response(get_forming_groups_for_join_sync(
+        level=serializer.validated_data['level'],
+        discipline=serializer.validated_data['discipline'],
+        age=serializer.validated_data['age'],
+    ), status=status.HTTP_200_OK)
 
 
-@acontroller('Добавление ученика на вводный модуль', True)
-@semaphore_handler
+# @controller('Добавление ученика на вводный модуль', True)
 @api_view(('POST',))
-async def student_to_forming_group(request) -> Response:
+# @semaphore_handler
+def student_to_forming_group(request) -> Response:
     serializer = StudentToGroupSerializer(data=request.POST)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    result: bool = await add_student_to_forming_group(
+    result: bool = async_to_sync(add_student_to_forming_group)(
         student_id=serializer.validated_data.get('student_id'),
         group_id=serializer.validated_data.get('group_id')
     )
@@ -51,16 +50,17 @@ async def student_to_forming_group(request) -> Response:
                     else status.HTTP_400_BAD_REQUEST)
 
 
-@acontroller('Проверка записан ли уже ученик', True)
-@semaphore_handler
+# @controller('Проверка записан ли уже ученик', True)
 @api_view(('GET',))
-async def get_is_student_in_group_on_discipline(request) -> Response:
+# @semaphore_handler
+def get_is_student_in_group_on_discipline(request) -> Response:
     serializer = StudentAlreadyStudyingOnDisciplineSerializer(data=request.GET)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    result = async_to_sync(is_student_in_group_on_discipline)(
+        student_id=serializer.validated_data.get('student_id'),
+        discipline=serializer.validated_data.get('discipline')
+    )
+    return Response(result, status=status.HTTP_200_OK)
 
-    return Response(
-        data=await is_student_in_group_on_discipline(
-            student_id=serializer.validated_data.get('student_id'),
-            discipline=serializer.validated_data.get('discipline')
-        ), status=status.HTTP_200_OK)
+

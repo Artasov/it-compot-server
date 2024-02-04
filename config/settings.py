@@ -70,23 +70,26 @@ else:
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Europe/Moscow'
+TIME_ZONE = env('TZ', 'Europe/Moscow')
 USE_I18N = True
 USE_TZ = True
 
 # Additional settings
 SERVICE_ROOT = BASE_DIR / 'service'
 DEVELOPER_EMAIL = 'ivanhvalevskey@gmail.com'
-HOLLIHOP_DOMAIN = 'it-school.t8s.ru'
+HOLLIHOP_DOMAIN = env('HOLLIHOP_DOMAIN')
 HOLLIHOP_AUTHKEY = env('HOLLIHOP_AUTHKEY')
 TEACHER_SALARY_PASSWORD = env('TEACHER_SALARY_PASSWORD')
-GOOGLE_API_JSON_CREDS_PATH = BASE_DIR / 'it-compot-web-client_creds.json'
-TABLE_TEACHERS_SALARY = ('1T5Np2RdqBCdmo7IUm9FGBG6mZWY138arUWPJOBs-slY', '690189137')
-TABLE_SIGNUP_FORMING_GROUPS = '1ch7bbAQQWnBYMA8xkmXHUwtD76iDjZK30nt8C3E6IcY'
+
+# Google Sheets
+GOOGLE_API_JSON_CREDS_PATH = BASE_DIR / env('GSCREDS_FILE_NAME', '')
+GSDOCID_LOG_JOIN_FORMING_GROUPS = env('GSDOCID_LOG_JOIN_FORMING_GROUPS', '')
+GSDOCID_TEACHERS_SALARY = env('GSDOCID_TEACHERS_SALARY', '')
+TABLE_TEACHERS_SALARY = (GSDOCID_TEACHERS_SALARY, '690189137')
 
 # Django settings
 INSTALLED_APPS = [
-    'daphne',
+    # 'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -94,8 +97,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'channels',
-    'adrf',
+    'rest_framework',
+    # 'channels',
+    # 'adrf',
 
     'Core',
     'tools',
@@ -123,17 +127,17 @@ if not DEV:
     }
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny'
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         # 'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
-    'DEFAULT_THROTTLE_CLASSES': [
+    ),
+    'DEFAULT_THROTTLE_CLASSES': (
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'
-    ],
+    ),
 }
 
 CHANNEL_LAYERS = {
@@ -267,5 +271,5 @@ if DEV and DEBUG:
     }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# WSGI_APPLICATION = 'config.wsgi.application'
-ASGI_APPLICATION = 'config.asgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
+# ASGI_APPLICATION = 'config.asgi.application'

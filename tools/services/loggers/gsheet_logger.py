@@ -6,7 +6,7 @@ from service.tools.gsheet.classes.gsheetsclient import GSheetsClient
 
 
 class GSheetsSignUpFormingGroupLogger:
-    def __init__(self, doc_id=settings.TABLE_SIGNUP_FORMING_GROUPS):
+    def __init__(self, doc_id=settings.GSDOCID_LOG_JOIN_FORMING_GROUPS):
         self.client = GSheetsClient(doc_id)
 
     def error(self, row: list | tuple):

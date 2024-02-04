@@ -10,8 +10,8 @@ RUN apk update
 RUN apk add dos2unix
 RUN apk add libpq-dev
 RUN apk add netcat-openbsd
-RUN python -m venv /venv
-ENV PATH="/srv/venv/bin:$PATH"
+# RUN python -m venv /venv
+# ENV PATH="/srv/venv/bin:$PATH"
 RUN python -m pip install --upgrade pip
 RUN python -m pip install -r /srv/requirements.txt
 RUN dos2unix /srv/entrypoint.prod.sh

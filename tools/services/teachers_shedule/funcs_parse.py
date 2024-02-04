@@ -1,10 +1,9 @@
+import datetime as dt
+import re
+from datetime import datetime, timedelta
 from pprint import pprint
 
 import pandas as pd
-import datetime as dt
-
-import re
-from datetime import datetime, timedelta
 
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
@@ -42,7 +41,7 @@ def parse_activity(activity: str) -> dict:
 
             try:
                 if len(parts) == 2:  # Only day and month provided
-                    date_obj = datetime.strptime(date_str+f'.{current_year}', '%d.%m.%Y')
+                    date_obj = datetime.strptime(date_str + f'.{current_year}', '%d.%m.%Y')
                 elif len(parts[2]) == 2:  # Two digits year provided
                     date_obj = datetime.strptime(date_str, '%d.%m.%y')
                 else:  # Full year provided

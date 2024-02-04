@@ -138,10 +138,12 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
 
 async def is_student_in_group_on_discipline(student_id, discipline) -> bool:
     HHManager = CustomHHApiV2Manager()
+    print('!AAAAAAA')
     student = await HHManager.get_students(
         extraFieldName='id ученика',
         extraFieldValue=student_id
     )
+    print('!GGGGGG')
     result = await HHManager.get_ed_unit_students(
         edUnitTypes='Group,MiniGroup',
         studentClientId=student['ClientId'],
