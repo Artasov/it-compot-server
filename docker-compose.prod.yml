@@ -117,8 +117,10 @@ services:
       - SYS_TIME
 
   minio:
+    build:
+      context: .
+      dockerfile: DockerfileMinio
     hostname: minio
-    image: minio/minio:latest
     restart: always
     ports:
       - "9000:9000"
@@ -126,11 +128,9 @@ services:
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-    command: server /data --console-address :9001
     volumes:
       - ./data/minio/data:/data
       - ./data/minio/config:/root/.minio
-      - ./entrypoint_minio.sh:/entrypoint_minio.sh
     networks:
       - net
     healthcheck:
@@ -139,7 +139,6 @@ services:
       timeout: 4s
       retries: 3
       start_period: 40s
-    entrypoint: [ "/entrypoint_minio.sh" ]
 
 networks:
   net:

@@ -1,0 +1,4 @@
+FROM minio/minio:latest
+COPY entrypoint_minio.sh /entrypoint_minio.sh
+RUN chmod +x /entrypoint_minio.sh
+ENTRYPOINT ["sh", "/entrypoint_minio.sh"]
