@@ -13,6 +13,6 @@ python manage.py migrate
 #python manage.py runserver
 # Bind gunicorn
 
-#daphne config.asgi:application --port 8000 --bind 0.0.0.0
-gunicorn config.wsgi:application --workers 1 --bind 0.0.0.0:8000 --timeout 60 --max-requests 1000
+daphne config.asgi:application --port 8000 --bind 0.0.0.0
+#gunicorn config.wsgi:application --workers 1 --bind 0.0.0.0:8000 --timeout 60 --max-requests 1000
 #uvicorn config.asgi:application --host 0.0.0.0 --port 8000

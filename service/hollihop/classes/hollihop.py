@@ -3,15 +3,15 @@ import logging
 from urllib.parse import urlencode
 
 import aiohttp as aiohttp
-from aiohttp import TCPConnector
-
-from config.settings import HOLLIHOP_DOMAIN, HOLLIHOP_AUTHKEY
+from django.conf import settings
 
 log = logging.getLogger('base')
 
 
 class HolliHopApiV2Manager:
-    def __init__(self, domain: str = HOLLIHOP_DOMAIN, authkey: str = HOLLIHOP_AUTHKEY):
+    def __init__(self, domain: str = settings.HOLLIHOP_DOMAIN, authkey: str = settings.HOLLIHOP_AUTHKEY):
+        if not all((domain, authkey)):
+            raise ValueError('domain and authkey required')
         self.domain = domain
         self.authkey = authkey
 
@@ -21,16 +21,13 @@ class HolliHopApiV2Manager:
 
     @staticmethod
     async def fetch(session, url):
-        print('Fetching @@@@@@@@')
         async with session.get(url) as response:
-            print('$$$$$$$$')
             result = await response.json()
-            print('222222$$$$$$$$')
-            print(result)
             return result
 
     async def fetch_all(self, url, params, maxTake=10000, batchSize=1000):
-        async with aiohttp.ClientSession(trust_env=True, connector=TCPConnector(limit_per_host=5, ssl=False)) as session:
+        # async with aiohttp.ClientSession(trust_env=True, connector=TCPConnector(limit_per_host=5, ssl=False)) as session:
+        async with aiohttp.ClientSession() as session:
             tasks = []
             for skip in range(0, maxTake, batchSize):
                 batch_params = params.copy()
@@ -50,8 +47,7 @@ class HolliHopApiV2Manager:
     async def api_call(self, endpoint, **params):
         url = f"https://{self.domain}/Api/V2/{endpoint}"
         params['authkey'] = self.authkey
-        async with aiohttp.ClientSession(trust_env=True, connector=TCPConnector(limit_per_host=5, ssl=False)) as session:
-            print("API call ########")
+        async with aiohttp.ClientSession() as session:
             response = await self.fetch(session, f"{url}?{urlencode(params)}")
             return response
 
@@ -67,7 +63,7 @@ class HolliHopApiV2Manager:
     async def api_post_call(self, endpoint, **params):
         url = f"https://{self.domain}/Api/V2/{endpoint}"
         params['authkey'] = self.authkey
-        async with aiohttp.ClientSession(trust_env=True, connector=TCPConnector(limit_per_host=5, ssl=False)) as session:
+        async with aiohttp.ClientSession() as session:
             response = await self.post_fetch(session, url, params)
             return response
 

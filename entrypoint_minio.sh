@@ -7,9 +7,9 @@ minio server /data --console-address :9001 &
 sleep 6
 
 # Настройка mc
-mc alias set myminio http://localhost:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}
+mc alias set minio http://localhost:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}
 
 # Выполнение обновления MinIO
-#mc admin update myminio
+#mc admin update minio
 
 wait

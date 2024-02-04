@@ -51,7 +51,6 @@ def parse_activity(activity: str) -> dict:
                 date_obj.replace(year=date_obj.year)
                 return date_obj
             except ValueError:
-                print(f'date_str={date_str}')
                 return None
 
         if '-' in date_interval_str:
@@ -165,8 +164,8 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     all_teachers = CustomHHApiV2Manager().getActiveTeachersShortNames()  # Все имена преподаватели
 
-    for teacher in working_teachers:
-        pprint(teacher)
+    # for teacher in working_teachers:
+    #     pprint(teacher)
     # Добавим преподавателей не работающих в этот день и проставим занятость 'Выходной'
     for teacher in all_teachers:
         if not any(w_teacher['name'].lower() == teacher.lower() for w_teacher in working_teachers):

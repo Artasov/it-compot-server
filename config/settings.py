@@ -12,7 +12,7 @@ BASE_DATA_DIR = BASE_DIR / 'data'
 # Environment helper
 env = os.environ.get
 DEV = bool(int(env('DEV', 0)))
-if DEV:
+if not DEV:
     dotenv_path = os.path.join(BASE_DIR, '.env.prod')
     load_dotenv(dotenv_path=dotenv_path)
 
@@ -89,7 +89,7 @@ TABLE_TEACHERS_SALARY = (GSDOCID_TEACHERS_SALARY, '690189137')
 
 # Django settings
 INSTALLED_APPS = [
-    # 'daphne',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -98,8 +98,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-    # 'channels',
-    # 'adrf',
+    'adrf',
+    'channels',
 
     'Core',
     'tools',
@@ -276,5 +276,5 @@ if DEV and DEBUG:
     }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-WSGI_APPLICATION = 'config.wsgi.application'
-# ASGI_APPLICATION = 'config.asgi.application'
+# WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
