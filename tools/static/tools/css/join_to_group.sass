@@ -1,9 +1,19 @@
+.result_container
+  display: grid
+  grid-template: 1fr / 1fr 1fr
+
 .group-item
-  list-style: none
+  width: 100%
+  list-style: none!important
   transition: background-color 0.2s ease-in-out
   padding: 0.8rem 1rem
-  flex-grow: 1
+
   p
     margin: 0
+
   &:hover
-    background-color: #837bff!important
+    background-color: #837bff !important
+
+@media (max-width: 550px)
+  .result_container
+    grid-template: 1fr / 1fr

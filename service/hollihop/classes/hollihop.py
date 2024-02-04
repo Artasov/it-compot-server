@@ -1,12 +1,12 @@
 import asyncio
-from pprint import pprint
-
-import aiohttp as aiohttp
-import requests
-from requests import HTTPError, RequestException
+import logging
 from urllib.parse import urlencode
 
+import aiohttp as aiohttp
+
 from config.settings import HOLLIHOP_DOMAIN, HOLLIHOP_AUTHKEY
+
+log = logging.getLogger('base')
 
 
 class HolliHopApiV2Manager:
@@ -14,7 +14,7 @@ class HolliHopApiV2Manager:
         self.domain = domain
         self.authkey = authkey
 
-    async def getTeachers(self, **kwargs):
+    async def get_teachers(self, **kwargs):
         teachers = await self.api_call('GetTeachers', **kwargs)
         return teachers.get('Teachers', [])
 
@@ -39,8 +39,6 @@ class HolliHopApiV2Manager:
     async def api_call_pagination(self, endpoint, **params):
         url = f"https://{self.domain}/Api/V2/{endpoint}"
         params['authkey'] = self.authkey
-        print("#################")
-        print(f'{self.authkey=}')
         return await self.fetch_all(url, params)
 
     async def api_call(self, endpoint, **params):
@@ -53,7 +51,11 @@ class HolliHopApiV2Manager:
     @staticmethod
     async def post_fetch(session, url, data):
         async with session.post(url, json=data) as response:
-            return await response.json()
+            json = await response.json()
+            if response.status == 200:
+                return {'success': True}
+            else:
+                return {'success': False}
 
     async def api_post_call(self, endpoint, **params):
         url = f"https://{self.domain}/Api/V2/{endpoint}"
@@ -62,114 +64,45 @@ class HolliHopApiV2Manager:
             response = await self.post_fetch(session, url, params)
             return response
 
-    async def addEdUnitStudent(self, **kwargs):
+    async def add_ed_unit_student(self, **kwargs):
         required_params = ['edUnitId', 'studentClientId']
         if not all(param in kwargs for param in required_params):
             raise ValueError(f"Missing required parameters: {', '.join(required_params)}")
         response = await self.api_post_call('AddEdUnitStudent', **kwargs)
         return response
 
-    async def getDisciplines(self, **kwargs):
+    async def get_disciplines(self, **kwargs):
         disciplines = await self.api_call('GetDisciplines', **kwargs)
         return disciplines.get('Disciplines', [])
 
-    async def getLevels(self, **kwargs):
+    async def get_levels(self, **kwargs):
         disciplines = await self.api_call('GetLevels', **kwargs)
         return disciplines.get('Levels', [])
 
-    async def getStudent(self, **kwargs):
+    async def get_students(self, **kwargs):
         students = await self.api_call('GetStudents', **kwargs)
-        return students.get('Students', [[]])[0]
+        students = students.get('Students', [])
+        return students[0] if students else []
 
-    async def getEdUnitStudent(self, **kwargs):
-        studentUnits = await self.api_call('GetEdUnitStudents', **kwargs)
-        return studentUnits.get('EdUnitStudents', [])
+    async def get_ed_unit_student(self, **kwargs):
+        student_units = await self.api_call('GetEdUnitStudents', **kwargs)
+        return student_units.get('EdUnitStudents', [])
 
-    async def getStudentsByIds(self, ids: list[int, ...] | tuple[int, ...]):
-        if len(ids) == 0: return []
-        tasks = [self.getStudent(clientId=id) for id in ids]
-        results = await asyncio.gather(*tasks)
-        return [item for item in results if item]
-        # [
-        #     {
-        #         'AddressDate': '2022-11-21',
-        #         'Agents': [{
-        #             'EMail': 'bezrukovaov@mail.ru',
-        #             'FirstName': 'Радченко',
-        #             'IsCustomer': True,
-        #             'LastName': 'Васильевна',
-        #             'MiddleName': 'Ольга',
-        #             'Mobile': '+79121378820',
-        #             'UseEMailBySystem': True,
-        #             'UseMobileBySystem': True,
-        #             'WhoIs': 'Родитель'
-        #         }],
-        #         'Birthday': '2013-09-03',
-        #         'ClientId': 2031,
-        #         'Created': '2022-11-21T17:47:33',
-        #         'Disciplines': [
-        #             {'Discipline': 'Программирование Scratch + математика',
-        #              'Level': 'Easy-medium'},
-        #             {'Discipline': 'Хакатон'},
-        #             {'Discipline': 'Город программистов Джуниор',
-        #              'Level': 'Easy-medium'}
-        #         ],
-        #         'ExtraFields': [
-        #             {'Name': 'id ученика', 'Value': '21327965'},
-        #             {'Name': 'Ссылка на amoCRM',
-        #              'Value': 'https://itbestonlineschool.amocrm.ru/leads/detail/24384061'},
-        #             {'Name': 'Ссылка на Мой класс',
-        #              'Value': 'https://app.moyklass.com/user/3154720/joins'},
-        #             {'Name': 'Антитренинги (логин)',
-        #              'Value': 'bezrukovaov@mail.ru'},
-        #             {'Name': 'Scratch (логин, пароль)',
-        #              'Value': 'it-alex-rad 2146648'},
-        #             {'Name': 'Филиал', 'Value': 'IT-Компот'}
-        #         ],
-        #         'FirstName': 'Александр',
-        #         'Gender': True,
-        #         'Id': 7508,
-        #         'LastName': 'Радченко',
-        #         'LearningTypes': [
-        #             'Вводный модуль курса (russian language)',
-        #             'Занятия в микро-группах (russian language)',
-        #             'Мероприятия'
-        #         ],
-        #         'MiddleName': 'Константинович',
-        #         'Mobile': '+79121683185',
-        #         'OfficesAndCompanies': [
-        #             {'Id': 1, 'Name': 'Занятия (Zoom2)'},
-        #             {'Id': 2, 'Name': 'Открытые уроки'},
-        #             {'Id': 4, 'Name': 'Клуб IT-Компот'},
-        #             {'Id': 5, 'Name': 'Занятия (Zoom3)'},
-        #             {'Id': 7, 'Name': 'Корпоративный Zoom'},
-        #             {'Id': 8, 'Name': 'Занятия личный Zoom'},
-        #             {'Id': 9, 'Name': 'Занятия (zoom4)'},
-        #             {'Id': 10, 'Name': 'Занятия (Zoom5)'}
-        #         ],
-        #         'Status': 'Закончил обучение',
-        #         'StatusId': 3,
-        #         'Updated': '2023-11-18T17:43:11',
-        #         'UseEMailBySystem': True,
-        #         'UseMobileBySystem': True
-        #     },
-        #     {...},
-        #     {...},
-        # ]
-
-    async def getEdUnitStudentsByUnitId(self, ids: list[int, ...] | tuple[int, ...]):
-        tasks = [self.getEdUnitStudent(edUnitId=id) for id in ids]
-        results = await asyncio.gather(*tasks)
-        return [item for sublist in results if sublist for item in sublist]
-
-    async def getEdUnits(self, **kwargs):
+    async def get_ed_units(self, **kwargs):
         edUnits = await self.api_call_pagination('GetEdUnits', **kwargs)
-        print(
-            '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        print(edUnits)
         result_list = []
         for result in edUnits:
-            values_list = result['EdUnits']
+
+            try:
+                values_list = result['EdUnits']
+            except KeyError as e:
+                log.error(f'Traceback \n{e}\n\n{edUnits})')
+                if len(edUnits) != 0:
+                    if edUnits[0].get('Error', False):
+                        log.error(edUnits[0].get('Error'))
+                        raise PermissionError(edUnits[0].get('Error') + '. API LIMIT')
+                raise KeyError(e)
+
             for value in values_list:
                 result_list.append(value)
         result_filtered = []
@@ -220,10 +153,10 @@ class HolliHopApiV2Manager:
         #     {...},
         # ]
 
-    async def getEdUnitStudents(self, **kwargs):
-        edUnitStudents = await self.api_call_pagination('GetEdUnitStudents', **kwargs)
+    async def get_ed_unit_students(self, **kwargs):
+        ed_unit_students = await self.api_call_pagination('GetEdUnitStudents', **kwargs)
         result_list = []
-        for result in edUnitStudents:
+        for result in ed_unit_students:
             values_list = result['EdUnitStudents']
             for value in values_list:
                 result_list.append(value)
@@ -278,12 +211,3 @@ class HolliHopApiV2Manager:
         #     {...},
         #     {...},
         # ]
-
-    async def getStudents(self, **kwargs):
-        edUnitStudents = await self.api_call_pagination('GetStudents', **kwargs)
-        result_list = []
-        for result in edUnitStudents:
-            values_list = result['Students']
-            for value in values_list:
-                result_list.append(value)
-        return result_list

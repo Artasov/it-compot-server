@@ -1,5 +1,4 @@
-import traceback
-
+from django.conf import settings
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -10,7 +9,7 @@ class ListAlreadyExists(Exception):
 
 
 class GSheetsClient:
-    def __init__(self, creds_json_path, spreadsheet_id):
+    def __init__(self, spreadsheet_id, creds_json_path=settings.GOOGLE_API_JSON_CREDS_PATH):
         self.creds_json_path = creds_json_path
         self.spreadsheet_id = spreadsheet_id
         self.service = self.authenticate()
@@ -23,6 +22,25 @@ class GSheetsClient:
         )
         service = build('sheets', 'v4', credentials=credentials)
         return service
+
+    def append_row(self, row: list | tuple, sheet_name: str):
+        # Проверяем, существует ли лист
+        if sheet_name not in self.get_lists_titles():
+            print(f"Лист '{sheet_name}' не найден. Создаем новый лист.")
+            self.create_list(sheet_name)
+
+        # Добавляем строку в конец листа
+        range_name = f"{sheet_name}!A1"  # A1 указывает Google Sheets начать поиск конца таблицы с первой колонки
+        body = {'values': [row]}
+        request = self.service.spreadsheets().values().append(
+            spreadsheetId=self.spreadsheet_id,
+            range=range_name,
+            valueInputOption='USER_ENTERED',
+            insertDataOption='INSERT_ROWS',
+            body=body
+        )
+        response = request.execute()
+        return response
 
     def create_list(self, sheet_title):
         # Создаем запрос на добавление нового листа

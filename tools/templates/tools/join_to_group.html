@@ -15,7 +15,7 @@
 {% block content %}
     <div id="content" class="container d-none  fcc flex-grow-1"
          style="max-width: 700px;">
-        <div class="fcc gap-2 disable-tap-and-selection py-3">
+        <div id="group_join_content" class="fcc gap-2 disable-tap-and-selection py-3">
             <h1 class="fs-1 text-center mb-0 mt-3">Запись в группу</h1>
             <div class="group_loading_status_container pe-3 pe-sm-0 ps-0 ps-sm-5 frsc justify-content-center justify-content-sm-start gap-3">
                 <div class="p-1">
@@ -26,7 +26,8 @@
                     <span class="text-secondary fs-6 text-opacity-50 mt-0 mt-sm-1">( Это может занять минутку )</span>
                 </h4>
             </div>
-            <p class="px-2" style="text-indent: 1rem">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab accusamus aliquam, aliquid
+            <p class="px-2" style="text-indent: 1rem">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab
+                accusamus aliquam, aliquid
                 consequuntur
                 cupiditate dignissimos dolore ea eligendi est, eum fugit id illum incidunt inventore itaque
                 laboriosam
@@ -45,7 +46,7 @@
         </div>
     </div>
 
-{#    Модальное окно Bootstrap для подтверждения записи в группу #}
+    {#    Модальное окно Bootstrap для подтверждения записи в группу #}
     <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0">
@@ -57,44 +58,50 @@
 
                 </div>
                 <div class="modal-footer frc">
-                    <button type="button" class="btn btn-success" id="confirmJoin">Подтвердить</button>
+                    <button type="button" class="btn btn-success frcc gap-2" id="confirmJoin">
+                        <div class="fcc d-none" id="confirmSpinner">
+                            <div class="spinner-border" style="color: #eee; width: 25px; height: 25px;"></div>
+                        </div>
+                        <span style="padding-bottom: 1px;">Подтвердить</span>
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                 </div>
             </div>
         </div>
     </div>
 
-{#    Модальное окно Bootstrap для ошибок #}
+    {#    Модальное окно Bootstrap для ошибок #}
     <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-3 border-danger">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold text-danger" id="errorModalLabel">Ошибка</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body error-modal-body">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-3 border-danger">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger" id="errorModalLabel">Ошибка</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body error-modal-body">
 
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Закрыть</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-{#    Модальное окно Bootstrap для успеха #}
+    {#    Модальное окно Bootstrap для успеха #}
     <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-5 border-success">
-            <div class="modal-header pb-1 fcc">
-                <h5 class="modal-title fw-bold text-success" id="successModalLabel">Вы успешно записаны на занятие</h5>
-                <p class="m-0 align-self-start">Сделайте скриншот, чтобы не забыть 😉</p>
-            </div>
-            <div class="modal-body success-modal-body">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-5 border-success">
+                <div class="modal-header pb-1 fcc">
+                    <h5 class="modal-title fw-bold text-success text-start" id="successModalLabel">Вы успешно записаны на
+                        занятие</h5>
+                    <p class="m-0 text-start">Сделайте скриншот, чтобы не забыть 😉</p>
+                </div>
+                <div class="modal-body success-modal-body">
 
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 {% endblock %}

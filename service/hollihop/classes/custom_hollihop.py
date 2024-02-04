@@ -1,14 +1,21 @@
-import time
-from datetime import datetime
-from pprint import pprint
+import asyncio
+import logging
+from datetime import datetime, timedelta
 
 from service.common.common import calculate_age
 from service.hollihop.classes.hollihop import HolliHopApiV2Manager
 
+log = logging.getLogger('base')
+
 
 class CustomHHApiV2Manager(HolliHopApiV2Manager):
+    async def getEdUnitStudentsByUnitId(self, ids: list[int, ...] | tuple[int, ...]):
+        tasks = [self.get_ed_unit_student(edUnitId=id) for id in ids]
+        results = await asyncio.gather(*tasks)
+        return [item for sublist in results if sublist for item in sublist]
+
     def getActiveTeachers(self):
-        teachers = self.getTeachers(take=10000)
+        teachers = self.get_teachers(take=10000)
         active_teachers = []
 
         if teachers is not None:
@@ -48,135 +55,160 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         return short_names_teachers
 
     @staticmethod
-    async def isGroupInFuture(group):
-        begin_date_str = group['ScheduleItems'][0]['BeginDate']  # например, '2024-01-31'
-        begin_time_str = group['ScheduleItems'][0]['BeginTime']  # например, '10:00'
-
+    async def isEdUnitStartInDateRange(group, start_date: datetime, end_date: datetime):
+        begin_date_str = group['ScheduleItems'][0]['BeginDate']  # Например, '2024-01-31'
+        begin_time_str = group['ScheduleItems'][0]['BeginTime']  # Например, '10:00'
         begin_datetime_str = f"{begin_date_str} {begin_time_str}"
         begin_datetime = datetime.strptime(begin_datetime_str, '%Y-%m-%d %H:%M')
 
-        if begin_datetime > datetime.now():
-            return True
-        else:
-            return False
+        return True if start_date <= begin_datetime <= end_date else False
 
-    async def isGroupInFutureForAllTeachers(self, group):
-        if group['Id'] == 17978:
-            pprint(group)
+    async def isEdUnitStartInDateRangeForAllTeachers(
+            self, group, start_date: datetime, end_date: datetime
+    ) -> bool:
         HHManager = HolliHopApiV2Manager()
 
         try:  # Если есть список учителей
             teacher_ids = [teacher['TeacherId'] for teacher in group['TeacherPrices']]
             for teacher_id in teacher_ids:
-                fGroupT = await HHManager.getEdUnits(id=group['Id'], teacherId=teacher_id)
+                fGroupT = await HHManager.get_ed_units(id=group['Id'], teacherId=teacher_id)
                 try:  # Если почему-то выдает 2 педагога, но в группе 1. Когда-то давно был и сменили
-                    if not await self.isGroupInFuture(fGroupT[0]):
+                    if not await self.isEdUnitStartInDateRange(fGroupT[0], start_date, end_date):
                         return False
                 except IndexError:
                     pass
         except KeyError:
-            if not await self.isGroupInFuture(group):
+            if not await self.isEdUnitStartInDateRange(group, start_date, end_date):
                 return False
-
         return True
 
-    async def get_forming_groups(self, level: str, discipline: str, age: int) -> list:
+    async def getAvailableFutureStartingEdUnits(self, **kwargs) -> list:
+        level = kwargs.pop('level', None)
+        age = kwargs.pop('age', None)
+        discipline = kwargs.get('discipline', None)
+
         search_levels = []
-        if level == 'Easy':
-            search_levels.append('Easy')
-            search_levels.append('Easy-medium')
-        elif level == 'Easy-medium':
-            search_levels.append('Easy')
-            search_levels.append('Easy-medium')
-            search_levels.append('Medium')
-        elif level == 'Medium':
-            search_levels.append('Easy-medium')
-            search_levels.append('Medium')
-            search_levels.append('Medium-hard')
-        elif level == 'Medium-hard':
-            search_levels.append('Medium')
-            search_levels.append('Medium-hard')
-            search_levels.append('Hard')
-        elif level == 'Hard':
-            search_levels.append('Hard')
-            search_levels.append('Medium')
-            search_levels.append('Medium-hard')
+        if level is not None:
+            if level == 'Easy':
+                search_levels.append('Easy')
+                search_levels.append('Easy-medium')
+            elif level == 'Easy-medium':
+                search_levels.append('Easy')
+                search_levels.append('Easy-medium')
+                search_levels.append('Medium')
+            elif level == 'Medium':
+                search_levels.append('Easy-medium')
+                search_levels.append('Medium')
+                search_levels.append('Medium-hard')
+            elif level == 'Medium-hard':
+                search_levels.append('Medium')
+                search_levels.append('Medium-hard')
+                search_levels.append('Hard')
+            elif level == 'Hard':
+                search_levels.append('Hard')
+                search_levels.append('Medium')
+                search_levels.append('Medium-hard')
 
-        now = datetime.now().strftime("%Y-%m-%d")
+        now = datetime.now()
 
-        # forming groups
-        formingGroups = await self.getEdUnits(
+        edUnitsFromToday = await self.get_ed_units(
             # id=18111,
             queryTeacherPrices='true',
-            types='Group,MiniGroup',
-            queryDays='true',
-            statuses='Forming',
-            learningTypes='Вводный модуль курса (russian language)',
-            disciplines=discipline,
-            dateFrom=now,
+            # queryDays='true',
+            dateFrom=now.strftime("%Y-%m-%d"),
             maxTake=10000,
-            batchSize=1000
+            batchSize=1000,
+            **kwargs
         )
 
-        formingGroups = [fGroup for fGroup in formingGroups
-                         if await self.isGroupInFutureForAllTeachers(fGroup)]
+        # Фильтруем по вместимости
+        edUnitsFromTodayAvailableForJoin = [
+            unit for unit in edUnitsFromToday if
+            unit.get('StudentsCount') < unit.get('StudentsCount') + unit.get(
+                'Vacancies')
+        ]
 
-        # pprint(formingGroups[0])
-        print(f'Forming groups count: {len(formingGroups)}')
-        print([int(value['Id']) for value in formingGroups])
-        # return
+        # Фильтруем по времени позже чем сейчас
+        # для каждого преподавателя побывавшего в группе
+        edUnitsFromNowAvailableForJoin = [
+            unit for unit in edUnitsFromTodayAvailableForJoin
+            if await self.isEdUnitStartInDateRangeForAllTeachers(
+                unit,
+                now,
+                now + timedelta(weeks=3))
+        ]
 
-        sGroups = await self.getEdUnitStudentsByUnitId(
-            [int(value['Id']) for value in formingGroups]
+        log.info(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
+        log.info([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
+
+        edUnitsStudent = await self.getEdUnitStudentsByUnitId(
+            [int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin]
         )
-        print(f'Count sGroups: {len(sGroups)}')
-        ids = [(int(sGroup['EdUnitId']), int(sGroup['StudentClientId']))
-               for sGroup in sGroups]
-        print(ids)
-        result_groups = []
+        log.info(f'Count edUnitsStudent: {len(edUnitsStudent)}')
+        log.info([(int(unitS['EdUnitId']), int(unitS['StudentClientId']))
+                  for unitS in edUnitsStudent])
+
         # Проверяем подходит ли нам какая-либо группа
-        for formingGroup in formingGroups:
+
+        # Сначала получаем уникальные ID всех студентов из всех групп
+        unique_student_ids = set()
+        for unitS in edUnitsStudent:
+            unique_student_ids.add(int(unitS['StudentClientId']))
+        # Преобразуем set в tuple для запроса
+        student_ids_tuple = tuple(set(unique_student_ids))
+        # Получаем информацию по всем студентам одним запросом
+        all_students_info = await self.get_students(
+            extraFieldName='id ученика',
+            extraFieldValue=','.join(map(str, student_ids_tuple))
+        )
+        # Преобразуем результат в словарь для удобства доступа
+        students_info_dict = {student['id']: student for student in all_students_info}
+
+        # Проверяем каждую группу
+        resultUnits = []
+        for unit in edUnitsFromNowAvailableForJoin:
             allow = True
-            # Получаем id студентов этой группы
-            students_ids = []
-            for sGroup in sGroups:
-                if sGroup['EdUnitId'] == formingGroup['Id']:
-                    students_ids.append(int(sGroup['StudentClientId']))
-            students_ids = tuple(set(students_ids))
-            # print(f'{formingGroup["Id"]} - {students_ids}')
+            students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
+                            unitS['EdUnitId'] == unit['Id']]
+            students_ids_set = set(students_ids)  # Уникализируем ID студентов в группе
 
             # Если в группе еще пусто
-            if len(students_ids) == 0:
-                result_groups.append(formingGroup)
-                print(f'GROUP {formingGroup["Id"]}: Подходит Пустая')
+            if not students_ids_set:
+                resultUnits.append(unit)
+                log.info(f'EdUnit {unit["Id"]}: Подходит Пустая')
                 continue
 
-            # Получаем информацию по студентам
-            students = await self.getStudentsByIds(students_ids)
+            # Используем предварительно полученную информацию о студентах
+            students = [students_info_dict[student_id] for student_id in students_ids_set if
+                        student_id in students_info_dict]
 
             for student in students:
                 # Если возраст отличается больше чем на 2 от запрошенного, то скип
-                try:
-                    student_age = calculate_age(student['Birthday'])
-                    if abs(student_age - age) > 2:
-                        allow = False
-                        print(f'GROUP {formingGroup["Id"]}: Не подходит по возрасту')
-                        break
-                except KeyError:
-                    # print('Нет дня рождения')
-                    continue
+                if age is not None:
+                    try:
+                        student_age = calculate_age(student['Birthday'])
+                        if abs(student_age - age) > 2:
+                            allow = False
+                            log.info(f'EdUnit {unit["Id"]}: Не подходит по возрасту')
+                            break
+                    except KeyError:
+                        # print('Нет дня рождения')
+                        continue
+
                 # Проверяем подходит ли по уровню
-                try:  # Берем поле дисциплины:
-                    disciplines = student['Disciplines']
-                    for d in disciplines:
-                        if d['Discipline'] == discipline:
-                            if d['Level'] not in search_levels:
-                                print(f'GROUP {formingGroup["Id"]}: Не подходит по уровню')
-                                allow = False
-                except KeyError:
-                    # print('Нет Disciplines Discipline Level')
-                    continue
+                if search_levels:
+                    try:  # Берем поле дисциплины:
+                        disciplines = student['Disciplines']
+                        for d in disciplines:
+                            if d['Discipline'] == discipline:
+                                if d['Level'] not in search_levels:
+                                    log.info(f'EdUnit {unit["Id"]}: Не подходит по уровню')
+                                    allow = False
+                    except KeyError:
+                        # print('Нет Disciplines Discipline Level')
+                        continue
             if allow:
-                result_groups.append(formingGroup)
-                print(f'GROUP {formingGroup["Id"]}: Подходит')
-        return result_groups
+                resultUnits.append(unit)
+                log.info(f'EdUnit {unit["Id"]}: Подходит')
+
+        return resultUnits

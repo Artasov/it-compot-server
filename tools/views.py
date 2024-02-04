@@ -1,13 +1,11 @@
 import traceback
-from pprint import pprint
-from time import time
 
 import pandas as pd
-from django.conf import settings
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from Core.error_messages import TEACHER_EMAIL_NOT_FOUND
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
+from Core.services.common import acontroller
 from service.hollihop.classes.exeptions import TeacherNotFound
 from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
 from service.tools.gsheet.classes.gsheetsclient import GSheetsClient, ListAlreadyExists
@@ -76,13 +74,15 @@ Very hard
 """
 
 
-async def join_to_group(request):
+@acontroller('Страница для записи на вводный модуль')
+async def join_to_group(request) -> HttpResponse:
     return render(request, 'tools/join_to_group.html', {
-        # 'theme': 'light'
+        'theme': 'light'
     })
 
 
-def parse_teachers_schedule_ui(request):
+@acontroller('Интервальная выгрузка занятости преподавателей за день из .xlsx')
+async def parse_teachers_schedule_ui(request) -> HttpResponse:
     context = {}
     if request.method == 'POST':
         form = LoadHHTeachersScheduleXLSXForm(request.POST, request.FILES)
@@ -93,7 +93,7 @@ def parse_teachers_schedule_ui(request):
             try:
                 teachers_parsed_schedule = parse_teachers_schedule_from_dj_mem(teachers_schedule_xlsx)
                 schedule_dataframe = create_schedule(teachers_parsed_schedule)
-                client = GSheetsClient(settings.GOOGLE_API_JSON_CREDS_PATH, gdoc_id)
+                client = GSheetsClient(gdoc_id)
 
                 # Создаем новый лист
                 client.create_list(new_glist_name)
@@ -116,7 +116,8 @@ def parse_teachers_schedule_ui(request):
     return render(request, 'tools/parse_teachers_schedule.html', context)
 
 
-def teacher_salary(request):
+@acontroller('Отображение зарплаты учителя по email & unipass')
+async def teacher_salary(request) -> HttpResponse:
     form = GetTeacherSalaryForm(request.POST or None)
     if form.is_valid():
         email = form.cleaned_data['email']
@@ -144,17 +145,13 @@ def teacher_salary(request):
 
             # Преобразование списка словарей в DataFrame
             teacher_month_lessons_df = pd.DataFrame(teacher_month_lessons)
-
             # Преобразование значений 'duration' в числовой формат
             teacher_month_lessons_df['duration'] = pd.to_numeric(teacher_month_lessons_df['duration'], errors='coerce')
-
             # Группировка данных по 'gid', 'date', 'discipline', 'type'
             grouped_lessons = teacher_month_lessons_df.groupby(['gid', 'date', 'discipline', 'type'])
-
             # Фильтрация групп, где не у всех уроков одновременно skip == 'TRUE' и duration == 0
             filtered_lessons = grouped_lessons.filter(
                 lambda x: not ((x['skip'] == 'TRUE') & (x['duration'] == 0)).all())
-
             # Если нужно вернуть данные в исходный формат списка словарей
             teacher_month_lessons = filtered_lessons.to_dict('records')
 

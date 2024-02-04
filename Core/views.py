@@ -6,7 +6,7 @@ import logging
 
 from django_redis import get_redis_connection
 
-log = logging.getLogger('Core')
+log = logging.getLogger('base')
 
 
 def menu(request):

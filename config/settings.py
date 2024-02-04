@@ -1,8 +1,9 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-from dotenv import load_dotenv
+
 import environ
+from dotenv import load_dotenv
 
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -81,9 +82,11 @@ HOLLIHOP_AUTHKEY = env('HOLLIHOP_AUTHKEY')
 TEACHER_SALARY_PASSWORD = env('TEACHER_SALARY_PASSWORD')
 GOOGLE_API_JSON_CREDS_PATH = BASE_DIR / 'it-compot-web-client_creds.json'
 TABLE_TEACHERS_SALARY = ('1T5Np2RdqBCdmo7IUm9FGBG6mZWY138arUWPJOBs-slY', '690189137')
+TABLE_SIGNUP_FORMING_GROUPS = '1ch7bbAQQWnBYMA8xkmXHUwtD76iDjZK30nt8C3E6IcY'
 
 # Django settings
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -91,7 +94,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'rest_framework',
+    'channels',
+    'adrf',
 
     'Core',
     'tools',
@@ -107,16 +111,16 @@ DATABASES = {
         'PORT': env('SQL_PORT', '5432') if not DEV else '5432',
     }
 }
-
-CACHES = {
-    'default': {
-        "BACKEND": "django_redis.cache.RedisCache",
-        'LOCATION': REDIS_CACHE_URL,
-        'OPTIONS': {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+if not DEV:
+    CACHES = {
+        'default': {
+            "BACKEND": "django_redis.cache.RedisCache",
+            'LOCATION': REDIS_CACHE_URL,
+            'OPTIONS': {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
         }
     }
-}
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -132,6 +136,25 @@ REST_FRAMEWORK = {
     ],
 }
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            # "hosts": [('redis', 6379)],
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+# Logging
+logs_prod_dir = os.path.join(BASE_DIR, 'logs/django_prod')
+logs_dev_dir = os.path.join(BASE_DIR, 'logs/django_dev')
+logs_sql_prod_dir = os.path.join(BASE_DIR, 'logs/django_prod/sql')
+logs_sql_dev_dir = os.path.join(BASE_DIR, 'logs/django_dev/sql')
+
+for path in [logs_prod_dir, logs_dev_dir, logs_sql_prod_dir, logs_sql_dev_dir]:
+    os.makedirs(path, exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -139,31 +162,44 @@ LOGGING = {
         'base_formatter': {
             'format': '{levelname} {asctime} {module}: {message}',
             'style': '{',
-            'encoding': 'utf-8',
         }
     },
     'handlers': {
-        # 'file': {
-        #     'level': 'DEBUG',
-        #     'class': 'logging.FileHandler',
-        #     'filename': BASE_DIR / 'django.log',
-        #     'formatter': 'base_formatter',
-        #     'encoding': 'utf-8',
-        # },
+        'file_sql': {
+            'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(logs_sql_dev_dir if DEBUG and DEV else logs_sql_prod_dir, 'sql.log'),
+            'when': 'midnight',
+            'backupCount': 30,  # How many days to keep logs
+            'formatter': 'base_formatter',
+            'encoding': 'utf-8',
+        },
+        'file': {
+            'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(logs_dev_dir if DEBUG and DEV else logs_prod_dir, 'django.log'),
+            'when': 'midnight',
+            'backupCount': 30,  # How many days to keep logs
+            'formatter': 'base_formatter',
+            'encoding': 'utf-8',
+        },
         'console': {
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
             'class': 'logging.StreamHandler',
             'formatter': 'base_formatter',
         },
     },
     'loggers': {
-        'Core': {
-            'handlers': ['console'],  # ['console', 'file'],
-            'level': 'DEBUG',
+        'base': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
             'propagate': True,
         },
-        # 'app_name': {
-        #     'handlers':...
+        # 'django.db.backends': {  # All SQL
+        #     'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+        #     'handlers': ['file_sql'],
+        #     'propagate': False,
+        # },
     },
 }
 
@@ -231,5 +267,5 @@ if DEV and DEBUG:
     }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-WSGI_APPLICATION = 'config.wsgi.application'
+# WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
