@@ -37,14 +37,12 @@ SESSION_CACHE_ALIAS = "default"
 DJANGO_REDIS_LOGGER = 'RedisLogger'
 
 # Static and media files
+STATIC_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}/static/' if not DEV else '/static/'
+MEDIA_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}/media/' if not DEV else '/media/'
 if DEV:
-    STATIC_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}/static/' if not DEV else '/static/'
-    MEDIA_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}/media/' if not DEV else '/media/'
     STATIC_ROOT = BASE_DIR.parent / 'static'
     MEDIA_ROOT = BASE_DIR.parent / 'media'
 else:
-    STATIC_URL = None
-    MEDIA_URL = None
     STATIC_ROOT = None
     MEDIA_ROOT = None
     MINIO_ENDPOINT = 'minio:9000'
@@ -72,6 +70,13 @@ else:
 
     STATICFILES_STORAGE = 'django_minio_backend.models.MinioBackendStatic'
     FILE_UPLOAD_MAX_MEMORY_SIZE = 65536
+
+# Celery
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -102,6 +107,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'django_celery_beat',
     'rest_framework',
     'adrf',
     'channels',
@@ -109,22 +115,22 @@ INSTALLED_APPS = [
     'Core',
     'tools',
 ]
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 # DATABASES = {
 #     'default': {
-#         'ENGINE': env('SQL_ENGINE', 'django.db.backends.sqlite3') if not DEV else 'django.db.backends.sqlite3',
-#         'NAME': env('SQL_DATABASE_NAME', BASE_DIR / 'db.sqlite3') if not DEV else BASE_DIR / 'db.sqlite3',
-#         'USER': env('SQL_USER', 'admin') if not DEV else 'admin',
-#         'PASSWORD': env('SQL_PASSWORD', 'admin') if not DEV else 'admin',
-#         'HOST': env('SQL_HOST', 'localhost') if not DEV else 'localhost',
-#         'PORT': env('SQL_PORT', '5432') if not DEV else '5432',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE': env('SQL_ENGINE', 'django.db.backends.sqlite3') if not DEV else 'django.db.backends.sqlite3',
+        'NAME': env('SQL_DATABASE_NAME', BASE_DIR / 'db.sqlite3') if not DEV else BASE_DIR / 'db.sqlite3',
+        'USER': env('SQL_USER', 'admin') if not DEV else 'admin',
+        'PASSWORD': env('SQL_PASSWORD', 'admin') if not DEV else 'admin',
+        'HOST': env('SQL_HOST', 'localhost') if not DEV else 'localhost',
+        'PORT': env('SQL_PORT', '5432') if not DEV else '5432',
+    }
+}
 if not DEV:
     CACHES = {
         'default': {
@@ -161,10 +167,11 @@ CHANNEL_LAYERS = {
 }
 
 # Logging
-logs_prod_dir = os.path.join(BASE_DIR, 'logs/django_prod')
-logs_dev_dir = os.path.join(BASE_DIR, 'logs/django_dev')
-logs_sql_prod_dir = os.path.join(BASE_DIR, 'logs/django_prod/sql')
-logs_sql_dev_dir = os.path.join(BASE_DIR, 'logs/django_dev/sql')
+LOG_PREFIX = env('LOG_PREFIX', 'server')
+logs_prod_dir = os.path.join(BASE_DIR, 'logs/django_prod', LOG_PREFIX)
+logs_dev_dir = os.path.join(BASE_DIR, 'logs/django_dev', LOG_PREFIX)
+logs_sql_prod_dir = os.path.join(logs_prod_dir, 'sql')
+logs_sql_dev_dir = os.path.join(logs_dev_dir, 'sql')
 
 for path in [logs_prod_dir, logs_dev_dir, logs_sql_prod_dir, logs_sql_dev_dir]:
     os.makedirs(path, exist_ok=True)
@@ -287,6 +294,9 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 log = logging.getLogger('base')
 
+log.info('#####################################')
+log.info('########## Server Settings ##########')
+log.info('#####################################')
 log.info(f'{BASE_DIR=}')
 log.info(f'{MAIN_DOMAIN=}')
 log.info(f'{ALLOWED_HOSTS=}')

@@ -26,5 +26,5 @@ def health_test(request):
         log.warning(f'Postgres have not yet come to life: {str(e)}')
         return HttpResponse(f"Postgres error: {str(e)}", status=500)
 
-    log.warning('Web Server Alive')
+    log.info('Web server alive')
     return HttpResponse("OK")

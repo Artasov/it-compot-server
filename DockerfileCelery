@@ -1,0 +1,24 @@
+# Используйте официальный образ Python как базовый
+FROM python:3.11-alpine
+
+# Установите рабочую директорию в контейнере
+WORKDIR /srv
+
+# Установите зависимости
+# Скопируйте только файлы зависимостей в контейнер и установите их
+# Это улучшает кэширование слоев Docker
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Скопируйте остальную часть вашего кода Django в контейнер
+COPY . .
+RUN adduser -D celeryuser
+USER celeryuser
+# Установите переменные окружения для Celery
+# Сделаем это в docker-compose
+#ENV CELERY_BROKER_URL redis://redis:6379/0
+#ENV CELERY_RESULT_BACKEND redis://redis:6379/0
+#ENV CELERY_ACCEPT_CONTENT application/json
+#ENV CELERY_TASK_SERIALIZER json
+#ENV CELERY_RESULT_SERIALIZER json
+ENTRYPOINT ["sh", "/srv/entrypoint_celery.sh"]

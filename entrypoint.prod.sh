@@ -5,6 +5,10 @@
 ############
 /usr/sbin/chronyd
 
+echo "#####################################"
+echo "########## Server Starting ##########"
+echo "#####################################"
+
 chronyc tracking
 # Collect static files into one folder without asking for confirmation
 python manage.py collectstatic --noinput &&

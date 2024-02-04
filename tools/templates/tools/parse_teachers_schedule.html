@@ -54,7 +54,7 @@
 
             <form class="px-3 py-1 text-center"
                   method="post" enctype="multipart/form-data"
-                  action="{% url 'tools:parse_teachers_schedule' %}">{% csrf_token %}
+                  action="{% url 'tools:daily_teacher_schedule_by_interval_gsheet_export' %}">{% csrf_token %}
                 {% include 'Core/includes/form.html' with form=form %}
                 <div class="text-center pt-3 pb-1">
                     <button type="submit" id="button" data-text="PARSE" data-text-done=""
