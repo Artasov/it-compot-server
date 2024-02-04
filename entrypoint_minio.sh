@@ -10,6 +10,6 @@ sleep 6
 mc alias set myminio http://localhost:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}
 
 # Выполнение обновления MinIO
-mc admin update myminio
+#mc admin update myminio
 
 wait
