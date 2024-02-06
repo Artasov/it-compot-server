@@ -1,7 +1,6 @@
 import datetime as dt
 import re
 from datetime import datetime, timedelta
-from pprint import pprint
 
 import pandas as pd
 
@@ -21,7 +20,7 @@ def is_time_overlap(interval1, interval2):
     return max(start1, start2) < min(end1, end2)
 
 
-def parse_activity(activity: str) -> dict:
+async def parse_activity(activity: str) -> dict:
     # Извлекаем временной интервал
     interval_match = re.search(r'\d{1,2}:\d{2}-\d{1,2}:\d{2}', activity)
     if interval_match:
@@ -85,7 +84,7 @@ def parse_activity(activity: str) -> dict:
     }
 
 
-def parse_teachers_schedule_from_dj_mem(uploaded_file):
+async def parse_teachers_schedule_from_dj_mem(uploaded_file):
     teachers_schedules = []
     df = pd.read_excel(uploaded_file, engine='openpyxl')
     # Находим строку с заголовком "Имя"
@@ -162,7 +161,7 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     working_teachers = teachers_schedules
 
-    all_teachers = CustomHHApiV2Manager().getActiveTeachersShortNames()  # Все имена преподаватели
+    all_teachers = await CustomHHApiV2Manager().getActiveTeachersShortNames()  # Все имена преподаватели
 
     # for teacher in working_teachers:
     #     pprint(teacher)
@@ -183,7 +182,7 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
     # Форматируем активность.
     for i in range(len(working_teachers)):
         for j in range(len(working_teachers[i]['activities'])):
-            if 'выходной' in working_teachers[i]['activities'][j]['desc'].lower():
+            if 'выходной' in await working_teachers[i]['activities'][j]['desc'].lower():
                 continue
             if 'не работаю' in working_teachers[i]['activities'][j]['desc'].lower():
                 working_teachers[i]['activities'][j]['desc'] = 'Не работает'
@@ -193,7 +192,7 @@ def parse_teachers_schedule_from_dj_mem(uploaded_file):
     return working_teachers
 
 
-def fill_schedule(activities, date):
+async def fill_schedule(activities, date):
     full_day_schedule = []
     is_weekend = date.weekday() >= 5
     if is_weekend:
@@ -231,12 +230,12 @@ def fill_schedule(activities, date):
     return full_day_schedule
 
 
-def create_schedule(teachers_activities):
+async def create_schedule(teachers_activities):
     # Создаем список для данных расписания
     schedule_list = []
 
     for teacher in teachers_activities:
-        teacher_schedule = fill_schedule(teacher['activities'], teacher['date'])
+        teacher_schedule = await fill_schedule(teacher['activities'], teacher['date'])
         for entry in teacher_schedule:
             schedule_list.append([
                 teacher['name'],  # Имя учителя

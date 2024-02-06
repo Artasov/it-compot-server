@@ -22,7 +22,7 @@ async def join_to_forming_group(request) -> HttpResponse:
 @acontroller('Страница интервальной выгрузки занятости преподавателей за день из .xlsx', True)
 async def daily_teacher_schedule_by_interval_gsheet_export(request) -> HttpResponse:
     if request.method == 'POST':
-        context = handle_teachers_schedule_upload(request)
+        context = await handle_teachers_schedule_upload(request)
     else:
         context = {'form': LoadHHTeachersScheduleXLSXForm()}
     return render(request, 'tools/parse_teachers_schedule.html', context)

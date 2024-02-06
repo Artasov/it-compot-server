@@ -14,27 +14,24 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         results = await asyncio.gather(*tasks)
         return [item for sublist in results if sublist for item in sublist]
 
-    def getActiveTeachers(self):
-        teachers = self.get_teachers(take=10000)
+    async def getActiveTeachers(self):
+        teachers = await self.get_teachers(take=10000)
         active_teachers = []
-
         if teachers is not None:
             for teacher in teachers:
                 # Проверяем, что у преподавателя есть статус и он не равен "уволен"
                 if teacher.get('Status', '').lower() != 'уволен':
                     active_teachers.append(teacher)
-
         return active_teachers
 
-    def getActiveTeachersShortNames(self) -> list:
-        all_teachers = self.getActiveTeachers()
+    async def getActiveTeachersShortNames(self) -> list:
+        all_teachers = await self.getActiveTeachers()
         short_names_teachers = []
         for teacher in all_teachers:
             try:
                 last_name = teacher['LastName']
             except KeyError:
                 last_name = ''
-
             try:
                 first_name_short = teacher['FirstName'][0]
             except KeyError:
@@ -60,14 +57,12 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         begin_time_str = group['ScheduleItems'][0]['BeginTime']  # Например, '10:00'
         begin_datetime_str = f"{begin_date_str} {begin_time_str}"
         begin_datetime = datetime.strptime(begin_datetime_str, '%Y-%m-%d %H:%M')
-
         return True if start_date <= begin_datetime <= end_date else False
 
     async def isEdUnitStartInDateRangeForAllTeachers(
             self, group, start_date: datetime, end_date: datetime
     ) -> bool:
         HHManager = HolliHopApiV2Manager()
-
         try:  # Если есть список учителей
             teacher_ids = [teacher['TeacherId'] for teacher in group['TeacherPrices']]
             for teacher_id in teacher_ids:
@@ -86,7 +81,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         level = kwargs.pop('level', None)
         age = kwargs.pop('age', None)
         discipline = kwargs.get('discipline', None)
-
         search_levels = []
         if level is not None:
             if level == 'Easy':
@@ -108,9 +102,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                 search_levels.append('Hard')
                 search_levels.append('Medium')
                 search_levels.append('Medium-hard')
-
         now = datetime.now()
-
         edUnitsFromToday = await self.get_ed_units(
             # id=18111,
             queryTeacherPrices='true',
@@ -121,14 +113,12 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             batchSize=1000,
             **kwargs
         )
-
         # Фильтруем по вместимости
         edUnitsFromTodayAvailableForJoin = [
             unit for unit in edUnitsFromToday if
             unit.get('StudentsCount') < unit.get('StudentsCount') + unit.get(
                 'Vacancies')
         ]
-
         # Фильтруем по времени позже чем сейчас
         # для каждого преподавателя побывавшего в группе
         edUnitsFromNowAvailableForJoin = [
@@ -138,7 +128,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                 now,
                 now + timedelta(weeks=3))
         ]
-
         log.info(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
         log.info([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
 
@@ -148,9 +137,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         log.info(f'Count edUnitsStudent: {len(edUnitsStudent)}')
         log.info([(int(unitS['EdUnitId']), int(unitS['StudentClientId']))
                   for unitS in edUnitsStudent])
-
         # Проверяем подходит ли нам какая-либо группа
-
         # Сначала получаем уникальные ID всех студентов из всех групп
         unique_student_ids = set()
         for unitS in edUnitsStudent:
@@ -164,7 +151,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         )
         # Преобразуем результат в словарь для удобства доступа
         students_info_dict = {student['id']: student for student in all_students_info}
-
         # Проверяем каждую группу
         resultUnits = []
         for unit in edUnitsFromNowAvailableForJoin:
@@ -172,17 +158,14 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
                             unitS['EdUnitId'] == unit['Id']]
             students_ids_set = set(students_ids)  # Уникализируем ID студентов в группе
-
             # Если в группе еще пусто
             if not students_ids_set:
                 resultUnits.append(unit)
                 log.info(f'EdUnit {unit["Id"]}: Подходит Пустая')
                 continue
-
             # Используем предварительно полученную информацию о студентах
             students = [students_info_dict[student_id] for student_id in students_ids_set if
                         student_id in students_info_dict]
-
             for student in students:
                 # Если возраст отличается больше чем на 2 от запрошенного, то скип
                 if age is not None:
@@ -195,7 +178,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                     except KeyError:
                         # print('Нет дня рождения')
                         continue
-
                 # Проверяем подходит ли по уровню
                 if search_levels:
                     try:  # Берем поле дисциплины:
@@ -211,5 +193,4 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             if allow:
                 resultUnits.append(unit)
                 log.info(f'EdUnit {unit["Id"]}: Подходит')
-
         return resultUnits
