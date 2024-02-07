@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from pprint import pprint
 
 from service.common.common import calculate_age
 from service.hollihop.classes.hollihop import HolliHopApiV2Manager
@@ -52,12 +53,20 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         return short_names_teachers
 
     @staticmethod
-    async def isEdUnitStartInDateRange(group, start_date: datetime, end_date: datetime):
-        begin_date_str = group['ScheduleItems'][0]['BeginDate']  # Например, '2024-01-31'
-        begin_time_str = group['ScheduleItems'][0]['BeginTime']  # Например, '10:00'
+    async def isEdUnitStartInDateRange(unit, start_date: datetime, end_date: datetime):
+        begin_date_str = unit['ScheduleItems'][0]['BeginDate']  # Например, '2024-01-31'
+        begin_time_str = unit['ScheduleItems'][0]['BeginTime']  # Например, '10:00'
         begin_datetime_str = f"{begin_date_str} {begin_time_str}"
         begin_datetime = datetime.strptime(begin_datetime_str, '%Y-%m-%d %H:%M')
         return True if start_date <= begin_datetime <= end_date else False
+
+    @staticmethod
+    async def isEdUnitStudentEndDateInFuture(unitStudent):
+        end_date_str = unitStudent['EndDate']
+        end_time_str = unitStudent['EndTime']
+        end_datetime_str = f"{end_date_str} {end_time_str}"
+        end_date = datetime.strptime(end_datetime_str, '%Y-%m-%d %H:%M')
+        return True if end_date > datetime.now() else False
 
     async def isEdUnitStartInDateRangeForAllTeachers(
             self, group, start_date: datetime, end_date: datetime
@@ -81,6 +90,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         level = kwargs.pop('level', None)
         age = kwargs.pop('age', None)
         discipline = kwargs.get('discipline', None)
+
         search_levels = []
         if level is not None:
             if level == 'Easy':
@@ -103,6 +113,10 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                 search_levels.append('Medium')
                 search_levels.append('Medium-hard')
         now = datetime.now()
+
+        # DIS = await self.get_disciplines()
+        # pprint(DIS)
+
         edUnitsFromToday = await self.get_ed_units(
             # id=18111,
             queryTeacherPrices='true',

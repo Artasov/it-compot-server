@@ -2,6 +2,9 @@ import logging
 from datetime import datetime, timedelta
 from pprint import pprint
 
+import aiohttp
+from django.conf import settings
+
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
 
@@ -136,6 +139,42 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
         return False
 
 
+async def send_nothing_fit_units_to_amo(student_id, msg) -> bool:
+    """
+    Отправляет в AMO информацию от клиента, что группы на вводный модуль ему не подошли.
+    Отправляется student_id, msg, tel_number на указанный адрес.
+    @param student_id: Сквозное поле между HH и AMO.
+    @param msg: Сообщение от клиента.
+    @return:
+    """
+    HHManager = CustomHHApiV2Manager()
+    student = await HHManager.get_students(
+        extraFieldName='id ученика',
+        extraFieldValue=student_id
+    )
+    tel_number = student['Agents'][0]['Mobile']
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+                url=settings.AMOLINK_NOTHING_FIT_INTRODUCTION_GROUPS,
+                headers={'Content-Type': 'application/json'},
+                json={
+                    "student_id": student_id,
+                    "msg": msg,
+                    "tel_number": tel_number
+                },
+        ) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data.get('status', False):
+                    return True
+                else:
+                    log.error(f"Error: {response.status} {response.text}. Ошибка отправки сообщения клиента в amo.")
+            else:
+                log.error(f"Error: {response.status}. Ошибка отправки сообщения клиента в amo.")
+                return False
+
+
 async def is_student_in_group_on_discipline(student_id, discipline) -> bool:
     HHManager = CustomHHApiV2Manager()
     student = await HHManager.get_students(
@@ -148,4 +187,8 @@ async def is_student_in_group_on_discipline(student_id, discipline) -> bool:
         edUnitDisciplines=discipline,
         dataFrom=datetime.now().strftime("%Y-%m-%d")
     )
+    result = [unit for unit in result if await HHManager.isEdUnitStudentEndDateInFuture(unit)]
+    print('ГРУППЫ УЧЕНИКА')
+    pprint(result)
     return bool(result)
+

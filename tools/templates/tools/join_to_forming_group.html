@@ -26,14 +26,7 @@
                     <span class="text-secondary fs-6 text-opacity-50 mt-0 mt-sm-1">( Это может занять минутку )</span>
                 </h4>
             </div>
-            <p class="px-2" style="text-indent: 1rem">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ab
-                accusamus aliquam, aliquid
-                consequuntur
-                cupiditate dignissimos dolore ea eligendi est, eum fugit id illum incidunt inventore itaque
-                laboriosam
-                magni maiores odio omnis perferendis quidem reiciendis, repellendus reprehenderit suscipit voluptas?
-                Accusamus animi aperiam, architecto dolorem dolorum enim fugiat in iusto libero minima molestiae
-                necessitatibus numquam optio quibusdam recusandae saepe totam vel voluptas, voluptatibus voluptatum?
+            <p class="px-2 text-center">Обратите внимание, время указано московское.
             </p>
 
             <div class="d-none">
@@ -42,6 +35,11 @@
 
                 </ul>
             </div>
+
+            <button class="btn btn-secondary mb-2 d-none" id="btn-nothing-fit"
+                    data-bs-toggle="modal" data-bs-target="#nothingFitModal">
+                Ничего не подошло
+            </button>
 
         </div>
     </div>
@@ -93,12 +91,35 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-5 border-success">
                 <div class="modal-header pb-1 fcc">
-                    <h5 class="modal-title fw-bold text-success text-start" id="successModalLabel">Вы успешно записаны на
-                        занятие</h5>
-                    <p class="m-0 text-start">Сделайте скриншот, чтобы не забыть 😉</p>
+                    <h5 class="modal-title fw-bold text-success text-start" id="successModalLabel"></h5>
+                    <p class="modal-subtitle m-0 text-start"></p>
                 </div>
                 <div class="modal-body success-modal-body">
 
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {#    Модальное окно Bootstrap для не подошло #}
+    <div class="modal fade" id="nothingFitModal" tabindex="-1" aria-labelledby="nothingFitModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-3 border-secondary">
+                <div class="modal-body fcc">
+                    <span class="text-danger fw-bold" id="nothing_fit-error-message"></span>
+                    <span class="text-success mb-1 mx-auto fw-bold" id="nothing_fit-success-message"></span>
+                    <form id="form-nothing_fit">
+                        <textarea name="nothing_fit_user_msg"
+                                  minlength="6" maxlength="1000"
+                                  id="nothing_fit_user_textarea"
+                                  class="mb-2 form-control p-2 px-3 border-1 border-secondary bg-white rounded-2"
+                                  cols="30" rows="10"
+                                  placeholder="Напишите для нас подходящие вам дни и время для занятия.."></textarea>
+                        <button id="btn-nothing-fit-submit" class="btn btn-secondary align-self-end" type="submit">
+                            Отправить
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

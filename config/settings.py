@@ -13,9 +13,9 @@ BASE_DATA_DIR = BASE_DIR / 'data'
 # Environment helper
 env = os.environ.get
 DEV = bool(int(env('DEV', 0)))
-if not DEV:
-    dotenv_path = os.path.join(BASE_DIR, '.env.prod')
-    load_dotenv(dotenv_path=dotenv_path)
+
+dotenv_path = os.path.join(BASE_DIR, '.env.prod')
+load_dotenv(dotenv_path=dotenv_path)
 
 # Basic settings
 DEBUG = bool(int(env('DEBUG', 0)))
@@ -26,6 +26,7 @@ ROOT_URLCONF = 'Core.urls'
 # Security and domain settings
 HTTPS = bool(int(env('HTTPS', 0)))
 MAIN_DOMAIN = env('MAIN_DOMAIN', '127.0.0.1')
+DOMAIN_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}'
 
 # Database and cache
 REDIS_BASE_URL = 'redis://127.0.0.1:6379/'
@@ -42,14 +43,18 @@ SESSION_COOKIE_AGE = 86400  # seconds 2 days
 
 
 # Static and media files
-STATIC_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}/static/' if not DEV else '/static/'
-MEDIA_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}/media/' if not DEV else '/media/'
+
 if DEV:
     STATIC_ROOT = BASE_DIR.parent / 'static'
     MEDIA_ROOT = BASE_DIR.parent / 'media'
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
 else:
     STATIC_ROOT = None
     MEDIA_ROOT = None
+    STATIC_URL = f'{DOMAIN_URL}/static/'
+    MEDIA_URL = f'{DOMAIN_URL}/media/'
+
     MINIO_ENDPOINT = 'minio:9000'
     MINIO_EXTERNAL_ENDPOINT = f'{MAIN_DOMAIN}:9000'  # For external access use Docker hostname and MinIO port
     MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = bool(int(env('MINIO_EXTERNAL_ENDPOINT_USE_HTTPS') or 0))
@@ -95,6 +100,7 @@ DEVELOPER_EMAIL = 'ivanhvalevskey@gmail.com'
 HOLLIHOP_DOMAIN = env('HOLLIHOP_DOMAIN')
 HOLLIHOP_AUTHKEY = env('HOLLIHOP_AUTHKEY')
 TEACHER_SALARY_PASSWORD = env('TEACHER_SALARY_PASSWORD')
+AMOLINK_NOTHING_FIT_INTRODUCTION_GROUPS = env('AMOLINK_NOTHING_FIT_INTRODUCTION_GROUPS')
 
 # Google Sheets
 GOOGLE_API_JSON_CREDS_PATH = BASE_DIR / env('GSCREDS_FILE_NAME', '')
@@ -137,6 +143,7 @@ DATABASES = {
         'PORT': env('SQL_PORT', '5432') if not DEV else '5432',
     }
 }
+
 CACHES = {
     'default': {
         "BACKEND": "django_redis.cache.RedisCache",
