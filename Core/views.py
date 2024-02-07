@@ -1,30 +1,26 @@
-import requests
+import logging
+
 from django.db import connections
 from django.http import HttpResponse
 from django.shortcuts import render
-import logging
-
 from django_redis import get_redis_connection
 
 log = logging.getLogger('base')
 
 
-def menu(request):
+def menu(request) -> HttpResponse:
     return render(request, 'Core/menu.html')
 
 
-def health_test(request):
+def health_test(request) -> HttpResponse:
     # Проверка Redis
     if not get_redis_connection().flushall():
-        log.warning('Redis have not yet come to life')
+        log.error('Redis have not yet come to life')
         return HttpResponse("Redis error", status=500)
-
-    # Проверка базы данных PostgreSQL
     try:
         connections['default'].cursor()
     except Exception as e:
-        log.warning(f'Postgres have not yet come to life: {str(e)}')
-        return HttpResponse(f"Postgres error: {str(e)}", status=500)
+        log.error(f'DB have not yet come to life: {str(e)}')
+        return HttpResponse(f"DB error: {str(e)}", status=500)
 
-    log.info('Web server alive')
     return HttpResponse("OK")
