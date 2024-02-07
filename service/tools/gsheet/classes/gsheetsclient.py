@@ -23,11 +23,13 @@ class GSheetsClient:
         service = build('sheets', 'v4', credentials=credentials)
         return service
 
-    def append_row(self, row: list | tuple, sheet_name: str):
+    def append_row(self, row: list | tuple, sheet_name: str, header_if_new_list: list | tuple = None):
         # Проверяем, существует ли лист
         if sheet_name not in self.get_lists_titles():
             print(f"Лист '{sheet_name}' не найден. Создаем новый лист.")
             self.create_list(sheet_name)
+            if header_if_new_list is not None:
+                self.append_row(header_if_new_list, sheet_name)
 
         # Добавляем строку в конец листа
         range_name = f"{sheet_name}!A1"  # A1 указывает Google Sheets начать поиск конца таблицы с первой колонки
