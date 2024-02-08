@@ -1,6 +1,6 @@
 from pandas import DataFrame
 
-from service.tools.gsheet.classes.gsheetsclient import GSheetsClient
+from service.tools.gsheet.classes.gsheetsclient import GSDocument
 from tools.forms.other import LoadHHTeachersScheduleXLSXForm
 from tools.services.teachers_shedule.funcs_parse import parse_teachers_schedule_from_dj_mem, create_schedule
 
@@ -17,7 +17,7 @@ async def handle_teachers_schedule_upload(request) -> dict:
     if form.is_valid():
         # try:
         schedule_dataframe = await process_teachers_schedule_xlsx(form.cleaned_data['file'])
-        client = GSheetsClient(form.cleaned_data['gdoc_id'])
+        client = GSDocument(form.cleaned_data['gdoc_id'])
         new_glist_name = form.cleaned_data['new_glist_name'].replace('.', '_').replace(':', '_')
         create_and_update_gsheet(client, new_glist_name, schedule_dataframe)
         context['success'] = 'Готово, проверьте таблицу'
@@ -38,9 +38,9 @@ def create_and_update_gsheet(client, sheet_name, dataframe):
     @param sheet_name: Название нового листа.
     @param dataframe: DataFrame с данными для обновления.
     """
-    client.create_list(sheet_name)
+    client.create_sheet(sheet_name)
     range_name = f'{sheet_name}!A1'
-    client.update_list_with_df(range_name, dataframe)
+    client.update_sheet_with_df(range_name, dataframe)
 
 
 async def process_teachers_schedule_xlsx(xlsx_file) -> DataFrame:
