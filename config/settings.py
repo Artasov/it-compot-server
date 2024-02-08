@@ -191,53 +191,54 @@ logs_sql_dev_dir = os.path.join(logs_dev_dir, 'sql')
 for path in [logs_prod_dir, logs_dev_dir, logs_sql_prod_dir, logs_sql_dev_dir]:
     os.makedirs(path, exist_ok=True)
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'base_formatter': {
-            'format': '{levelname} {asctime} {module}: {message}',
-            'style': '{',
-        }
-    },
-    'handlers': {
-        'file_sql': {
-            'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(logs_sql_dev_dir if DEBUG and DEV else logs_sql_prod_dir, 'sql.log'),
-            'when': 'midnight',
-            'backupCount': 30,  # How many days to keep logs
-            'formatter': 'base_formatter',
-            'encoding': 'utf-8',
+if not DEV:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'base_formatter': {
+                'format': '{levelname} {asctime} {module}: {message}',
+                'style': '{',
+            }
         },
-        'file': {
-            'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(logs_dev_dir if DEBUG and DEV else logs_prod_dir, 'django.log'),
-            'when': 'midnight',
-            'backupCount': 30,  # How many days to keep logs
-            'formatter': 'base_formatter',
-            'encoding': 'utf-8',
+        'handlers': {
+            'file_sql': {
+                'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'filename': os.path.join(logs_sql_dev_dir if DEBUG and DEV else logs_sql_prod_dir, 'sql.log'),
+                'when': 'midnight',
+                'backupCount': 30,  # How many days to keep logs
+                'formatter': 'base_formatter',
+                'encoding': 'utf-8',
+            },
+            'file': {
+                'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'filename': os.path.join(logs_dev_dir if DEBUG and DEV else logs_prod_dir, 'django.log'),
+                'when': 'midnight',
+                'backupCount': 30,  # How many days to keep logs
+                'formatter': 'base_formatter',
+                'encoding': 'utf-8',
+            },
+            'console': {
+                'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+                'class': 'logging.StreamHandler',
+                'formatter': 'base_formatter',
+            },
         },
-        'console': {
-            'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
-            'class': 'logging.StreamHandler',
-            'formatter': 'base_formatter',
+        'loggers': {
+            'base': {
+                'handlers': ['console', 'file'],
+                'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+                'propagate': True,
+            },
+            # 'django.db.backends': {  # All SQL
+            #     'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+            #     'handlers': ['file_sql'],
+            #     'propagate': False,
+            # },
         },
-    },
-    'loggers': {
-        'base': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
-            'propagate': True,
-        },
-        # 'django.db.backends': {  # All SQL
-        #     'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
-        #     'handlers': ['file_sql'],
-        #     'propagate': False,
-        # },
-    },
-}
+    }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

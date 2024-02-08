@@ -55,6 +55,8 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
         extraFieldName='id ученика',
         extraFieldValue=student_id
     )
+    student = student[0]
+
     now = datetime.now()
 
     forming_group = await HHManager.get_ed_units(id=group_id)
@@ -211,6 +213,7 @@ async def send_nothing_fit_units_to_amo(student_id, msg) -> bool:
         extraFieldName='id ученика',
         extraFieldValue=student_id
     )
+    student = student[0]
     async with aiohttp.ClientSession() as session:
         async with session.post(
                 url=settings.AMOLINK_NOTHING_FIT_INTRODUCTION_GROUPS,
@@ -238,6 +241,7 @@ async def is_student_in_group_on_discipline(student_id, discipline) -> bool:
         extraFieldName='id ученика',
         extraFieldValue=student_id
     )
+    student = student[0]
     result = await HHManager.get_ed_unit_students(
         edUnitTypes='Group,MiniGroup',
         studentClientId=student['ClientId'],

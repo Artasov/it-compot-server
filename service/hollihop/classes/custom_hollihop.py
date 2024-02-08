@@ -159,18 +159,20 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # Преобразуем set в tuple для запроса
         student_ids_tuple = tuple(set(unique_student_ids))
         # Получаем информацию по всем студентам одним запросом
-        all_students_info = await self.get_students(
-            extraFieldName='id ученика',
-            extraFieldValue=','.join(map(str, student_ids_tuple))
-        )
+        all_students_info = await self.get_students_by_ids(student_ids_tuple)
+
+        # print(f'{all_students_info[:2]=}')
+        # print(f'{student_ids_tuple=}')
         # Преобразуем результат в словарь для удобства доступа
-        students_info_dict = {student['id']: student for student in all_students_info}
+        students_info_dict = {student['ClientId']: student for student in all_students_info}
+        # print(f'{students_info_dict.keys()=}')
         # Проверяем каждую группу
         resultUnits = []
         for unit in edUnitsFromNowAvailableForJoin:
             allow = True
             students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
                             unitS['EdUnitId'] == unit['Id']]
+            # print(f'{students_ids=}')
             students_ids_set = set(students_ids)  # Уникализируем ID студентов в группе
             # Если в группе еще пусто
             if not students_ids_set:
@@ -180,11 +182,15 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             # Используем предварительно полученную информацию о студентах
             students = [students_info_dict[student_id] for student_id in students_ids_set if
                         student_id in students_info_dict]
+            # print('StudentSSSSSSSS')
+            # pprint(students)
             for student in students:
                 # Если возраст отличается больше чем на 2 от запрошенного, то скип
+                # print(f'AGE: {age}')
                 if age is not None:
                     try:
                         student_age = calculate_age(student['Birthday'])
+                        # print(student_age)
                         if abs(student_age - age) > 2:
                             allow = False
                             log.info(f'EdUnit {unit["Id"]}: Не подходит по возрасту')

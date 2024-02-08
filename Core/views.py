@@ -24,6 +24,3 @@ def health_test(request) -> HttpResponse:
         return HttpResponse(f"DB error: {str(e)}", status=500)
 
     return HttpResponse("OK")
-
-
-

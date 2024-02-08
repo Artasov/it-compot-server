@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from pprint import pprint
 from urllib.parse import urlencode
 
 import aiohttp as aiohttp
@@ -86,7 +85,73 @@ class HolliHopApiV2Manager:
     async def get_students(self, **kwargs):
         students = await self.api_call('GetStudents', **kwargs)
         students = students.get('Students', [])
-        return students[0] if students else []
+        return students if students else []
+        # {'AddressDate': '2022-10-01',
+        #  'Agents': [{'EMail': '1@2.ru',
+        #              'FirstName': 'Мама',
+        #              'IsCustomer': False,
+        #              'LastName': 'Котова',
+        #              'Mobile': '80000000000',
+        #              'UseEMailBySystem': True,
+        #              'UseMobileBySystem': True,
+        #              'WhoIs': 'Мама'}],
+        #  'Assignees': [{'FullName': 'Богданова Виктория Витальевна', 'Id': 334}],
+        #  'Birthday': '2013-10-12',
+        #  'ClientId': 9,
+        #  'Created': '2022-10-01T16:10:47',
+        #  'Disciplines': [{'Discipline': 'Информатика Junior (Scratch компьютерная '
+        #                                 'грамотность)',
+        #                   'Level': 'Medium'},
+        #                  {'Discipline': 'Scratch математика'},
+        #                  {'Discipline': 'Клуб'}],
+        #  'EMail': '1@1.ru',
+        #  'ExtraFields': [{'Name': 'Часовой пояс UTC',
+        #                   'Value': 'UTC 0 (По гринвичу Мск-3)'},
+        #                  {'Name': 'Комментарий педагога после ОУ',
+        #                   'Value': 'Интересовался курсом программирования, любит '
+        #                            'Minecraft'},
+        #                  {'Name': 'id ученика', 'Value': '12345678'},
+        #                  {'Name': 'Причина прогула',
+        #                   'Value': 'ТП: проблемы со звуком,видео'},
+        #                  {'Name': 'Антитренинги (логин)', 'Value': '1@mai.ru'},
+        #                  {'Name': 'Ссылка на Мой класс', 'Value': 'https://'},
+        #                  {'Name': 'Ссылка на amoCRM', 'Value': 'https://'},
+        #                  {'Name': 'Scratch (логин, пароль)', 'Value': 'it-1  35666'}],
+        #  'FirstName': 'Кот',
+        #  'Gender': True,
+        #  'Id': 3431,
+        #  'LastName': 'Котов',
+        #  'LearningTypes': ['Вводный модуль курса (russian language)',
+        #                    'Занятия в микро-группах (russian language)',
+        #                    'Клуб'],
+        #  'Maturity': 'Младше-школьники (7-10 лет)',
+        #  'MiddleName': 'Компотович',
+        #  'Mobile': '80000000000',
+        #  'OfficesAndCompanies': [{'Id': 1, 'Name': 'Занятия (Zoom2)'},
+        #                          {'Id': 4, 'Name': 'Клуб IT-Компот'},
+        #                          {'Id': 5, 'Name': 'Занятия (Zoom3)'},
+        #                          {'Id': 9, 'Name': 'Занятия (zoom4)'},
+        #                          {'Id': 10, 'Name': 'Занятия (Zoom5)'}],
+        #  'PhotoUrls': ['/Files/it-school.t8s.ru/Photos/3hexvkyg.rhv-100x100.jpg',
+        #                '/Files/it-school.t8s.ru/Photos/3hexvkyg.rhv-150x150.jpg',
+        #                '/Files/it-school.t8s.ru/Photos/3hexvkyg.rhv-150x180.jpg',
+        #                '/Files/it-school.t8s.ru/Photos/Originals/3hexvkyg.rhv.png'],
+        #  'SocialNetworkPage': 'vk.com/',
+        #  'Status': 'Закончил обучение',
+        #  'StatusId': 3,
+        #  'Updated': '2023-12-05T02:05:59',
+        #  'UseEMailBySystem': True,
+        #  'UseMobileBySystem': True}
+
+    async def get_students_by_ids(self, ids: tuple | list):
+        async with aiohttp.ClientSession() as session:
+            tasks = [self.get_student_by_id(session, student_id) for student_id in ids]
+            students = await asyncio.gather(*tasks)
+        return [student[0] for student in students if student]
+
+    async def get_student_by_id(self, session, student_id):
+        student_data = await self.get_students(clientId=str(student_id), session=session)
+        return student_data
 
     async def get_ed_unit_student(self, **kwargs):
         student_units = await self.api_call('GetEdUnitStudents', **kwargs)
