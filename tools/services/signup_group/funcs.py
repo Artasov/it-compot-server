@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timedelta
-from pprint import pprint
 
 import aiohttp
 from django.conf import settings
@@ -11,7 +10,12 @@ from tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger
 log = logging.getLogger('base')
 
 
-def sort_groups_by_datetime(groups):
+def sort_groups_by_datetime(groups: list | tuple) -> list:
+    """
+    Сортирует по возрастанию даты переданный массив групп(EdUnits).
+    @param groups: Массив из EdUnits
+    @return: Отсортированный массив EdUnits
+    """
     for group in groups:
         group['sort_key'] = datetime.strptime(
             group['ScheduleItems'][0]['BeginDate'] + ' ' + group['ScheduleItems'][0]['BeginTime'], "%Y-%m-%d %H:%M")
@@ -23,6 +27,12 @@ def sort_groups_by_datetime(groups):
 
 
 async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> list:
+    """
+    @param level: Уровень ученика из списка amo_disciplines в consts.py
+    @param discipline: Одно из направлений из списка в amo_levels consts.py
+    @param age: Количество полных лет будущего ученика
+    @return: Список с найденными группами по параметрам по api HolliHop
+    """
     HHManager = CustomHHApiV2Manager()
     groups_available = await HHManager.getAvailableFutureStartingEdUnits(
         types='Group,MiniGroup',
@@ -49,6 +59,13 @@ async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> 
 
 
 async def add_student_to_forming_group(student_id, group_id) -> bool:
+    """
+    !!! ДЕКОМПОЗИРОВАТЬ !!!
+    Добавляет студента в группу через amo api и логирует в googlesheets результат выполнения.
+    @param student_id: Сквозной id ученика amo hh
+    @param group_id: EdUnit['Id'] идентификатор группы
+    @return: Если хоть что-то пойдет не так вернется False либо raise Error, иначе True.
+    """
     HHManager = CustomHHApiV2Manager()
     glog = GLog()  # Логирование в гугл таблицу
     student = await HHManager.get_students(
@@ -135,10 +152,11 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
         report_result = send_report_join_to_forming_group(
             student_id=student_id,
             tel_number=student['Agents'][0]['Mobile'],
+            zoom_url=forming_group['ScheduleItems'][0]['ClassroomLink'],
             teacher_id=forming_group['ScheduleItems'][0]['TeacherId'],
             teacher_name=forming_group['ScheduleItems'][0]['Teacher'],
-            date_start=start_forming_group_date.strftime('%Y-%m-%d'),  # Дата старта ВМ
-            date_end=start_course_group_date.strftime('%Y-%m-%d'),  # Дата старта основной группы
+            date_start=int(start_forming_group_date.timestamp()),  # Дата старта ВМ
+            date_end=int(start_course_group_date.timestamp()),  # Дата старта основной группы
         )
         if report_result:
             glog.success(
@@ -171,22 +189,35 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
 async def send_report_join_to_forming_group(
         student_id: int,
         tel_number: str,
+        zoom_url: str,
         teacher_id: int,
         teacher_name: str,
-        date_start: str,
-        date_end: str,
+        date_start: int,
+        date_end: int,
 ) -> bool:
+    """
+    Отправляет amo триггер информацию Post запросом о добавлении ученика.
+    @param student_id: Сквозной id ученика amo hh
+    @param tel_number: Телефон первого найденного агента у ученика
+    @param zoom_url: Ссылка для подключения на занятие в зум
+    @param teacher_id: id преподавателя группы
+    @param teacher_name: Его имя
+    @param date_start: Дата старта вводного модуля
+    @param date_end: Дата окончания вводного модуля
+    @return:
+    """
     async with aiohttp.ClientSession() as session:
         async with session.post(
                 url=settings.AMOLINK_REPORT_JOIN_TO_INTRODUCTION_GROUPS,
                 headers={'Content-Type': 'application/json'},
                 json={
-                    "student_id": student_id,
-                    "tel_number": tel_number,
-                    "teacher_id": teacher_id,
-                    "teacher_name": teacher_name,
-                    "date_start": date_start,
-                    "date_end": date_end,
+                    'student_id': student_id,
+                    'tel_number': tel_number,
+                    'zoom_url': zoom_url,
+                    'teacher_id': teacher_id,
+                    'teacher_name': teacher_name,
+                    'date_start': date_start,
+                    'date_end': date_end,
                 },
         ) as response:
             if response.status == 200:
@@ -194,9 +225,9 @@ async def send_report_join_to_forming_group(
                 if data.get('status', False):
                     return True
                 else:
-                    log.error(f"Error: {response.status} {response.text}. Ошибка отправки сообщения клиента в amo.")
+                    log.error(f'Error: {response.status} {response.text}. Ошибка отправки сообщения клиента в amo.')
             else:
-                log.error(f"Error: {response.status}. Ошибка отправки отчета по записи на ВМ в amo.")
+                log.error(f'Error: {response.status}. Ошибка отправки отчета по записи на ВМ в amo.')
                 return False
 
 
@@ -229,13 +260,20 @@ async def send_nothing_fit_units_to_amo(student_id, msg) -> bool:
                 if data.get('status', False):
                     return True
                 else:
-                    log.error(f"Error: {response.status} {response.text}. Ошибка отправки сообщения клиента в amo.")
+                    log.error(f'Error: {response.status} {response.text}. Ошибка отправки сообщения клиента в amo.')
             else:
-                log.error(f"Error: {response.status}. Ошибка отправки сообщения клиента в amo.")
+                log.error(f'Error: {response.status}. Ошибка отправки сообщения клиента в amo.')
                 return False
 
 
 async def is_student_in_group_on_discipline(student_id, discipline) -> bool:
+    """
+    Проверяет через HolliHop api учится ли уже ученик по данной дисциплине.
+    Есть ли такие EdUnitStudent discipline=discipline со стартом в будущем.
+    @param student_id: Сквозной id ученика amo hh
+    @param discipline: Одно из направлений из списка в amo_levels consts.py
+    @return: bool
+    """
     HHManager = CustomHHApiV2Manager()
     student = await HHManager.get_students(
         extraFieldName='id ученика',
@@ -246,9 +284,7 @@ async def is_student_in_group_on_discipline(student_id, discipline) -> bool:
         edUnitTypes='Group,MiniGroup',
         studentClientId=student['ClientId'],
         edUnitDisciplines=discipline,
-        dataFrom=datetime.now().strftime("%Y-%m-%d")
+        dataFrom=datetime.now().strftime('%Y-%m-%d')
     )
     result = [unit for unit in result if await HHManager.isEdUnitStudentEndDateInFuture(unit)]
-    print('ГРУППЫ УЧЕНИКА')
-    pprint(result)
     return bool(result)

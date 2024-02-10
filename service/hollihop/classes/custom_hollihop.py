@@ -144,6 +144,8 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         ]
         log.info(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
         log.info([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
+        print(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
+        print([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
 
         edUnitsStudent = await self.getEdUnitStudentsByUnitId(
             [int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin]

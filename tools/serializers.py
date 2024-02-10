@@ -2,7 +2,7 @@ from adrf.serializers import Serializer as AsyncSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from tools.services.signup_group.const import amo_hh_levels_map, amo_hh_disciplines_map
+from tools.services.signup_group.consts import amo_hh_levels_map, amo_hh_disciplines_map
 
 
 class FormingGroupParamsSerializer(AsyncSerializer):

@@ -1,3 +1,4 @@
+import datetime
 import logging
 from urllib.parse import quote
 
@@ -8,6 +9,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from Core.services.common import asemaphore_handler, acontroller
+from service.common.common import calculate_age
 from tools.serializers import (
     StudentAlreadyStudyingOnDisciplineSerializer,
     FormingGroupParamsSerializer,
@@ -31,10 +33,14 @@ async def get_forming_groups_for_join(request) -> Response:
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     from tools.services.signup_group.funcs import get_forming_groups_for_join
+    # В age можно передавать timestamp даты рождения или сразу возраст
+    age_or_tsmp_birth = serializer.validated_data['age']
     return Response(await get_forming_groups_for_join(
         level=serializer.validated_data['level'],
         discipline=serializer.validated_data['discipline'],
-        age=serializer.validated_data['age'],
+        age=calculate_age(
+            datetime.datetime.fromtimestamp(age_or_tsmp_birth).strftime('%Y-%m-%d')
+        ) if age_or_tsmp_birth > 100 else age_or_tsmp_birth,
     ), status=status.HTTP_200_OK)
 
 
