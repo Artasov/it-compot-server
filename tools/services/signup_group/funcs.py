@@ -232,7 +232,6 @@ async def send_report_join_to_forming_group(
                 return False
 
 
-
 async def send_nothing_fit_units_to_amo(student_id, msg) -> bool:
     """
     Отправляет в AMO информацию от клиента, что группы на вводный модуль ему не подошли.
