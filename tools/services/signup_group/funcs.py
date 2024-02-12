@@ -149,7 +149,7 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
 
     if result1.get('success', False) and result2.get('success', False):
         # Отправляем отчет в амо тригер чтобы проставились данные в сделку.
-        report_result = send_report_join_to_forming_group(
+        report_result = await send_report_join_to_forming_group(
             student_id=student_id,
             tel_number=student['Agents'][0]['Mobile'],
             zoom_url=forming_group['ScheduleItems'][0]['ClassroomLink'],
