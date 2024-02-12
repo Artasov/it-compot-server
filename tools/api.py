@@ -4,6 +4,7 @@ from urllib.parse import quote
 
 from adrf.decorators import api_view
 from django.conf import settings
+from django.http import HttpResponse
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
@@ -89,15 +90,14 @@ async def send_nothing_fit(request) -> Response:
 @acontroller('Сгенерировать ссылку для триггера amo на подбор группы ВМ', True)
 @api_view(('GET',))
 @asemaphore_handler
-async def build_link_for_join_to_forming_group(request) -> Response:
+async def build_link_for_join_to_forming_group(request) -> HttpResponse:
     serializer = BuildLinkForJoinToFormingGroupSerializer(data=request.GET)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response(
-        data=f'{settings.DOMAIN_URL}{":8000" if settings.DEBUG else ""}'
-             f'{reverse("tools:join_to_forming_group")}?'
-             f'level={quote(serializer.validated_data["level"])}&'
-             f'discipline={quote(serializer.validated_data["discipline"])}&'
-             f'age={serializer.validated_data["age"]}&'
-             f'student_id={serializer.validated_data["student_id"]}',
-        status=status.HTTP_200_OK)
+    return HttpResponse(
+        f'{settings.DOMAIN_URL}{":8000" if settings.DEBUG else ""}'
+        f'{reverse("tools:join_to_forming_group")}?'
+        f'level={quote(serializer.validated_data["level"])}&'
+        f'discipline={quote(serializer.validated_data["discipline"])}&'
+        f'age={serializer.validated_data["age"]}&'
+        f'student_id={serializer.validated_data["student_id"]}', content_type="text/plain")
