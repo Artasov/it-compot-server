@@ -1,6 +1,7 @@
 import datetime as dt
 import re
 from datetime import datetime, timedelta
+from pprint import pprint
 
 import pandas as pd
 
@@ -123,7 +124,7 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
         }
         activity_list = df.iloc[2:, i + 1].dropna().tolist()
         for activity in activity_list:
-            teacher_schedule_info['activities'].append(parse_activity(activity))
+            teacher_schedule_info['activities'].append(await parse_activity(activity))
         teachers_schedules.append(teacher_schedule_info)
     # pprint(teachers_schedules)
     # Объединение записей с одинаковыми именами преподавателей
@@ -159,10 +160,12 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
             teachers_schedules[i] = ts
             del teachers_schedules[i + 1]
 
+    pprint(teachers_schedules)
+
     working_teachers = teachers_schedules
 
     all_teachers = await CustomHHApiV2Manager().getActiveTeachersShortNames()  # Все имена преподаватели
-
+    pprint(all_teachers)
     # for teacher in working_teachers:
     #     pprint(teacher)
     # Добавим преподавателей не работающих в этот день и проставим занятость 'Выходной'
@@ -182,7 +185,7 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
     # Форматируем активность.
     for i in range(len(working_teachers)):
         for j in range(len(working_teachers[i]['activities'])):
-            if 'выходной' in await working_teachers[i]['activities'][j]['desc'].lower():
+            if 'выходной' in working_teachers[i]['activities'][j]['desc'].lower():
                 continue
             if 'не работаю' in working_teachers[i]['activities'][j]['desc'].lower():
                 working_teachers[i]['activities'][j]['desc'] = 'Не работает'

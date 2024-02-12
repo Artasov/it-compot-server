@@ -34,8 +34,8 @@ async def teacher_salary(request) -> HttpResponse:
     if form.is_valid():
         email = form.cleaned_data['email']
         try:
-            filtered_lessons, sum_salary = filter_and_aggregate_teacher_lessons(
-                fetch_teacher_lessons_data_by_email(email)
+            filtered_lessons, sum_salary = await filter_and_aggregate_teacher_lessons(
+                await fetch_teacher_lessons_data_by_email(email)
             )
             return render(request, 'tools/teachers_salary_result.html', {
                 'teacher_month_lessons_list': filtered_lessons,

@@ -1,19 +1,23 @@
 import csv
 from io import StringIO
 
-import requests
+import aiohttp
 
 
-def download_google_sheet_as_csv(spreadsheet_id, gid):
+async def download_google_sheet_as_csv(spreadsheet_id: str, gid: str) -> list:
+    """
+    Download a GoogleSheet as csv file.
+    @param spreadsheet_id: doc id
+    @param gid: table id
+    @return: list rows
+    """
     url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?format=csv&gid={gid}"
-    response = requests.get(url)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status != 200:
+                raise Exception(f"Failed to fetch data: {response.status}")
+            content = await response.text()
 
-    if response.status_code != 200:
-        raise Exception(f"Failed to fetch data: {response.status_code}")
-
-    # Указываем кодировку
-    data = StringIO(response.content.decode('utf-8'))
+    data = StringIO(content)
     csv_reader = csv.reader(data)
-
-    # Преобразуем CSV данные в массив
     return list(csv_reader)

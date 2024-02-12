@@ -3,7 +3,7 @@ import pandas as pd
 from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
 
 
-def fetch_teacher_lessons_data_by_email(email) -> list[dict]:
+async def fetch_teacher_lessons_data_by_email(email) -> list[dict]:
     """
     Получает данные об уроках учителя по его электронной почте.
 
@@ -17,9 +17,11 @@ def fetch_teacher_lessons_data_by_email(email) -> list[dict]:
                  ...
              ]
     """
-    teacher_month_lessons_rows = get_teacher_salary_by_email(email)
+    teacher_month_lessons_rows = await get_teacher_salary_by_email(email)
     teacher_month_lessons = []
     for info in teacher_month_lessons_rows:
+        from pprint import pprint
+        pprint(info)
         teacher_month_lessons.append({
             'gid': info[0], 'title': info[1], 'discipline': info[2], 'level': info[3],
             'type': info[4], 'student': info[5], 'date': info[6], 'skip': info[7],
@@ -29,7 +31,7 @@ def fetch_teacher_lessons_data_by_email(email) -> list[dict]:
     return teacher_month_lessons
 
 
-def filter_and_aggregate_teacher_lessons(teacher_month_lessons) -> tuple[list[dict], int]:
+async def filter_and_aggregate_teacher_lessons(teacher_month_lessons) -> tuple[list[dict], int]:
     """
     Фильтрует и агрегирует данные уроков учителя, подсчитывая общую зарплату
     на основе данных из 'fetch_teacher_lessons_data_by_email'
