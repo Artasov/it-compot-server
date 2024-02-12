@@ -223,12 +223,14 @@ async def send_report_join_to_forming_group(
             if response.status == 200:
                 data = await response.json()
                 if data.get('status', False):
+                    log.warning(f'Success: {response.status} {response.text}. Отчет отправлен в amo.')
                     return True
                 else:
-                    log.error(f'Error: {response.status} {response.text}. Ошибка отправки сообщения клиента в amo.')
+                    log.error(f'Error: {response.status} {response.text}. Ошибка отправки отчета в amo. #333')
             else:
-                log.error(f'Error: {response.status}. Ошибка отправки отчета по записи на ВМ в amo.')
+                log.error(f'Error: {response.status}. Ошибка отправки отчета по записи на ВМ в amo. #222')
                 return False
+
 
 
 async def send_nothing_fit_units_to_amo(student_id, msg) -> bool:
