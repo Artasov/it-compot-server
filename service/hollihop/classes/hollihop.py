@@ -74,6 +74,19 @@ class HolliHopApiV2Manager:
         response = await self.api_post_call('AddEdUnitStudent', **kwargs)
         return response
 
+    async def set_client_status(self, **kwargs):
+        # Проверка наличия обязательного параметра clientId
+        if 'clientId' not in kwargs:
+            raise ValueError("Missing required parameter: clientId")
+
+        # Проверка наличия хотя бы одного из параметров: statusId или statusName
+        if 'statusId' not in kwargs and 'statusName' not in kwargs:
+            raise ValueError("Missing required parameters: either statusId or statusName must be provided")
+
+        # Вызов API для установки статуса клиента
+        response = await self.api_post_call('SetClientStatus', **kwargs)
+        return response
+
     async def get_disciplines(self, **kwargs):
         disciplines = await self.api_call('GetDisciplines', **kwargs)
         return disciplines.get('Disciplines', [])

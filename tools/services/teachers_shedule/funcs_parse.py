@@ -1,7 +1,6 @@
 import datetime as dt
 import re
 from datetime import datetime, timedelta
-from pprint import pprint
 
 import pandas as pd
 
@@ -33,8 +32,9 @@ async def parse_activity(activity: str) -> dict:
         start_time = datetime.strptime(start_time, '%H:%M')
         end_time = datetime.strptime(end_time, '%H:%M')
         start_min, end_min = (start_time.hour * 60 + start_time.minute, end_time.hour * 60 + end_time.minute)
-        time_interval = [(datetime.min + timedelta(minutes=round_to_nearest_five(m))).time() for m in
-                         (start_min, end_min)]
+        time_interval = [
+            (datetime.min + timedelta(minutes=round_to_nearest_five(m))).time() for m in (start_min, end_min)
+        ]
     else:
         time_interval = 'Временной интервал не найден'
 
@@ -110,9 +110,6 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
     # Перебираем колонки с преподами
     for i, teacher in enumerate(teachers):
         teacher_name = teacher.split('\n')[0]
-
-        if teacher_name.lower() in 'тест техперерыв техспец ':
-            continue
 
         teacher_date_line = teacher.split('\n')[1]
 
@@ -205,11 +202,28 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
                 working_teachers[i]['activities'][j]['desc'] = 'Урок'
 
     # Удаляем ненужных преподавателей
-    temp = []
+    result = []
     for teacher in working_teachers:
-        print(teacher)
+        if 'Соболев Ф'.lower() in teacher['name'].lower() or \
+                'Каретников А'.lower() in teacher['name'].lower() or \
+                'Войнов Ф'.lower() in teacher['name'].lower() or \
+                'Комлев Ф'.lower() in teacher['name'].lower() or \
+                'Тест '.lower() in teacher['name'].lower() or \
+                'Тесттт'.lower() in teacher['name'].lower() or \
+                'Драганюк О'.lower() in teacher['name'].lower() or \
+                'Борисенко П'.lower() in teacher['name'].lower() or \
+                'Соловьева А'.lower() in teacher['name'].lower() or \
+                'Дудкин Д'.lower() in teacher['name'].lower() or \
+                'Кирякова К'.lower() in teacher['name'].lower() or \
+                'Костылева Ю'.lower() in teacher['name'].lower() or \
+                'Кочерова Т'.lower() in teacher['name'].lower() or \
+                'Николаева Л'.lower() in teacher['name'].lower() or \
+                'Техперерыв'.lower() in teacher['name'].lower() or \
+                'Чернышева Т'.lower() in teacher['name'].lower():
+            continue
+        result.append(teacher)
 
-    return working_teachers
+    return result
 
 
 async def fill_schedule(activities, date):
