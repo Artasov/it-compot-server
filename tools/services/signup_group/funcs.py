@@ -87,7 +87,7 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
     if not forming_group:
         glog.error(
             student_amo_id=student_id,
-            student_hh_id=student['ClientId'],
+            student_hh_id=student['Id'],
             comment='Не найдена выбранная группа.'
         )
         return False
@@ -115,7 +115,7 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
     if len(group_course) == 0:
         glog.error(
             student_amo_id=student_id,
-            student_hh_id=student['ClientId'],
+            student_hh_id=student['Id'],
             comment='Не найдено групп через 2 недели.'
         )
         log.error('Не найдено групп через 2 недели.')
@@ -124,7 +124,7 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
     elif len(group_course) > 1:
         glog.error(
             student_amo_id=student_id,
-            student_hh_id=student['ClientId'],
+            student_hh_id=student['Id'],
             comment='Найдено более 1ой группы через 2 недели.'
         )
         log.error('Найдено более 1ой группы через 2 недели.')
@@ -161,7 +161,7 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
         if report_result:
             glog.success(
                 student_amo_id=student_id,
-                student_hh_id=student['ClientId'],
+                student_hh_id=student['Id'],
                 groups_ids=(f'{result1.get("success", False)}: {group_id}',
                             f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
             )
@@ -169,7 +169,7 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
         else:
             glog.error(
                 student_amo_id=student_id,
-                student_hh_id=student['ClientId'],
+                student_hh_id=student['Id'],
                 groups_ids=(f'{result1.get("success", False)}: {group_id}',
                             f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
                 comment='Не смог отправить отчет в AMO'
@@ -178,7 +178,7 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
     else:
         glog.error(
             student_amo_id=student_id,
-            student_hh_id=student['ClientId'],
+            student_hh_id=student['Id'],
             groups_ids=(f'{result1.get("success", False)}: {group_id}',
                         f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
             comment='Не смог записать в группы'

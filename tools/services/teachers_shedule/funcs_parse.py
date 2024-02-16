@@ -21,12 +21,20 @@ def is_time_overlap(interval1, interval2):
     return max(start1, start2) < min(end1, end2)
 
 
+def round_to_nearest_five(num):
+    return round(num / 5) * 5
+
+
 async def parse_activity(activity: str) -> dict:
     # Извлекаем временной интервал
     interval_match = re.search(r'\d{1,2}:\d{2}-\d{1,2}:\d{2}', activity)
     if interval_match:
         start_time, end_time = interval_match.group(0).split('-')
-        time_interval = [datetime.strptime(start_time, '%H:%M').time(), datetime.strptime(end_time, '%H:%M').time()]
+        start_time = datetime.strptime(start_time, '%H:%M')
+        end_time = datetime.strptime(end_time, '%H:%M')
+        start_min, end_min = (start_time.hour * 60 + start_time.minute, end_time.hour * 60 + end_time.minute)
+        time_interval = [(datetime.min + timedelta(minutes=round_to_nearest_five(m))).time() for m in
+                         (start_min, end_min)]
     else:
         time_interval = 'Временной интервал не найден'
 
@@ -102,6 +110,10 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
     # Перебираем колонки с преподами
     for i, teacher in enumerate(teachers):
         teacher_name = teacher.split('\n')[0]
+
+        if teacher_name.lower() in 'тест техперерыв техспец ':
+            continue
+
         teacher_date_line = teacher.split('\n')[1]
 
         date_match = re.search(r'\d{2}\.\d{2}(?:\.\d{2})?', teacher_date_line)
@@ -160,12 +172,12 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
             teachers_schedules[i] = ts
             del teachers_schedules[i + 1]
 
-    pprint(teachers_schedules)
+    # pprint(teachers_schedules)
 
     working_teachers = teachers_schedules
 
     all_teachers = await CustomHHApiV2Manager().getActiveTeachersShortNames()  # Все имена преподаватели
-    pprint(all_teachers)
+    # pprint(all_teachers)
     # for teacher in working_teachers:
     #     pprint(teacher)
     # Добавим преподавателей не работающих в этот день и проставим занятость 'Выходной'
@@ -191,6 +203,11 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
                 working_teachers[i]['activities'][j]['desc'] = 'Не работает'
             else:
                 working_teachers[i]['activities'][j]['desc'] = 'Урок'
+
+    # Удаляем ненужных преподавателей
+    temp = []
+    for teacher in working_teachers:
+        print(teacher)
 
     return working_teachers
 
