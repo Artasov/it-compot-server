@@ -147,35 +147,7 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
     log.info(f'Student {"not " if result2.get("success", False) else ""}added in edUnit({group_course[0]["Id"]})')
     log.info(result2)
 
-    if result1.get('success', False) and result2.get('success', False):
-        # Отправляем отчет в амо тригер чтобы проставились данные в сделку.
-        report_result = await send_report_join_to_forming_group(
-            student_id=student_id,
-            tel_number=student['Agents'][0]['Mobile'],
-            zoom_url=forming_group['ScheduleItems'][0]['ClassroomLink'],
-            teacher_id=forming_group['ScheduleItems'][0]['TeacherId'],
-            teacher_name=forming_group['ScheduleItems'][0]['Teacher'],
-            date_start=int(start_forming_group_date.timestamp()),  # Дата старта ВМ
-            date_end=int(start_course_group_date.timestamp()),  # Дата старта основной группы
-        )
-        if report_result:
-            glog.success(
-                student_amo_id=student_id,
-                student_hh_id=student['Id'],
-                groups_ids=(f'{result1.get("success", False)}: {group_id}',
-                            f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
-            )
-            return True
-        else:
-            glog.error(
-                student_amo_id=student_id,
-                student_hh_id=student['Id'],
-                groups_ids=(f'{result1.get("success", False)}: {group_id}',
-                            f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
-                comment='Не смог отправить отчет в AMO'
-            )
-            return False
-    else:
+    if not result1.get('success', False) or not result2.get('success', False):
         glog.error(
             student_amo_id=student_id,
             student_hh_id=student['Id'],
@@ -184,6 +156,66 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
             comment='Не смог записать в группы'
         )
         return False
+    # Отправляем отчет в амо тригер чтобы проставились данные в сделку.
+    report_result = await send_report_join_to_forming_group(
+        student_id=student_id,
+        tel_number=student['Agents'][0]['Mobile'],
+        zoom_url=forming_group['ScheduleItems'][0]['ClassroomLink'],
+        teacher_id=forming_group['ScheduleItems'][0]['TeacherId'],
+        teacher_name=forming_group['ScheduleItems'][0]['Teacher'],
+        date_start=int(start_forming_group_date.timestamp()),  # Дата старта ВМ
+        date_end=int(start_course_group_date.timestamp()),  # Дата старта основной группы
+    )
+    if not report_result:
+        glog.error(
+            student_amo_id=student_id,
+            student_hh_id=student['Id'],
+            groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                        f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
+            comment='Не смог отправить отчет в AMO'
+        )
+        return False
+
+    # Открывает личный кабинет родителю
+    open_personal_profile_result = await HHManager.set_student_auth_info(
+        studentClientId=student['ClientId'],
+        login=await HHManager.get_parent_email(student),
+        password='2146648'
+    )
+    if not open_personal_profile_result.get('success'):
+        glog.error(
+            student_amo_id=student_id,
+            student_hh_id=student['Id'],
+            groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                        f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
+            comment='Не смог открыть личный кабинет'
+        )
+
+    # Устанавливаем ссылку на amo в пользовательские поля
+    result_add_amo_link = await HHManager.add_user_extra_field(
+        student=student,
+        field_name='Ссылка на amoCRM',
+        field_value=
+        f'https://itbestonlineschool.amocrm.ru/leads/detail/'
+        f'{next((field["Value"] for field in student["ExtraFields"] if field["Name"] == "id ученика"), None)}'
+    )
+    if not result_add_amo_link.get("success"):
+        glog.error(
+            student_amo_id=student_id,
+            student_hh_id=student['Id'],
+            groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                        f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
+            comment='Личный кабинет открыт, amo ссылка НЕ установлена'
+        )
+    glog.success(
+        student_amo_id=student_id,
+        student_hh_id=student['Id'],
+        groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                    f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
+        comment='Личный кабинет открыт, amo ссылка установлена'
+    )
+
+    return True
 
 
 async def send_report_join_to_forming_group(

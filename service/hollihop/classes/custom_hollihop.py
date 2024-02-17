@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from pprint import pprint
 
 from service.common.common import calculate_age
 from service.hollihop.classes.hollihop import HolliHopApiV2Manager
@@ -59,6 +58,14 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         begin_datetime_str = f"{begin_date_str} {begin_time_str}"
         begin_datetime = datetime.strptime(begin_datetime_str, '%Y-%m-%d %H:%M')
         return True if start_date <= begin_datetime <= end_date else False
+
+    @staticmethod
+    async def get_parent_email(student):
+        parent_identifiers = ['мама', 'папа', 'родитель']
+        for agent in student.get('Agents', []):
+            if agent.get('WhoIs', '').lower() in parent_identifiers:
+                return agent.get('EMail')
+        return None
 
     @staticmethod
     async def isEdUnitStudentEndDateInFuture(unitStudent):

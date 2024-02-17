@@ -74,17 +74,51 @@ class HolliHopApiV2Manager:
         response = await self.api_post_call('AddEdUnitStudent', **kwargs)
         return response
 
-    async def set_client_status(self, **kwargs):
-        # Проверка наличия обязательного параметра clientId
-        if 'clientId' not in kwargs:
-            raise ValueError("Missing required parameter: clientId")
+    async def edit_user_extra_fields(self, **kwargs):
+        if 'leadId' not in kwargs and 'studentClientId' not in kwargs:
+            raise ValueError("At least one of 'leadId' or 'studentClientId' must be provided")
+        if 'fields' not in kwargs or not kwargs['fields']:
+            raise ValueError("The 'fields' parameter is required and must not be empty")
+        # Проверка, что 'fields' является списком и содержит словари с нужными ключами
+        if not all(isinstance(field, dict) and 'name' in field and 'value' in field for field in kwargs['fields']):
+            raise ValueError("Each item in 'fields' must be a dict with 'name' and 'value' keys")
+        response = await self.api_post_call('EditUserExtraFields', **kwargs)
+        return response
 
-        # Проверка наличия хотя бы одного из параметров: statusId или statusName
-        if 'statusId' not in kwargs and 'statusName' not in kwargs:
-            raise ValueError("Missing required parameters: either statusId or statusName must be provided")
+    async def add_user_extra_field(self, student: dict, field_name: str, field_value: str):
+        current_fields = student.get('ExtraFields', [])
+        # Преобразуем текущие поля в формат, требуемый для API
+        fields_for_api = [{'name': field['Name'], 'value': field['Value']} for field in current_fields]
 
-        # Вызов API для установки статуса клиента
-        response = await self.api_post_call('SetClientStatus', **kwargs)
+        # Проверяем, существует ли уже поле с таким именем
+        field_index = next((i for i, field in enumerate(fields_for_api) if field['name'] == field_name), None)
+
+        if field_index is not None:
+            # Если поле уже существует, обновляем его значение
+            fields_for_api[field_index]['value'] = field_value
+        else:
+            # Если поля нет, добавляем его в формате, требуемом API
+            fields_for_api.append({'name': field_name, 'value': field_value})
+
+        # Отправляем обновленные поля
+        response = await self.edit_user_extra_fields(
+            studentClientId=student['ClientId'],
+            fields=fields_for_api
+        )
+
+        return response
+
+    async def set_student_auth_info(self, **kwargs):
+        required_params = ['studentClientId']
+        optional_params_with_defaults = {
+            'loginType': 'Email',  # Значение по умолчанию, если не указано другое
+        }
+        if not all(param in kwargs for param in required_params):
+            raise ValueError(f"Missing required parameters: {', '.join(required_params)}")
+        for param, default in optional_params_with_defaults.items():
+            if param not in kwargs:
+                kwargs[param] = default
+        response = await self.api_post_call('SetStudentAuthInfo', **kwargs)
         return response
 
     async def get_disciplines(self, **kwargs):

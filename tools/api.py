@@ -11,6 +11,7 @@ from rest_framework.response import Response
 
 from Core.services.common import asemaphore_handler, acontroller
 from service.common.common import calculate_age
+from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from tools.serializers import (
     StudentAlreadyStudyingOnDisciplineSerializer,
     FormingGroupParamsSerializer,
