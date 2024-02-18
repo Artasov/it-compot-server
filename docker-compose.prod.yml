@@ -1,18 +1,6 @@
 version: '3.8'
 
 services:
-  #  nginx:
-  #    build:
-  #      context: .
-  #      dockerfile: DockerfileNginxStaticMediaStorage
-  #      target: nginx
-  #    image: nginx:latest
-  #    ports:
-  #      - "80:80"
-  #    depends_on:
-  #      - web
-  #    networks:
-  #      - net
 
   nginx:
     image: nginx:alpine

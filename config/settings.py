@@ -43,7 +43,8 @@ SESSION_COOKIE_AGE = 86400  # seconds 2 days
 
 
 # Static and media files
-
+MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
+MINIO_USE_HTTPS = False
 if DEV:
     STATIC_ROOT = BASE_DIR.parent / 'static'
     MEDIA_ROOT = BASE_DIR.parent / 'media'
@@ -57,9 +58,9 @@ else:
 
     MINIO_ENDPOINT = 'minio:9000'
     MINIO_EXTERNAL_ENDPOINT = f'{MAIN_DOMAIN}:9000'  # For external access use Docker hostname and MinIO port
-    MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = bool(int(env('MINIO_EXTERNAL_ENDPOINT_USE_HTTPS') or 0))
     MINIO_ACCESS_KEY = env('MINIO_ACCESS_KEY')
     MINIO_SECRET_KEY = env('MINIO_SECRET_KEY')
+    MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = bool(int(env('MINIO_EXTERNAL_ENDPOINT_USE_HTTPS') or 0))
     MINIO_USE_HTTPS = bool(int(env('MINIO_USE_HTTPS') or 0))
     MINIO_URL_EXPIRY_HOURS = timedelta(days=1)
     MINIO_CONSISTENCY_CHECK_ON_START = True
@@ -315,6 +316,8 @@ log.info('#####################################')
 log.info(f'{BASE_DIR=}')
 log.info(f'{MAIN_DOMAIN=}')
 log.info(f'{HTTPS=}')
+log.info(f'{MINIO_EXTERNAL_ENDPOINT_USE_HTTPS=}')
+log.info(f'{MINIO_USE_HTTPS=}')
 log.info(f'{ALLOWED_HOSTS=}')
 log.info(f'{DEBUG=}')
 log.info(f'{DEV=}')
@@ -324,3 +327,6 @@ log.info(f'{STATIC_URL=}')
 log.info(f'{MEDIA_URL=}')
 log.info(f'{STATIC_ROOT=}')
 log.info(f'{MEDIA_ROOT=}')
+log.info('#####################################')
+log.info('#####################################')
+log.info('#####################################')
