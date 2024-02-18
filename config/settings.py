@@ -44,7 +44,7 @@ SESSION_COOKIE_AGE = 86400  # seconds 2 days
 
 
 # Static and media files
-MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = False
+MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = True
 MINIO_USE_HTTPS = False
 if DEV:
     STATIC_ROOT = BASE_DIR.parent / 'static'
@@ -60,7 +60,7 @@ else:
     MEDIA_URL = f'{DOMAIN_URL}/media/'
 
     MINIO_ENDPOINT = 'minio:9000'
-    MINIO_EXTERNAL_ENDPOINT = f'{DOMAIN_URL}:9000'  # For external access use Docker hostname and MinIO port
+    MINIO_EXTERNAL_ENDPOINT = f'{MAIN_DOMAIN}:9000'  # For external access use Docker hostname and MinIO port
     MINIO_ACCESS_KEY = env('MINIO_ACCESS_KEY')
     MINIO_SECRET_KEY = env('MINIO_SECRET_KEY')
     MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = bool(int(env('MINIO_EXTERNAL_ENDPOINT_USE_HTTPS') or 0))
