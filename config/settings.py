@@ -57,7 +57,7 @@ else:
     # MEDIA_URL = f'https://{MAIN_DOMAIN}:9000/media/'
     STATIC_URL = 'http://minio:9000/static/'
     MEDIA_URL = 'http://minio:9000/media/'
-    
+
     MINIO_ENDPOINT = 'minio:9000'
     MINIO_EXTERNAL_ENDPOINT = f'{MAIN_DOMAIN}:9000'  # For external access use Docker hostname and MinIO port
     MINIO_ACCESS_KEY = env('MINIO_ACCESS_KEY')
@@ -79,7 +79,8 @@ else:
     DEFAULT_FILE_STORAGE = 'django_minio_backend.models.MinioBackend'
     MINIO_PUBLIC_BUCKETS.append(MINIO_STATIC_FILES_BUCKET)
     MINIO_PUBLIC_BUCKETS.append(MINIO_MEDIA_FILES_BUCKET)
-
+    MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
+    MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
     STATICFILES_STORAGE = 'django_minio_backend.models.MinioBackendStatic'
     FILE_UPLOAD_MAX_MEMORY_SIZE = 65536
 
