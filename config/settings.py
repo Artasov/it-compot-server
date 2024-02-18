@@ -123,7 +123,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'django_minio_backend',
+    # 'django_minio_backend',
 
     'rest_framework',
     'adrf',
