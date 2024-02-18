@@ -3,6 +3,7 @@ import logging
 from django.db import connections
 from django.http import HttpResponse
 from django.shortcuts import render
+from django_minio_backend import MinioBackend
 from django_redis import get_redis_connection
 
 log = logging.getLogger('base')
@@ -23,4 +24,9 @@ def health_test(request) -> HttpResponse:
         log.error(f'DB have not yet come to life: {str(e)}')
         return HttpResponse(f"DB error: {str(e)}", status=500)
 
+    minio_available = MinioBackend().is_minio_available()  # An empty string is fine this time
+    if not minio_available:
+        log.error(f'MINIO ERROR')
+        log.error(minio_available.details)
+        return HttpResponse(f"MINIO ERROR", status=500)
     return HttpResponse("OK")
