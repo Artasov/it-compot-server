@@ -24,9 +24,9 @@ ALLOWED_HOSTS = ['localhost', env('MAIN_DOMAIN', '127.0.0.1')] + env('ALLOWED_HO
 ROOT_URLCONF = 'Core.urls'
 
 # Security and domain settings
-HTTPS = bool(int(env('HTTPS', 0)))
+# HTTPS = bool(int(env('HTTPS', 0)))
 MAIN_DOMAIN = env('MAIN_DOMAIN', '127.0.0.1')
-DOMAIN_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}'
+DOMAIN_URL = f'http://{MAIN_DOMAIN}'
 
 # Database and cache
 REDIS_BASE_URL = 'redis://127.0.0.1:6379/'
@@ -76,11 +76,11 @@ else:
     MINIO_STATIC_FILES_BUCKET = 'static'  # Just bucket name may be 'my-static-files'?
     MINIO_MEDIA_FILES_BUCKET = 'media'  # Just bucket name may be 'media-files'?
     MINIO_BUCKET_CHECK_ON_SAVE = True  # Default: True // Creates a cart if it doesn't exist, then saves it
-    DEFAULT_FILE_STORAGE = 'django_minio_backend.models.MinioBackend'
     MINIO_PUBLIC_BUCKETS.append(MINIO_STATIC_FILES_BUCKET)
     MINIO_PUBLIC_BUCKETS.append(MINIO_MEDIA_FILES_BUCKET)
     MINIO_STORAGE_AUTO_CREATE_MEDIA_BUCKET = True
     MINIO_STORAGE_AUTO_CREATE_STATIC_BUCKET = True
+    DEFAULT_FILE_STORAGE = 'django_minio_backend.models.MinioBackend'
     STATICFILES_STORAGE = 'django_minio_backend.models.MinioBackendStatic'
     FILE_UPLOAD_MAX_MEMORY_SIZE = 65536
 
