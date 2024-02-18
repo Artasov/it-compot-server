@@ -53,8 +53,8 @@ if DEV:
 else:
     STATIC_ROOT = None
     MEDIA_ROOT = None
-    STATIC_URL = f'http{"s" if MINIO_USE_HTTPS else ""}://{MAIN_DOMAIN}:9000/static/'
-    MEDIA_URL = f'http{"s" if MINIO_USE_HTTPS else ""}://{MAIN_DOMAIN}:9000/media/'
+    STATIC_URL = f'https://{MAIN_DOMAIN}:9000/static/'
+    MEDIA_URL = f'https://{MAIN_DOMAIN}:9000/media/'
 
     MINIO_ENDPOINT = 'minio:9000'
     MINIO_EXTERNAL_ENDPOINT = f'{MAIN_DOMAIN}:9000'  # For external access use Docker hostname and MinIO port
