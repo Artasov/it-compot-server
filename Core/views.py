@@ -27,11 +27,11 @@ def health_test(request) -> HttpResponse:
     minio_available = MinioBackend().is_minio_available()  # An empty string is fine this time
     if not minio_available:
         log.error(f'MINIO ERROR')
-        log.info(minio_available.details)
-        log.info(f'MINIO_STATIC_FILES_BUCKET = {MinioBackend().MINIO_STATIC_FILES_BUCKET}')
-        log.info(f'MINIO_MEDIA_FILES_BUCKET = {MinioBackend().MINIO_MEDIA_FILES_BUCKET}')
-        log.info(f'base_url = {MinioBackend().base_url}')
-        log.info(f'base_url_external = {MinioBackend().base_url_external}')
-        log.info(f'HTTP_CLIENT = {MinioBackend().HTTP_CLIENT}')
+        log.error(minio_available.details)
+        log.error(f'MINIO_STATIC_FILES_BUCKET = {MinioBackend().MINIO_STATIC_FILES_BUCKET}')
+        log.error(f'MINIO_MEDIA_FILES_BUCKET = {MinioBackend().MINIO_MEDIA_FILES_BUCKET}')
+        log.error(f'base_url = {MinioBackend().base_url}')
+        log.error(f'base_url_external = {MinioBackend().base_url_external}')
+        log.error(f'HTTP_CLIENT = {MinioBackend().HTTP_CLIENT}')
         return HttpResponse(f"MINIO ERROR", status=500)
     return HttpResponse("OK")

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DATA_DIR = BASE_DIR / 'data'
+HTTPS = False
 
 # Environment helper
 env = os.environ.get
@@ -55,8 +56,8 @@ else:
     MEDIA_ROOT = None
     # STATIC_URL = f'https://{MAIN_DOMAIN}:9000/static/'
     # MEDIA_URL = f'https://{MAIN_DOMAIN}:9000/media/'
-    STATIC_URL = 'http://itschool.app:9000/static/'
-    MEDIA_URL = 'http://itschool.app:9000/media/'
+    STATIC_URL = f'{DOMAIN_URL}/static/'
+    MEDIA_URL = f'{DOMAIN_URL}/media/'
 
     MINIO_ENDPOINT = 'minio:9000'
     MINIO_EXTERNAL_ENDPOINT = f'{MAIN_DOMAIN}:9000'  # For external access use Docker hostname and MinIO port
@@ -121,6 +122,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'django_minio_backend',
 
     'rest_framework',
     'adrf',

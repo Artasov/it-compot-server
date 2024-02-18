@@ -181,8 +181,8 @@ services:
     volumes:
       - ./data/minio/data:/data
       - ./data/minio/config:/root/.minio
-      - ./ssl/ssl.crt:/root/.minio/certs/public.crt
-      - ./ssl/ssl.key:/root/.minio/certs/private.key
+#      - ./ssl/ssl.crt:/root/.minio/certs/public.crt
+#      - ./ssl/ssl.key:/root/.minio/certs/private.key
     networks:
       - net
     healthcheck:
