@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DATA_DIR = BASE_DIR / 'data'
-HTTPS = False
 
 # Environment helper
 env = os.environ.get
@@ -25,7 +24,7 @@ ALLOWED_HOSTS = ['localhost', env('MAIN_DOMAIN', '127.0.0.1')] + env('ALLOWED_HO
 ROOT_URLCONF = 'apps.Core.urls'
 
 # Security and domain settings
-# HTTPS = bool(int(env('HTTPS', 0)))
+HTTPS = bool(int(env('HTTPS', 0)))
 MAIN_DOMAIN = env('MAIN_DOMAIN', '127.0.0.1')
 DOMAIN_URL = f'https://{MAIN_DOMAIN}'
 
@@ -153,7 +152,6 @@ else:
             'PORT': env('SQL_PORT', '5432'),
         }
     }
-
 CACHES = {
     'default': {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -321,7 +319,7 @@ log.info('########## Server Settings ##########')
 log.info('#####################################')
 log.info(f'{BASE_DIR=}')
 log.info(f'{MAIN_DOMAIN=}')
-# log.info(f'{HTTPS=}')
+log.info(f'{HTTPS=}')
 # log.info(f'{MINIO_EXTERNAL_ENDPOINT_USE_HTTPS=}')
 # log.info(f'{MINIO_USE_HTTPS=}')
 log.info(f'{ALLOWED_HOSTS=}')

@@ -96,12 +96,13 @@ async def build_link_for_join_to_forming_group(request) -> HttpResponse:
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return HttpResponse(
-        await create_short_link(
-            f'{settings.DOMAIN_URL}{":8000" if settings.DEBUG else ""}'
+        (await create_short_link(
+            f'http{"s" if settings.HTTPS else ""}://'
+            f'{settings.MAIN_DOMAIN}{":8000" if settings.DEBUG else ""}'
             f'{reverse("tools:join_to_forming_group")}?'
             f'level={quote(serializer.validated_data["level"])}&'
             f'discipline={quote(serializer.validated_data["discipline"])}&'
             f'age={serializer.validated_data["age"]}&'
             f'student_id={serializer.validated_data["student_id"]}'
-        ),
+        )).get_short_url(),
         content_type="text/plain")
