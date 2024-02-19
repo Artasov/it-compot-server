@@ -4,12 +4,12 @@ from django.urls import reverse
 
 
 class ShortLink(models.Model):
-    original_url = models.URLField()
+    original_url = models.URLField(max_length=1000)  # Указываем максимальную длину 1000 символов
     short_code = models.CharField(max_length=10, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.original_url
+        return self.get_short_url()
 
     def get_short_url(self):
         return f"http{'s' if settings.HTTPS else ''}://" \
