@@ -149,6 +149,7 @@ else:
             'PORT': env('SQL_PORT', '5432'),
         }
     }
+
 CACHES = {
     'default': {
         "BACKEND": "django_redis.cache.RedisCache",
