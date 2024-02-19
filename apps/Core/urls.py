@@ -9,8 +9,8 @@ urlpatterns = [
     path('health_test/', health_test),
     path('admin/', admin.site.urls),
     path('', menu),
-    path('', include(('apps.link_shorter.urls', 'link_shorter'), namespace='link_shorter')),
-    path('tools/', include(('apps.tools.urls', 'tools'), namespace='tools')),
+    path('', include(('apps.link_shorter.urls', 'apps.link_shorter'), namespace='link_shorter')),
+    path('tools/', include(('apps.tools.urls', 'apps.tools'), namespace='tools')),
     path('api/v1/tools/', include('apps.tools.urls_api')),
 
     # На удаление, так как есть tools/teachers_salary/
