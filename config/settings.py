@@ -122,8 +122,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 'django_minio_backend',
-
     'rest_framework',
     'adrf',
     'channels',
@@ -132,7 +130,6 @@ INSTALLED_APPS = [
     'apps.link_shorter',
     'apps.Core',
     'apps.tools',
-
 ]
 if DEV:
     DATABASES = {
