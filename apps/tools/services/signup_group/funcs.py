@@ -5,7 +5,7 @@ import aiohttp
 from django.conf import settings
 
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
-from tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
+from apps.tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
 
 log = logging.getLogger('base')
 

@@ -3,16 +3,16 @@ from pprint import pprint
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from Core.services.common import acontroller
+from apps.Core.services.common import acontroller
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from service.hollihop.classes.exeptions import TeacherNotFound
-from tools.forms.other import LoadHHTeachersScheduleXLSXForm
-from tools.forms.teachers_salary import GetTeacherSalaryForm
-from tools.services.teachers_salary.funcs import (
+from apps.tools.forms.other import LoadHHTeachersScheduleXLSXForm
+from apps.tools.forms.teachers_salary import GetTeacherSalaryForm
+from apps.tools.services.teachers_salary.funcs import (
     fetch_teacher_lessons_data_by_email,
     filter_and_aggregate_teacher_lessons
 )
-from tools.services.teachers_shedule.funcs import handle_teachers_schedule_upload
+from apps.tools.services.teachers_shedule.funcs import handle_teachers_schedule_upload
 
 
 @acontroller('Страница для записи на вводный модуль', True)

@@ -1,8 +1,8 @@
 from pandas import DataFrame
 
 from service.tools.gsheet.classes.gsheetsclient import GSDocument
-from tools.forms.other import LoadHHTeachersScheduleXLSXForm
-from tools.services.teachers_shedule.funcs_parse import parse_teachers_schedule_from_dj_mem, create_schedule
+from apps.tools.forms.other import LoadHHTeachersScheduleXLSXForm
+from apps.tools.services.teachers_shedule.funcs_parse import parse_teachers_schedule_from_dj_mem, create_schedule
 
 
 async def handle_teachers_schedule_upload(request) -> dict:

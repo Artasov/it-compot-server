@@ -1,7 +1,7 @@
 from django import template
 
-# from Core.forms import UserLoginForm
-# from Core.models import CompanyData
+# from apps.Core.forms import UserLoginForm
+# from apps.Core.models import CompanyData
 
 register = template.Library()
 

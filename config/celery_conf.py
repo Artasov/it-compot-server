@@ -25,7 +25,7 @@ app.conf.beat_schedule = {
     #     'args': ('value1',),
     # },
 }
-app.conf.CELERY_IMPORTS = ('Core.tasks',)
+app.conf.CELERY_IMPORTS = ('apps.Core.tasks',)
 app.autodiscover_tasks()
 
 # # Задача выполняется каждые 30 минут

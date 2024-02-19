@@ -1,6 +1,6 @@
 from django.urls import path
 
-from tools.views import (
+from apps.tools.views import (
     teacher_salary,
     join_to_forming_group,
     daily_teacher_schedule_by_interval_gsheet_export

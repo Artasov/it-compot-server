@@ -9,20 +9,20 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
 
-from Core.services.common import asemaphore_handler, acontroller
-from service.common.common import calculate_age
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
-from tools.serializers import (
+from apps.Core.services.common import asemaphore_handler, acontroller
+from apps.link_shorter.services.common import create_short_link
+from apps.tools.serializers import (
     StudentAlreadyStudyingOnDisciplineSerializer,
     FormingGroupParamsSerializer,
     StudentToGroupSerializer,
     SendNothingFitSerializer,
     BuildLinkForJoinToFormingGroupSerializer,
 )
-from tools.services.signup_group.funcs import (
+from apps.tools.services.signup_group.funcs import (
     is_student_in_group_on_discipline,
     add_student_to_forming_group, send_nothing_fit_units_to_amo
 )
+from service.common.common import calculate_age
 
 log = logging.getLogger('base')
 
@@ -34,7 +34,7 @@ async def get_forming_groups_for_join(request) -> Response:
     serializer = FormingGroupParamsSerializer(data=request.GET)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    from tools.services.signup_group.funcs import get_forming_groups_for_join
+    from apps.tools.services.signup_group.funcs import get_forming_groups_for_join
     # В age можно передавать timestamp даты рождения или сразу возраст
     age_or_tsmp_birth = serializer.validated_data['age']
     return Response(await get_forming_groups_for_join(
@@ -96,9 +96,12 @@ async def build_link_for_join_to_forming_group(request) -> HttpResponse:
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return HttpResponse(
-        f'{settings.DOMAIN_URL}{":8000" if settings.DEBUG else ""}'
-        f'{reverse("tools:join_to_forming_group")}?'
-        f'level={quote(serializer.validated_data["level"])}&'
-        f'discipline={quote(serializer.validated_data["discipline"])}&'
-        f'age={serializer.validated_data["age"]}&'
-        f'student_id={serializer.validated_data["student_id"]}', content_type="text/plain")
+        await create_short_link(
+            f'{settings.DOMAIN_URL}{":8000" if settings.DEBUG else ""}'
+            f'{reverse("tools:join_to_forming_group")}?'
+            f'level={quote(serializer.validated_data["level"])}&'
+            f'discipline={quote(serializer.validated_data["discipline"])}&'
+            f'age={serializer.validated_data["age"]}&'
+            f'student_id={serializer.validated_data["student_id"]}'
+        ),
+        content_type="text/plain")

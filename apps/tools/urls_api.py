@@ -1,6 +1,6 @@
 from django.urls import path
 
-from tools.api import (
+from apps.tools.api import (
     get_is_student_in_group_on_discipline,
     build_link_for_join_to_forming_group,
     get_forming_groups_for_join,

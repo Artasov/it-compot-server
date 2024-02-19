@@ -22,7 +22,7 @@ load_dotenv(dotenv_path=dotenv_path)
 DEBUG = bool(int(env('DEBUG', 0)))
 SECRET_KEY = env('SECRET_KEY', 'your-secret-key')
 ALLOWED_HOSTS = ['localhost', env('MAIN_DOMAIN', '127.0.0.1')] + env('ALLOWED_HOSTS', '').split(',')
-ROOT_URLCONF = 'Core.urls'
+ROOT_URLCONF = 'apps.Core.urls'
 
 # Security and domain settings
 # HTTPS = bool(int(env('HTTPS', 0)))
@@ -130,8 +130,9 @@ INSTALLED_APPS = [
     'channels',
     'django_celery_beat',
 
-    'Core',
-    'tools',
+    'apps.link_shorter',
+    'apps.Core',
+    'apps.tools',
 
 ]
 if DEV:
