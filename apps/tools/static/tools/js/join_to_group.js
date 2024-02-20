@@ -215,9 +215,14 @@ async function main() {
 
     getAvailableFormingGroups().then(groups => {
         if(groups.length === 0){
-            document.getElementById('help-text').innerHTML =
-                'К сожалению система не смогла подобрать группу для вас, ' +
-                'нажмите на кнопку <span class="fst-italic text-success">Ничего не подошло</span> ниже.'
+            document.getElementById('nothing_fit_user_textarea').setAttribute(
+                'placeholder',
+                'К сожалению система не смогла подобрать группу. ' +
+                'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂')
+            nothingFitModal.show();
+            groupLoadingStatusContainerEl.innerHTML = '';
+            return;
+
         }
         for (const group of groups) {
             const groupEl = createGroupEl(group)
