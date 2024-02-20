@@ -145,7 +145,7 @@ function createGroupEl(group) {
     const vacanciesSpan = document.createElement('span');
     const students_count = parseInt(group.StudentsCount);
     const vacancies_count = parseInt(group.Vacancies);
-    vacanciesSpan.textContent = `${students_count} / ${students_count + vacancies_count}`;
+    vacanciesSpan.textContent = `${students_count} / ${vacancies_count}`;
     frbDiv.appendChild(studentsSpan);
     frbDiv.appendChild(vacanciesSpan);
     li.appendChild(frbDiv);
@@ -214,6 +214,11 @@ async function main() {
     const groupLoadingStatusContainerEl = document.querySelector('.group_loading_status_container');
 
     getAvailableFormingGroups().then(groups => {
+        if(groups.length === 0){
+            document.getElementById('help-text').innerHTML =
+                'К сожалению система не смогла подобрать группу для вас, ' +
+                'нажмите на кнопку <span class="fst-italic text-success">Ничего не подошло</span> ниже.'
+        }
         for (const group of groups) {
             const groupEl = createGroupEl(group)
 

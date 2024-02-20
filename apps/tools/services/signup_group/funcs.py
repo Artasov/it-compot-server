@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+from pprint import pprint
 
 import aiohttp
 from django.conf import settings
@@ -55,6 +56,7 @@ async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> 
             'ScheduleItems': group['ScheduleItems'],
             'OfficeTimeZone': group['OfficeTimeZone'],
         })
+    pprint(groups_result)
     return groups_result
 
 

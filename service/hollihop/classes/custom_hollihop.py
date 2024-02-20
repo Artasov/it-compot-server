@@ -137,7 +137,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # Фильтруем по вместимости
         edUnitsFromTodayAvailableForJoin = [
             unit for unit in edUnitsFromToday if
-            unit.get('StudentsCount') < unit.get('StudentsCount') + unit.get(
+            unit.get('StudentsCount') < unit.get(
                 'Vacancies')
         ]
         # Фильтруем по времени позже чем сейчас
@@ -151,8 +151,8 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         ]
         log.info(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
         log.info([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
-        print(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
-        print([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
+        # print(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
+        # print([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
 
         edUnitsStudent = await self.getEdUnitStudentsByUnitId(
             [int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin]
