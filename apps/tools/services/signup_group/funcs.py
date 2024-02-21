@@ -143,7 +143,7 @@ async def add_student_to_forming_group(student_id, group_id):
         comment=f'Добавлен(а) с помощью сайта в edUnits({group_id}).'
     )
     start_forming_unit_date = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginDate'], '%Y-%m-%d')
-    # start_forming_group_time = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginTime'], '%H:%M')
+    start_forming_group_time = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginTime'], '%H:%M')
 
     if len(forming_unit['ScheduleItems']) == 1:
         start_forming_unit_date2 = datetime.strptime(forming_unit['ScheduleItems'][0]['EndDate'], '%Y-%m-%d')
@@ -163,11 +163,14 @@ async def add_student_to_forming_group(student_id, group_id):
         report_result = await send_report_join_to_forming_group(
             student_id=student_id,
             tel_number=student['Agents'][0]['Mobile'],
+            discipline=forming_unit['Discipline'],
             zoom_url=forming_unit['ScheduleItems'][0]['ClassroomLink'],
             teacher_id=forming_unit['ScheduleItems'][0]['TeacherId'],
             teacher_name=forming_unit['ScheduleItems'][0]['Teacher'],
-            date_start=int(start_forming_unit_date.timestamp()),  # Дата старта ВМ
-            date_end=int(start_forming_unit_date2.timestamp()) if start_forming_unit_date2 else 0
+            datetime_start=int(datetime.combine(
+                start_forming_unit_date.date(),
+                start_forming_group_time.time()).timestamp()),  # Дата и время старта ВМ
+            date_end=int(start_forming_unit_date2.timestamp()) if start_forming_unit_date2 else 0,  # Дата окончания ВМ
         )
         if not report_result:
             glog.error(
@@ -297,20 +300,22 @@ async def add_student_to_forming_group(student_id, group_id):
 async def send_report_join_to_forming_group(
         student_id: int,
         tel_number: str,
+        discipline: str,
         zoom_url: str,
         teacher_id: int,
         teacher_name: str,
-        date_start: int,
+        datetime_start: int,
         date_end: int,
 ) -> bool:
     """
     Отправляет amo триггер информацию Post запросом о добавлении ученика.
     @param student_id: Сквозной id ученика amo hh
     @param tel_number: Телефон первого найденного агента у ученика
+    @param discipline: Дисциплина
     @param zoom_url: Ссылка для подключения на занятие в зум
     @param teacher_id: id преподавателя группы
     @param teacher_name: Его имя
-    @param date_start: Дата старта вводного модуля
+    @param datetime_start: Дата и время старта вводного модуля
     @param date_end: Дата окончания вводного модуля
     @return:
     """
@@ -321,10 +326,11 @@ async def send_report_join_to_forming_group(
                 json={
                     'student_id': student_id,
                     'tel_number': tel_number,
+                    'discipline': discipline,
                     'zoom_url': zoom_url,
                     'teacher_id': teacher_id,
                     'teacher_name': teacher_name,
-                    'date_start': date_start,
+                    'datetime_start': datetime_start,
                     'date_end': date_end,
                 },
         ) as response:
