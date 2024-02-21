@@ -230,43 +230,69 @@ class HolliHopApiV2Manager:
         # [
         #     {
         #         'Corporative': False,
-        #         'Discipline': 'Город программистов Джуниор',
-        #         'Id': 13492,
-        #         'LearningType': 'Занятия в микро-группах (russian language)',
-        #         'Level': 'Easy',
-        #         'Name': 'SCR-2-GROUP начало',
-        #         'OfficeOrCompanyAddress': 'https://us06web.zoom.us/j/86814523112?pwd=aG90SWVOUmJweENqbzVJUzAvTzh0UT09  '
-        #                                   'Идентификатор конференции: 868 1452 3112 Код '
-        #                                   'доступа: 2146648',
-        #         'OfficeOrCompanyId': 10,
-        #         'OfficeOrCompanyName': 'Занятия (Zoom5)',
+        #         'Discipline': 'Scratch математика',
+        #         'ExtraFields': [
+        #             {
+        #                 'Name': 'Ссылка на группу в МойКласс',
+        #                 'Value': 'https://it-school.t8s.ru/Learner/Group/18806'
+        #             }
+        #         ],
+        #         'Id': 18805,
+        #         'LearningType': 'Вводный модуль курса (russian language)',
+        #         'Level': '[All]',
+        #         'Name': 'SCR-1-ВASE',
+        #         'OfficeOrCompanyAddress': 'Время указано UTC+3 (Москва, Минск, Кипр). Ссылка '
+        #                                   'на занятие: '
+        #                                   'https://us05web.zoom.us/j/88503405654?pwd=aEhmdEY4ZzlnZWltOFhGL0NhOXE4dz09  '
+        #                                   'Идентификатор конференции 885 0340 5654 Код '
+        #                                   'доступа: 2146648  ',
+        #         'OfficeOrCompanyId': 1,
+        #         'OfficeOrCompanyName': 'Занятия (Zoom2)',
         #         'OfficeTimeZone': '+03:00',
         #         'ScheduleItems': [
         #             {
-        #                 'BeginDate': '2023-09-11',
-        #                 'BeginTime': '17:50',
-        #                 'ClassroomId': 103,
-        #                 'ClassroomLink': 'https://us06web.zoom.us/j/86814523112?pwd=aG90SWVOUmJweENqbzVJUzAvTzh0UT09',
-        #                 'ClassroomName': 'Зум 5 (ауд13)',
-        #                 'EndDate': '2024-05-20',
-        #                 'EndTime': '19:20',
-        #                 'Id': 76963,
-        #                 'Teacher': 'Волошин Матвей Петрович',
-        #                 'TeacherGenders': [True],
-        #                 'TeacherId': 453,
-        #                 'TeacherIds': [453],
+        #                 'BeginDate': '2024-02-12',
+        #                 'BeginTime': '16:20',
+        #                 'ClassroomId': 17,
+        #                 'ClassroomLink': 'https://us05web.zoom.us/j/88503405654?pwd=aEhmdEY4ZzlnZWltOFhGL0NhOXE4dz09',
+        #                 'ClassroomName': 'Zoom 2 (ауд7)',
+        #                 'EndDate': '2024-02-12',
+        #                 'EndTime': '17:50',
+        #                 'Id': 93169,
+        #                 'Teacher': 'Овдиенко Сергей Андреевич',
+        #                 'TeacherGenders': [True, False],
+        #                 'TeacherId': 4087,
+        #                 'TeacherIds': [4087, 41611],
+        #                 'TeacherPhotoUrls': [None, None],
+        #                 'Teachers': [
+        #                     'Овдиенко Сергей Андреевич',
+        #                     'Степанов Евгений Валерьевич'
+        #                 ],
+        #                 'Weekdays': 1
+        #             },
+        #             {
+        #                 'BeginDate': '2024-02-19',
+        #                 'BeginTime': '16:20',
+        #                 'ClassroomId': 17,
+        #                 'ClassroomLink': 'https://us05web.zoom.us/j/88503405654?pwd=aEhmdEY4ZzlnZWltOFhGL0NhOXE4dz09',
+        #                 'ClassroomName': 'Zoom 2 (ауд7)',
+        #                 'EndDate': '2024-02-19',
+        #                 'EndTime': '17:50',
+        #                 'Id': 93165,
+        #                 'Teacher': 'Степанов Евгений Валерьевич',
+        #                 'TeacherGenders': [False],
+        #                 'TeacherId': 41611,
+        #                 'TeacherIds': [41611],
         #                 'TeacherPhotoUrls': [None],
-        #                 'Teachers': ['Волошин Матвей Петрович'],
+        #                 'Teachers': ['Степанов Евгений Валерьевич'],
         #                 'Weekdays': 1
         #             }
         #         ],
-        #         'StudentsCount': 10,
-        #         'StudyUnitsInRange': '32 а.ч.',
+        #         'StudentsCount': 4,
+        #         'StudyUnitsInRange': '4 а.ч.',
         #         'Type': 'Group',
-        #         'Vacancies': 1
-        #     },
-        #     {...},
-        #     {...},
+        #         'Vacancies': 4
+        #     }
         # ]
 
     async def get_ed_unit_students(self, **kwargs):

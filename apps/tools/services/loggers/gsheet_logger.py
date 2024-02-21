@@ -32,7 +32,7 @@ class GSheetsSignUpFormingGroupLogger:
                 ColumnWidth(column_index=2, width=250),
                 ColumnWidth(column_index=3, width=280),
                 ColumnWidth(column_index=4, width=155),
-                ColumnWidth(column_index=5, width=150),
+                ColumnWidth(column_index=5, width=250),
             ]
 
                                              )
@@ -42,7 +42,9 @@ class GSheetsSignUpFormingGroupLogger:
         if groups_ids is None:
             groups_ids = []
         base_url = 'https://it-school.t8s.ru'
-        groups_links = '\n'.join([f'{base_url}/Learner/Group/{group_id.split(": ")[1]}/' for group_id in groups_ids])
+        groups_links = '\n'.join(
+            [f'{group_id.split(": ")[0]} {base_url}/Learner/Group/{group_id.split(": ")[1]}/' for group_id in
+             groups_ids])
         now = datetime.now().strftime('%Y-%m-%d')
         self.client.append_row(
             row=[

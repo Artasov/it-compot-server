@@ -18,6 +18,7 @@ from apps.tools.serializers import (
     SendNothingFitSerializer,
     BuildLinkForJoinToFormingGroupSerializer,
 )
+from apps.tools.services.signup_group.exeptions.common import UnitAlreadyFullException
 from apps.tools.services.signup_group.funcs import (
     is_student_in_group_on_discipline,
     add_student_to_forming_group, send_nothing_fit_units_to_amo
@@ -53,13 +54,18 @@ async def student_to_forming_group(request) -> Response:
     serializer = StudentToGroupSerializer(data=request.POST)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    result: bool = await add_student_to_forming_group(
-        student_id=serializer.validated_data.get('student_id'),
-        group_id=serializer.validated_data.get('group_id')
-    )
-    return Response(data={'success': result},
-                    status=status.HTTP_200_OK if result
-                    else status.HTTP_400_BAD_REQUEST)
+    try:
+        await add_student_to_forming_group(
+            student_id=serializer.validated_data.get('student_id'),
+            group_id=serializer.validated_data.get('group_id')
+        )
+    except UnitAlreadyFullException:
+        return Response(data={
+            'success': False,
+            'error': 'Обновите страницу.'
+        }, status=status.HTTP_409_CONFLICT)
+
+    return Response(data={'success': True}, status=status.HTTP_200_OK)
 
 
 @acontroller('Проверка записан ли уже ученик', True)

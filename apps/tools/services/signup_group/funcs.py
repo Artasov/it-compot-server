@@ -1,12 +1,14 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from pprint import pprint
 
 import aiohttp
 from django.conf import settings
 
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from apps.tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
+from apps.tools.services.signup_group.exeptions.common import UnitAlreadyFullException
+from service.common.common import calculate_age
+from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
 log = logging.getLogger('base')
 
@@ -25,6 +27,59 @@ def sort_groups_by_datetime(groups: list | tuple) -> list:
     for group in sorted_groups:
         del group['sort_key']
     return sorted_groups
+
+
+async def is_unit_vacant_for_join(unit: dict) -> bool:
+    return True if unit['StudentsCount'] < unit['Vacancies'] else False
+
+
+async def is_unit_suits_for_join(unit: dict, search_levels: list, age: int, discipline: str) -> bool:
+    HHM = CustomHHApiV2Manager()
+    # Получаем студентов группы
+    edUnitsStudent = await HHM.getEdUnitStudentsByUnitId([unit['Id']])
+    students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
+                    unitS['EdUnitId'] == unit['Id']]
+    students_ids_set = set(students_ids)
+    unique_student_ids = set()
+    for unitS in edUnitsStudent:
+        unique_student_ids.add(int(unitS['StudentClientId']))
+    # Преобразуем set в tuple для запроса
+    student_ids_tuple = tuple(set(unique_student_ids))
+    # Получаем информацию по всем студентам одним запросом
+    all_students_info = await HHM.get_students_by_ids(student_ids_tuple)
+    # Преобразуем результат в словарь для удобства доступа
+    students_info_dict = {student['ClientId']: student for student in all_students_info}
+
+    # Если в группе еще пусто
+    if not students_ids_set:
+        return True
+    # Используем предварительно полученную информацию о студентах
+    students = [students_info_dict[student_id] for student_id in students_ids_set if
+                student_id in students_info_dict]
+
+    for student in students:
+        # Если возраст отличается больше чем на 2 от запрошенного, то скип
+        if age is not None:
+            try:
+                student_age = calculate_age(student['Birthday'])
+                # print(student_age)
+                if abs(student_age - age) > 2:
+                    return False
+            except KeyError:
+                # print('Нет дня рождения')
+                return False
+        # Проверяем подходит ли по уровню
+        if search_levels:
+            try:  # Берем поле дисциплины:
+                disciplines = student['Disciplines']
+                for d in disciplines:
+                    if d['Discipline'] == discipline:
+                        if d['Level'] not in search_levels:
+                            log.info(f'EdUnit {unit["Id"]}: Не подходит по уровню')
+            except KeyError:
+                # print('Нет Disciplines Discipline Level')
+                return False
+    return True
 
 
 async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> list:
@@ -56,11 +111,10 @@ async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> 
             'ScheduleItems': group['ScheduleItems'],
             'OfficeTimeZone': group['OfficeTimeZone'],
         })
-    pprint(groups_result)
     return groups_result
 
 
-async def add_student_to_forming_group(student_id, group_id) -> bool:
+async def add_student_to_forming_group(student_id, group_id):
     """
     !!! ДЕКОМПОЗИРОВАТЬ !!!
     Добавляет студента в группу через amo api и логирует в googlesheets результат выполнения.
@@ -76,148 +130,168 @@ async def add_student_to_forming_group(student_id, group_id) -> bool:
     )
     student = student[0]
 
-    now = datetime.now()
+    # 1 ГРУППА
+    forming_unit = (await HHManager.get_ed_units(id=group_id))[0]
+    if not is_unit_vacant_for_join(unit=forming_unit):
+        raise UnitAlreadyFullException
 
-    forming_group = await HHManager.get_ed_units(id=group_id)
-    if forming_group:
-        forming_group = [
-            edUnit for edUnit in forming_group
-            if await HHManager.isEdUnitStartInDateRangeForAllTeachers(
-                edUnit, now, now + timedelta(weeks=3)
-            )
-        ]
-    if not forming_group:
-        glog.error(
-            student_amo_id=student_id,
-            student_hh_id=student['Id'],
-            comment='Не найдена выбранная группа.'
-        )
-        return False
-    forming_group = forming_group[0]
-
-    start_forming_group_date = datetime.strptime(
-        forming_group['ScheduleItems'][0]['BeginDate'], '%Y-%m-%d'
-    )
-    start_course_group_date = start_forming_group_date + timedelta(weeks=2)
-
-    group_course = await HHManager.get_ed_units(
-        types='Group,MiniGroup',
-        dateFrom=start_course_group_date.strftime('%Y-%m-%d'),  # '2023-09-11' на две недели вперед надо эту дату
-        timeFrom=forming_group['ScheduleItems'][0]['BeginTime'],
-        timeTo=forming_group['ScheduleItems'][0]['EndTime'],
-        disciplines=forming_group['Discipline'],
-        # teacherId=group_for_start[0]['ScheduleItems']['Teacher'],
-    )
-    group_course = [
-        unit for unit in group_course
-        if await HHManager.isEdUnitStartInDateRangeForAllTeachers(
-            unit, start_course_group_date, start_course_group_date + timedelta(days=1)
-        )
-    ]
-    if len(group_course) == 0:
-        glog.error(
-            student_amo_id=student_id,
-            student_hh_id=student['Id'],
-            comment='Не найдено групп через 2 недели.'
-        )
-        log.error('Не найдено групп через 2 недели.')
-        log.error(group_course)
-        raise AssertionError('Не найдено групп через 2 недели.')
-    elif len(group_course) > 1:
-        glog.error(
-            student_amo_id=student_id,
-            student_hh_id=student['Id'],
-            comment='Найдено более 1ой группы через 2 недели.'
-        )
-        log.error('Найдено более 1ой группы через 2 недели.')
-        log.error(group_course)
-        raise AssertionError('Найдено более 1ой группы через 2 недели.')
+    pprint(forming_unit)
 
     result1 = await HHManager.add_ed_unit_student(
         edUnitId=group_id,
         studentClientId=student['ClientId'],
-        comment=f'Добавлен(а) с помощью сайта в edUnits({group_id}, {group_course[0]["Id"]}).'
+        comment=f'Добавлен(а) с помощью сайта в edUnits({group_id}).'
     )
-    log.info(f'Student {"not " if result1.get("success", False) else ""}added in edUnit({group_id})')
-    log.info(result1)
+    start_forming_unit_date = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginDate'], '%Y-%m-%d')
+    # start_forming_group_time = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginTime'], '%H:%M')
 
-    result2 = await HHManager.add_ed_unit_student(
-        edUnitId=group_course[0]['Id'],
-        studentClientId=student['ClientId'],
-        comment=f'Добавлен(а) с помощью сайта в edUnits({group_id}, {group_course[0]["Id"]}).'
-    )
-    log.info(f'Student {"not " if result2.get("success", False) else ""}added in edUnit({group_course[0]["Id"]})')
-    log.info(result2)
-
-    if not result1.get('success', False) or not result2.get('success', False):
+    if len(forming_unit['ScheduleItems']) == 1:
+        start_forming_unit_date2 = datetime.strptime(forming_unit['ScheduleItems'][0]['EndDate'], '%Y-%m-%d')
+    elif len(forming_unit['ScheduleItems']) == 2:
+        start_forming_unit_date2 = datetime.strptime(forming_unit['ScheduleItems'][1]['EndDate'], '%Y-%m-%d')
+    else:
+        start_forming_unit_date2 = 0
         glog.error(
             student_amo_id=student_id,
             student_hh_id=student['Id'],
-            groups_ids=(f'{result1.get("success", False)}: {group_id}',
-                        f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
-            comment='Не смог записать в группы'
+            groups_ids=(f'{result1.get("success", False)}: {group_id}',),
+            comment='Не нашел второй урок вводного модуля.'
         )
-        return False
-    # Отправляем отчет в амо тригер чтобы проставились данные в сделку.
-    report_result = await send_report_join_to_forming_group(
-        student_id=student_id,
-        tel_number=student['Agents'][0]['Mobile'],
-        zoom_url=forming_group['ScheduleItems'][0]['ClassroomLink'],
-        teacher_id=forming_group['ScheduleItems'][0]['TeacherId'],
-        teacher_name=forming_group['ScheduleItems'][0]['Teacher'],
-        date_start=int(start_forming_group_date.timestamp()),  # Дата старта ВМ
-        date_end=int(start_course_group_date.timestamp()),  # Дата старта основной группы
-    )
-    if not report_result:
+
+    if result1.get('success'):
+        # Отправляем отчет в амо тригер чтобы проставились данные в сделку.
+        report_result = await send_report_join_to_forming_group(
+            student_id=student_id,
+            tel_number=student['Agents'][0]['Mobile'],
+            zoom_url=forming_unit['ScheduleItems'][0]['ClassroomLink'],
+            teacher_id=forming_unit['ScheduleItems'][0]['TeacherId'],
+            teacher_name=forming_unit['ScheduleItems'][0]['Teacher'],
+            date_start=int(start_forming_unit_date.timestamp()),  # Дата старта ВМ
+            date_end=int(start_forming_unit_date2.timestamp()) if start_forming_unit_date2 else 0
+        )
+        if not report_result:
+            glog.error(
+                student_amo_id=student_id,
+                student_hh_id=student['Id'],
+                groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                            f'{result1.get("success", False)}: '),
+                comment='Не смог отправить отчет в AMO'
+            )
+        glog.success(
+            student_amo_id=student_id,
+            student_hh_id=student['Id'],
+            groups_ids=(f'{result1.get("success", False)}: {group_id}',),
+            comment='Записал на вводный модуль'
+        )
+
+    # 2 ГРУППА
+    if forming_unit.get('ExtraFields'):
+        slot_code = next((field['Value'] for field in forming_unit['ExtraFields'] if field['Name'] == 'код-слот'), None)
+        course_unit_error = ''
+        if not slot_code:
+            course_unit_error = 'Не найдено поля код-слот'
+        if str(slot_code)[-1] != '1':
+            course_unit_error = 'Код-слот вводного модуля не равен 1.'
+        # Если код-слот верный
+        if not course_unit_error:
+            course_unit = await HHManager.get_ed_units(
+                extraFieldName='код-слот',
+                extraFieldValue=str(slot_code)[:-1] + '2'
+            )
+            if len(course_unit) == 0:
+                course_unit_error = f'Не найдено группы с кодом {str(slot_code)[:-1] + "2"}.'
+            elif len(course_unit) > 1:
+                course_unit_error = f'Найдено более 1ой группы с кодом {slot_code}.'
+
+            if course_unit_error:
+                glog.error(
+                    student_amo_id=student_id,
+                    student_hh_id=student['Id'],
+                    groups_ids=(f'{result1.get("success", False)}: {group_id}',),
+                    comment=course_unit_error
+                )
+                await send_nothing_fit_units_to_amo(
+                    student_id=student_id,
+                    msg=course_unit_error,
+                    func=1
+                )
+            else:
+                result2 = await HHManager.add_ed_unit_student(
+                    edUnitId=course_unit[0]['Id'],
+                    studentClientId=student['ClientId'],
+                    comment=f'Добавлен(а) с помощью сайта в edUnits({group_id}, {course_unit[0]["Id"]}).'
+                )
+                if result2.get('success'):
+                    glog.success(
+                        student_amo_id=student_id,
+                        student_hh_id=student['Id'],
+                        groups_ids=(f'{result1.get("success", False)}: {group_id}',),
+                        comment='Записал в группу курса'
+                    )
+                else:
+                    await send_nothing_fit_units_to_amo(
+                        student_id=student_id,
+                        msg='Не смог записать в группу курса.',
+                        func=1
+                    )
+                    glog.error(
+                        student_amo_id=student_id,
+                        student_hh_id=student['Id'],
+                        groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                                    f'{result1.get("success", False)}: {course_unit[0]["Id"]}'),
+                        comment=f'Не смог записать в группу курса.'
+                    )
+    # Если не найдены пользовательские поля которые нужны для обнаружения второй группы.
+    else:
         glog.error(
             student_amo_id=student_id,
             student_hh_id=student['Id'],
-            groups_ids=(f'{result1.get("success", False)}: {group_id}',
-                        f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
-            comment='Не смог отправить отчет в AMO'
+            groups_ids=(f'{result1.get("success", False)}: {group_id}',),
+            comment='Не найдено пользовательских полей у группы ВМ для обнаружения группы курса.'
         )
-        return False
+        await send_nothing_fit_units_to_amo(
+            student_id=student_id,
+            msg='Не найдено пользовательских полей у группы ВМ для обнаружения группы курса.',
+            func=1
+        )
+    if result1.get("success"):
+        # Открывает личный кабинет родителю
+        open_personal_profile_result = await HHManager.set_student_auth_info(
+            studentClientId=student['ClientId'],
+            login=await HHManager.get_parent_email(student),
+            password='2146648'
+        )
+        if not open_personal_profile_result.get('success'):
+            glog.error(
+                student_amo_id=student_id,
+                student_hh_id=student['Id'],
+                groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                            f'{result1.get("success", False)}: '),
+                comment='Не смог открыть личный кабинет'
+            )
 
-    # Открывает личный кабинет родителю
-    open_personal_profile_result = await HHManager.set_student_auth_info(
-        studentClientId=student['ClientId'],
-        login=await HHManager.get_parent_email(student),
-        password='2146648'
-    )
-    if not open_personal_profile_result.get('success'):
-        glog.error(
+        # Устанавливаем ссылку на amo в пользовательские поля
+        result_add_amo_link = await HHManager.add_user_extra_field(
+            student=student,
+            field_name='Ссылка на amoCRM',
+            field_value=f'https://itbestonlineschool.amocrm.ru/leads/detail/'
+                        f'{next((field["Value"] for field in student["ExtraFields"] if field["Name"] == "id ученика"), None)}'
+        )
+        if not result_add_amo_link.get("success"):
+            glog.error(
+                student_amo_id=student_id,
+                student_hh_id=student['Id'],
+                groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                            f'{result1.get("success", False)}: '),
+                comment='Личный кабинет открыт, amo ссылка НЕ установлена'
+            )
+        glog.success(
             student_amo_id=student_id,
             student_hh_id=student['Id'],
             groups_ids=(f'{result1.get("success", False)}: {group_id}',
-                        f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
-            comment='Не смог открыть личный кабинет'
+                        f'{result1.get("success", False)}: '),
+            comment='Личный кабинет открыт, amo ссылка установлена'
         )
-
-    # Устанавливаем ссылку на amo в пользовательские поля
-    result_add_amo_link = await HHManager.add_user_extra_field(
-        student=student,
-        field_name='Ссылка на amoCRM',
-        field_value=
-        f'https://itbestonlineschool.amocrm.ru/leads/detail/'
-        f'{next((field["Value"] for field in student["ExtraFields"] if field["Name"] == "id ученика"), None)}'
-    )
-    if not result_add_amo_link.get("success"):
-        glog.error(
-            student_amo_id=student_id,
-            student_hh_id=student['Id'],
-            groups_ids=(f'{result1.get("success", False)}: {group_id}',
-                        f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
-            comment='Личный кабинет открыт, amo ссылка НЕ установлена'
-        )
-    glog.success(
-        student_amo_id=student_id,
-        student_hh_id=student['Id'],
-        groups_ids=(f'{result1.get("success", False)}: {group_id}',
-                    f'{result1.get("success", False)}: {group_course[0]["Id"]}'),
-        comment='Личный кабинет открыт, amo ссылка установлена'
-    )
-
-    return True
 
 
 async def send_report_join_to_forming_group(
@@ -266,10 +340,11 @@ async def send_report_join_to_forming_group(
                 return False
 
 
-async def send_nothing_fit_units_to_amo(student_id, msg) -> bool:
+async def send_nothing_fit_units_to_amo(student_id, msg, func: int = 0) -> bool:
     """
     Отправляет в AMO информацию от клиента, что группы на вводный модуль ему не подошли.
     Отправляется student_id, msg, tel_number на указанный адрес.
+    @param func: 0 - не подошло родителю, 1 неверный код-слот или не найдена группа
     @param student_id: Сквозное поле между HH и AMO.
     @param msg: Сообщение от клиента.
     @return:
@@ -285,6 +360,8 @@ async def send_nothing_fit_units_to_amo(student_id, msg) -> bool:
                 url=settings.AMOLINK_NOTHING_FIT_INTRODUCTION_GROUPS,
                 headers={'Content-Type': 'application/json'},
                 json={
+                    'func': func,
+                    # 'func': 1,
                     'student_id': student_id,
                     'msg': msg,
                     'tel_number': student['Agents'][0]['Mobile']
