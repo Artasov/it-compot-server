@@ -99,3 +99,7 @@ amo_hh_levels_map = (
     (amo_levels[3], hh_levels[3]),
     (amo_levels[4], hh_levels[4]),
 )
+# Пример использования
+# forming_unit = {'Discipline': 'Python GameDev (Разработка 2D-игр 1 ступень)'}
+# amo_discipline = next((amo for amo, hh in amo_hh_disciplines_map if hh == forming_unit['Discipline']), "Дисциплина не найдена")
+# print(amo_discipline)  # Вывод: Python (игры) 1 ступень

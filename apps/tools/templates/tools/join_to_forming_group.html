@@ -13,31 +13,98 @@
 {% endblock %}
 
 {% block content %}
-    <div id="content" class="container d-none  fcc flex-grow-1"
+    <style>
+
+        .cat-1 {
+            transform: rotate(-15deg);
+            width: 19vw;
+            min-width: 60px;
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            filter: hue-rotate(25deg) contrast(.7) brightness(1.2);
+        }
+        @media (max-width: 500px){
+            .cat-1{
+                height: 200%;
+                width: auto;
+                right: -10px;
+                bottom: -24px;
+            }
+        }
+        @media (max-height: 750px) and (min-width: 600px){
+            .cat-1{
+                right: -30px;
+                bottom: -130px;
+            }
+        }
+        @media (min-width: 1920px){
+            .cat-1{
+                width: 10vw;
+                right: -10px;
+                bottom: -24px;
+            }
+        }
+        #content {
+            color: #00000099;
+
+        }
+        .ts-77{
+            text-shadow: 0 0 3px #00000077;
+        }
+        .ts-33{
+            text-shadow: 0 0 3px #00000033;
+        }
+        .modal-content{
+            background: #ffffffcc;
+            backdrop-filter: blur(20px);
+        }
+        #nothing_fit_user_textarea{
+            background: #ffffff77 !important;
+        }
+        .btn-success{
+            background-color: rgba(32,64,225,0.39) !important;
+            border-color: rgba(80, 110, 250, 0.58) !important;
+        }
+        .text-success{
+            color: #4058ff !important;
+        }
+        .opacity-this85{
+            opacity: 85%;
+        }
+    </style>
+    <div id="content" class="container overflow-x-hidden d-none fcc flex-grow-1 ts-77"
          style="max-width: 700px;">
-        <div id="group_join_content" class="fcc gap-2 disable-tap-and-selection py-3">
-            <h1 class="fs-1 text-center mb-0 mt-3">Запись в группу</h1>
-            <div class="group_loading_status_container pe-3 pe-sm-0 ps-0 ps-sm-5 frsc justify-content-center justify-content-sm-start gap-3">
+        <img src="{% static 'Core/img/bg/bg2.png' %}" alt=""
+        class="position-absolute w-100vw h-100vh top-0 right-0 object-fit-cover"
+             style="z-index: -1;  opacity: 50%">
+        <div id="group_join_content" class="ts-33 fcc gap-2 disable-tap-and-selection py-3">
+            <div class="frc position-relative">
+                <h1 class="fs-1 text-center mb-0 mt-3 opacity-this85 ts-33">Запись в группу</h1>
+                <img src="{% static 'Core/img/cat-1.png' %}" alt=""
+                     class="cat-1">
+            </div>
+            <div class="ts-33 group_loading_status_container pe-3 pe-sm-0 ps-0 ps-sm-5 frsc justify-content-center justify-content-sm-start gap-3">
                 <div class="p-1">
                     <div class="spinner-border" style="color: #888"></div>
                 </div>
                 <h4 class="m-0 frsc gap-0 gap-sm-2 flex-column flex-sm-row w-min-content text-nowrap">
-                    <span>Ищем группы для вас</span>
-                    <span class="text-secondary fs-6 text-opacity-50 mt-0 mt-sm-1">( Это может занять минутку )</span>
+                    <span class=" opacity-this85">Ищем группы для вас</span>
+                    <span class="text-secondary fs-6 mt-0 mt-sm-1">( Это может занять минутку )</span>
                 </h4>
             </div>
-            <p class="px-2 text-center">Обратите внимание, время указано московское.
+            <p class="ts-33 px-2 fw-bold text-center opacity-this85">Обратите внимание, время указано московское.
             </p>
 
-            <div class="d-none">
-                <p id="help-text" class="text-center fs-5 fw-bold">Выберите удобную для вас группу.</p>
+            <div class="ts-33 d-none">
+                <p id="help-text" class="text-center fs-5 fw-bold  opacity-this85">Выберите удобную для вас группу.</p>
                 <ul class="result_container frc flex-wrap gap-2">
 
                 </ul>
             </div>
 
-            <button class="btn btn-secondary mb-2 d-none" id="btn-nothing-fit"
-                    data-bs-toggle="modal" data-bs-target="#nothingFitModal">
+            <button class="btn fw-bold bg-black bg-opacity-25 text-white mb-2 d-none mx-auto" id="btn-nothing-fit"
+                    data-bs-toggle="modal" style="max-width: 230px;" data-bs-target="#nothingFitModal">
                 Ничего не подошло
             </button>
 
@@ -49,7 +116,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Подтверждение записи в группу</h5>
+                    <h5 class="modal-title opacity-this85" id="modalLabel">Подтверждение записи в группу</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body confirmation-modal-body pb-1">

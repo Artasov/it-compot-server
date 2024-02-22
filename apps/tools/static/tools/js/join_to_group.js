@@ -121,8 +121,8 @@ function joinStudentToGroup(student_id, group) {
 function createGroupEl(group) {
     // Создаем элемент списка
     const li = document.createElement('li');
-    li.className = "unit-item bg-primary rounded-3 text-light";
-
+    li.className = "unit-item rounded-3 text-light";
+    li.style.background = 'rgba(32,64,225,0.39)'
     // Добавляем информацию о типе группы
     // const typeP = document.createElement('p');
     // typeP.textContent = unit.Type;
@@ -258,7 +258,8 @@ async function main() {
         groupLoadingStatusContainerEl.innerHTML = '';
         groupLoadingStatusContainerEl.className = '';
         const successEl = document.createElement('p');
-        successEl.className = 'text-center fw-bold text-success fs-5 m-0';
+        successEl.className = 'text-center fw-bold fs-5 m-0 opacity-75';
+        successEl.style.color = '#4058ff'
         successEl.innerHTML = 'Готово! Найденные группы ниже.';
         groupLoadingStatusContainerEl.appendChild(successEl);
     });

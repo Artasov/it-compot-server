@@ -6,6 +6,7 @@ import aiohttp
 from django.conf import settings
 
 from apps.tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
+from apps.tools.services.signup_group.consts import amo_hh_disciplines_map
 from apps.tools.services.signup_group.exeptions.common import UnitAlreadyFullException
 from service.common.common import calculate_age
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
@@ -163,7 +164,9 @@ async def add_student_to_forming_group(student_id, group_id):
         report_result = await send_report_join_to_forming_group(
             student_id=student_id,
             tel_number=student['Agents'][0]['Mobile'],
-            discipline=forming_unit['Discipline'],
+            discipline=next(
+                (amo for amo, hh in amo_hh_disciplines_map if hh == forming_unit['Discipline']),
+                "Дисциплина не найдена"),
             zoom_url=forming_unit['ScheduleItems'][0]['ClassroomLink'],
             teacher_id=forming_unit['ScheduleItems'][0]['TeacherId'],
             teacher_name=forming_unit['ScheduleItems'][0]['Teacher'],
