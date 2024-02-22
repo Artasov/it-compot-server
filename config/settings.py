@@ -40,7 +40,9 @@ SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_CACHE_ALIAS = "default"
 SESSION_COOKIE_AGE = 86400  # seconds 2 days
 # SESSION_SAVE_EVERY_REQUEST = True
-
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = [f'https://{MAIN_DOMAIN}']
 
 # Static and media files
 MINIO_EXTERNAL_ENDPOINT_USE_HTTPS = True
