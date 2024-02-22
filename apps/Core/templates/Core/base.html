@@ -57,9 +57,9 @@
 </head>
 
 <body data-bs-theme="{% if theme %}{{ theme }}{% else %}dark{% endif %}">
-<div id="wrapper" class="wrapper d-flex flex-column overflow-hidden position-relative">
+<div id="wrapper" class="wrapper d-flex flex-column position-relative">
     {% include 'Core/includes/header.html' %}
-    <main class="no_scrollbar overflow-y-scroll d-flex flex-column flex-grow-1" style="margin-top: 0;">
+    <main class="no_scrollbar d-flex flex-column flex-grow-1" style="margin-top: 0;">
         <div id="loading_spinner_block">
             <div id="loading_spinner_block-help">
                 <div id="loading_spinner" class="spinner-border fs-4" style="color: #888" role="status"></div>
