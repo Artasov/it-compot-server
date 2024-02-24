@@ -23,4 +23,4 @@ async def create_short_link_controller(request) -> HttpResponse:
 
 def redirect_to_full_link(request, short_code) -> HttpResponseRedirect:
     link = get_object_or_404(ShortLink, short_code=short_code)
-    return redirect(link.original_url)
+    return redirect(link.original_url.replace(':8000', ''))
