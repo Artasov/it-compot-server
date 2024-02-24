@@ -157,9 +157,11 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
                             selected_activities.append(activity1)
                         elif activity2['date_interval'][0] == ts['date']:
                             selected_activities.append(activity2)
-                        elif 'не работаю' in activity1['desc'].lower():
+                        elif 'не работаю' in activity1['desc'].lower() or \
+                                'в другом месте' in activity1['desc'].lower():
                             selected_activities.append(activity2)
-                        elif 'не работаю' in activity2['desc'].lower():
+                        elif 'не работаю' in activity2['desc'].lower() or \
+                                'в другом месте' in activity2['desc'].lower():
                             selected_activities.append(activity1)
                         break
 
@@ -197,7 +199,8 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
         for j in range(len(working_teachers[i]['activities'])):
             if 'выходной' in working_teachers[i]['activities'][j]['desc'].lower():
                 continue
-            if 'не работаю' in working_teachers[i]['activities'][j]['desc'].lower():
+            if 'не работаю' in working_teachers[i]['activities'][j]['desc'].lower() or \
+                    'в другом месте' in working_teachers[i]['activities'][j]['desc'].lower():
                 working_teachers[i]['activities'][j]['desc'] = 'Не работает'
             else:
                 working_teachers[i]['activities'][j]['desc'] = 'Урок'
@@ -250,16 +253,20 @@ async def fill_schedule(activities, date):
         current_time += timedelta(minutes=5)
 
     for activity in activities:
-        if activity['time_interval'] != 'Временной интервал не найден':
-            start_time = datetime.combine(dt.date.today(), activity['time_interval'][0])
-            end_time = datetime.combine(dt.date.today(), activity['time_interval'][1])
-            while start_time < end_time:
-                interval_start_str = start_time.strftime('%H:%M')
-                for interval in full_day_schedule:
-                    if interval['Начало интервала'] == interval_start_str:
-                        interval['Занятость'] = activity['desc']
-                        break
-                start_time += timedelta(minutes=5)
+        start_time = dt.datetime.combine(date, activity['time_interval'][0])
+        # Проверка на интервал через полночь
+        if activity['time_interval'][1] == dt.time(0, 0):
+            end_time = dt.datetime.combine(date, dt.time(23, 55))
+        else:
+            end_time = dt.datetime.combine(date, activity['time_interval'][1])
+
+        while start_time < end_time:
+            interval_start_str = start_time.strftime('%H:%M')
+            for interval in full_day_schedule:
+                if interval['Начало интервала'] == interval_start_str:
+                    interval['Занятость'] = activity['desc']
+                    break
+            start_time += timedelta(minutes=5)
 
     return full_day_schedule
 
@@ -267,8 +274,8 @@ async def fill_schedule(activities, date):
 async def create_schedule(teachers_activities):
     schedule_list = []
     for teacher in teachers_activities:
-        if 'Паршикова' not in teacher['name']:
-            continue
+        # if 'Паршикова' not in teacher['name']:
+        #     continue
         teacher_schedule = await fill_schedule(teacher['activities'], teacher['date'])
 
         for entry in teacher_schedule:
