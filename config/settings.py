@@ -3,14 +3,13 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-import environ
 from dotenv import load_dotenv
 
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DATA_DIR = BASE_DIR / 'data'
 
-# Environment helper
+# Environment helpers
 env = os.environ.get
 DEV = bool(int(env('DEV', 0)))
 
@@ -18,7 +17,7 @@ dotenv_path = os.path.join(BASE_DIR, '.env.prod')
 load_dotenv(dotenv_path=dotenv_path)
 
 # Basic settings
-DEBUG = bool(int(env('DEBUG', 0)))
+DEBUG = True#bool(int(env('DEBUG', 0)))
 SECRET_KEY = env('SECRET_KEY', 'your-secret-key')
 ALLOWED_HOSTS = ['localhost', env('MAIN_DOMAIN', '127.0.0.1')] + env('ALLOWED_HOSTS', '').split(',')
 ROOT_URLCONF = 'apps.Core.urls'
@@ -55,8 +54,6 @@ if DEV:
 else:
     STATIC_ROOT = None
     MEDIA_ROOT = None
-    # STATIC_URL = f'https://{MAIN_DOMAIN}:9000/static/'
-    # MEDIA_URL = f'https://{MAIN_DOMAIN}:9000/media/'
     STATIC_URL = f'{DOMAIN_URL}/static/'
     MEDIA_URL = f'{DOMAIN_URL}/media/'
 

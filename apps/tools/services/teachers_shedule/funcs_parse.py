@@ -1,6 +1,7 @@
 import datetime as dt
 import re
 from datetime import datetime, timedelta
+from pprint import pprint
 
 import pandas as pd
 
@@ -227,6 +228,8 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
 
 async def fill_schedule(activities, date):
+    pprint(date)
+    pprint(activities)
     full_day_schedule = []
     is_weekend = date.weekday() >= 5
     if is_weekend:
@@ -250,14 +253,11 @@ async def fill_schedule(activities, date):
         if activity['time_interval'] != 'Временной интервал не найден':
             start_time = datetime.combine(dt.date.today(), activity['time_interval'][0])
             end_time = datetime.combine(dt.date.today(), activity['time_interval'][1])
-            description = activity['desc']
             while start_time < end_time:
                 interval_start_str = start_time.strftime('%H:%M')
-                interval_end_str = (start_time + timedelta(minutes=5)).strftime('%H:%M')
-
                 for interval in full_day_schedule:
                     if interval['Начало интервала'] == interval_start_str:
-                        interval['Занятость'] = description
+                        interval['Занятость'] = activity['desc']
                         break
                 start_time += timedelta(minutes=5)
 
@@ -265,11 +265,12 @@ async def fill_schedule(activities, date):
 
 
 async def create_schedule(teachers_activities):
-    # Создаем список для данных расписания
     schedule_list = []
-
     for teacher in teachers_activities:
+        if 'Паршикова' not in teacher['name']:
+            continue
         teacher_schedule = await fill_schedule(teacher['activities'], teacher['date'])
+
         for entry in teacher_schedule:
             schedule_list.append([
                 teacher['name'],  # Имя учителя
@@ -277,14 +278,9 @@ async def create_schedule(teachers_activities):
                 entry['Конец интервала'],
                 entry['Занятость']
             ])
-
-    # Создаем DataFrame без указания заголовков столбцов
     schedule_df = pd.DataFrame(schedule_list)
-
-    # Вставляем заголовки как первую строку данных
     headers = ['Имя', 'Начало интервала', 'Конец интервала', 'Занятость']
     schedule_df.loc[-1] = headers  # Добавляем заголовки в начало DataFrame
     schedule_df.index = schedule_df.index + 1  # Сдвигаем индекс
     schedule_df.sort_index(inplace=True)  # Сортируем индекс
-
     return schedule_df
