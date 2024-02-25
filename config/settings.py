@@ -11,12 +11,12 @@ BASE_DATA_DIR = BASE_DIR / 'data'
 
 # Environment helpers
 env = os.environ.get
-DEV = bool(int(env('DEV', 0)))
 
 dotenv_path = os.path.join(BASE_DIR, '.env.prod')
 load_dotenv(dotenv_path=dotenv_path)
 
 # Basic settings
+DEV = bool(int(env('DEV', 0)))
 DEBUG = bool(int(env('DEBUG', 0)))
 SECRET_KEY = env('SECRET_KEY', 'your-secret-key')
 ALLOWED_HOSTS = ['localhost', env('MAIN_DOMAIN', '127.0.0.1')] + env('ALLOWED_HOSTS', '').split(',')
@@ -140,12 +140,12 @@ if DEV:
 else:
     DATABASES = {
         'default': {
-            'ENGINE': env('SQL_ENGINE', 'django.db.backends.sqlite3'),
-            'NAME': env('SQL_DATABASE_NAME', BASE_DIR / 'db.sqlite3'),
-            'USER': env('SQL_USER', 'admin'),
-            'PASSWORD': env('SQL_PASSWORD', 'admin'),
-            'HOST': env('SQL_HOST', 'localhost'),
-            'PORT': env('SQL_PORT', '5432'),
+            'ENGINE': env('SQL_ENGINE'),
+            'NAME': env('SQL_DATABASE_NAME'),
+            'USER': env('SQL_USER'),
+            'PASSWORD': env('SQL_PASSWORD'),
+            'HOST': env('SQL_HOST'),
+            'PORT': env('SQL_PORT'),
         }
     }
 
