@@ -17,6 +17,8 @@ from apps.tools.services.teachers_shedule.funcs import handle_teachers_schedule_
 
 @acontroller('Страница для записи на вводный модуль', True)
 async def join_to_forming_group(request) -> HttpResponse:
+    unit = await CustomHHApiV2Manager().get_ed_units(Id=19529)
+    pprint(unit)
     return render(request, 'tools/join_to_forming_group.html', {
         'theme': 'light'
     })

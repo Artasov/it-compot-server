@@ -141,11 +141,10 @@ function createGroupEl(group) {
     frbDiv.className = "d-flex gap-2";
     const studentsSpan = document.createElement('span');
     studentsSpan.classList.add('fw-bold');
-    studentsSpan.textContent = 'Учеников';
+    studentsSpan.textContent = 'Осталось мест: ';
     const vacanciesSpan = document.createElement('span');
-    const students_count = parseInt(group.StudentsCount);
     const vacancies_count = parseInt(group.Vacancies);
-    vacanciesSpan.textContent = `${students_count} / ${vacancies_count}`;
+    vacanciesSpan.textContent = `${vacancies_count}`;
     frbDiv.appendChild(studentsSpan);
     frbDiv.appendChild(vacanciesSpan);
     li.appendChild(frbDiv);
