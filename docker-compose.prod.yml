@@ -72,8 +72,8 @@ services:
       - HOLLIHOP_AUTHKEY=${HOLLIHOP_AUTHKEY}
       - REDIS_CACHE_URL=${REDIS_URL}
       - REDIS_URL=${REDIS_URL}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_EXTERNAL_ENDPOINT_USE_HTTPS=${MINIO_EXTERNAL_ENDPOINT_USE_HTTPS}
       - MINIO_USE_HTTPS=${MINIO_USE_HTTPS}
       - GSDOCID_TEACHERS_SALARY=${GSDOCID_TEACHERS_SALARY}
@@ -123,6 +123,7 @@ services:
       context: .
       dockerfile: DockerfileCelery
     volumes:
+      - ./data:/srv/data
       - ./logs:/srv/logs
       - ./entrypoint_celery.sh:/srv/entrypoint_celery.sh
     links:
@@ -137,8 +138,8 @@ services:
       - HOLLIHOP_AUTHKEY=${HOLLIHOP_AUTHKEY}
       - REDIS_CACHE_URL=${REDIS_URL}
       - REDIS_URL=${REDIS_URL}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_EXTERNAL_ENDPOINT_USE_HTTPS=${MINIO_EXTERNAL_ENDPOINT_USE_HTTPS}
       - MINIO_USE_HTTPS=${MINIO_USE_HTTPS}
       - GSDOCID_TEACHERS_SALARY=${GSDOCID_TEACHERS_SALARY}
@@ -178,8 +179,6 @@ services:
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
     command: server /data --console-address :9001
     volumes:
       - ./data/minio/data:/data

@@ -134,11 +134,12 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             batchSize=1000,
             **kwargs
         )
+        # print(f'EdUnits count: {len(edUnitsFromToday)}')
+        # print([int(unit['Id']) for unit in edUnitsFromToday])
         # Фильтруем по вместимости
         edUnitsFromTodayAvailableForJoin = [
             unit for unit in edUnitsFromToday if
-            unit.get('StudentsCount') < unit.get(
-                'Vacancies')
+            int(unit.get('Vacancies')) > 0
         ]
         # Фильтруем по времени позже чем сейчас
         # для каждого преподавателя побывавшего в группе
