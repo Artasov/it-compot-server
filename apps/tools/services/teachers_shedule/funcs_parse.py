@@ -70,7 +70,15 @@ async def parse_activity(activity: str) -> dict:
                 end_date = end_date.replace(year=end_date.year + 1)
         else:
             start_date = process_date(date_interval_str)
-            end_date = start_date.replace(year=start_date.year + 10)  # Add 10 years to a single date
+            try:
+                end_date = start_date.replace(year=start_date.year + 10)
+            except ValueError:
+                # Checks if it's February 29th and adjusts to February 28th in the new year
+                if start_date.month == 2 and start_date.day == 29:
+                    end_date = start_date.replace(year=start_date.year + 10, day=28)
+                else:
+                    # For all other cases, raise the original error
+                    raise
 
         date_interval = [start_date.date(), end_date.date()]
     else:
@@ -231,8 +239,6 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
 
 async def fill_schedule(activities, date):
-    pprint(date)
-    pprint(activities)
     full_day_schedule = []
     is_weekend = date.weekday() >= 5
     if is_weekend:
