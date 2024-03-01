@@ -1,7 +1,6 @@
 import datetime as dt
 import re
 from datetime import datetime, timedelta
-from pprint import pprint
 
 import pandas as pd
 
@@ -166,10 +165,12 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
                         elif activity2['date_interval'][0] == ts['date']:
                             selected_activities.append(activity2)
                         elif 'не работаю' in activity1['desc'].lower() or \
-                                'в другом месте' in activity1['desc'].lower():
+                                'в другом месте' in activity1['desc'].lower() or \
+                                'отдых' in activity1['desc'].lower():
                             selected_activities.append(activity2)
                         elif 'не работаю' in activity2['desc'].lower() or \
-                                'в другом месте' in activity2['desc'].lower():
+                                'в другом месте' in activity2['desc'].lower() or \
+                                'отдых' in activity2['desc'].lower():
                             selected_activities.append(activity1)
                         break
 
@@ -205,10 +206,12 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
     # Форматируем активность.
     for i in range(len(working_teachers)):
         for j in range(len(working_teachers[i]['activities'])):
-            if 'выходной' in working_teachers[i]['activities'][j]['desc'].lower():
+            desc = working_teachers[i]['activities'][j]['desc'].lower()
+            if 'выходной' in desc:
                 continue
-            if 'не работаю' in working_teachers[i]['activities'][j]['desc'].lower() or \
-                    'в другом месте' in working_teachers[i]['activities'][j]['desc'].lower():
+            if 'не работаю' in desc or \
+                    'в другом месте' in desc or \
+                    'отдых' in desc:
                 working_teachers[i]['activities'][j]['desc'] = 'Не работает'
             else:
                 working_teachers[i]['activities'][j]['desc'] = 'Урок'
