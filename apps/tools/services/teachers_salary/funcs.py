@@ -18,10 +18,11 @@ async def fetch_teacher_lessons_data_by_email(email) -> list[dict]:
              ]
     """
     teacher_month_lessons_rows = await get_teacher_salary_by_email(email)
+
     teacher_month_lessons = []
     for info in teacher_month_lessons_rows:
-        from pprint import pprint
-        pprint(info)
+        # pprint(info)
+        info = info[0] if isinstance(info[0], list) else info
         teacher_month_lessons.append({
             'gid': info[0], 'title': info[1], 'discipline': info[2], 'level': info[3],
             'type': info[4], 'student': info[5], 'date': info[6], 'skip': info[7],

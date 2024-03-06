@@ -34,7 +34,8 @@ async def get_teacher_salary_by_email(email: str) -> list:
     teacher_target_full_name = f"{teacher_target['LastName']} {teacher_target['FirstName']} {teacher_target['MiddleName']}"
 
     teacher_salary = await get_teachers_salary()
-    teacher_salary = teacher_salary[1:]
+    # Первые две строки бесполезны
+    teacher_salary = teacher_salary[2:]
 
     target_salary_stats = [teacher_salary[0:1]]
     for row in teacher_salary:

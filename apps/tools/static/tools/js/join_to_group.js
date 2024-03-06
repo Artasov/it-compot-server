@@ -129,11 +129,48 @@ function createGroupEl(group) {
     // li.appendChild(typeP);
 
     // Добавляем информацию о дате и времени
-    const dateP = document.createElement('p');
-    dateP.classList.add('fw-bold', 'fs-5', 'frsc', 'gap-2');
+    const dateP = document.createElement('div');
+    dateP.classList.add('fw-bold', 'fs-5', 'frsc', 'gap-2', 'mb-3');
+
+    // Генерируем время в соответствии с TZ пользователя.
     const schedule = group.ScheduleItems[0];
-    dateP.innerHTML = `${schedule.BeginDate}
-        <span class="fw-normal fs-6" style="padding-bottom: 2px;">${schedule.BeginTime} - ${schedule.EndTime}</span>`;
+    const userTimezoneOffset = new Date().getTimezoneOffset() * -1;
+    const scheduleTimezoneOffset = 180; // Таймзона +3 в минутах (данные приходят по МСК)
+    const timezoneDifference = userTimezoneOffset - scheduleTimezoneOffset;
+
+    function adjustTime(time, difference) {
+        const [hours, minutes] = time.split(':').map(Number);
+        const date = new Date();
+        date.setHours(hours, minutes + difference, 0, 0);
+        return date.toTimeString().slice(0, 5);
+    }
+
+    const adjustedBeginTime = adjustTime(schedule.BeginTime, timezoneDifference);
+    const adjustedEndTime = adjustTime(schedule.EndTime, timezoneDifference);
+
+    // Форматирование даты для отображения только дня и месяца
+    const displayDate = new Date(schedule.BeginDate).toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+    });
+
+    dateP.innerHTML = `
+    <span class="rounded-2 px-2" style="padding-top: 2px;background-color: rgba(32,64,225,0.2)">
+        ${displayDate}
+    </span>
+    <div class="fcc position-relative">
+        <span class="fw-normal fs-6 p-0" style="padding-bottom: 2px;">
+            <span class="fw-bold py-0 rounded-2 px-2" style="background-color: rgba(32,64,225,0.2);">
+                ${adjustedBeginTime} - ${adjustedEndTime}
+            </span>&nbsp;&nbsp;Ваше время
+        </span>
+        ${timezoneDifference !== 0 ? `
+        <span class="fw-normal p-0 position-absolute" 
+              style="padding-bottom: 2px; margin-left: 0.37rem; font-size: 0.6em; bottom: -1.1rem;">
+            ${schedule.BeginTime} - ${schedule.EndTime} МСК
+        </span>` : ''}
+    </div>
+`;
     li.appendChild(dateP);
 
     // Добавляем информацию о количестве учеников и вакансиях
@@ -213,7 +250,7 @@ async function main() {
     const groupLoadingStatusContainerEl = document.querySelector('.group_loading_status_container');
 
     getAvailableFormingGroups().then(groups => {
-        if(groups.length === 0){
+        if (groups.length === 0) {
             document.getElementById('nothing_fit_user_textarea').setAttribute(
                 'placeholder',
                 'К сожалению система не смогла подобрать группу. ' +

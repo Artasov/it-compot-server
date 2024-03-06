@@ -65,5 +65,17 @@
     </div>
     <script>
         const popover = new bootstrap.Popover('.popover-dismiss', {trigger: 'focus'})
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const gdocInput = document.querySelector('input[name="gdoc_id"]');
+            // Загрузка значения из LocalStorage и установка его в input, если оно есть
+            if (localStorage.getItem('gdocIdValue')) {
+                gdocInput.value = localStorage.getItem('gdocIdValue');
+            }
+
+            document.getElementById('button').addEventListener('click', function () {
+                localStorage.setItem('gdocIdValue', gdocInput.value);
+            });
+        });
     </script>
 {% endblock %}
