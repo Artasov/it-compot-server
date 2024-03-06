@@ -192,6 +192,7 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
     # Добавим преподавателей не работающих в этот день и проставим занятость 'Выходной'
     for teacher in all_teachers:
         if not any(w_teacher['name'].lower() == teacher.lower() for w_teacher in working_teachers):
+
             working_teachers.append({
                 'name': teacher,
                 'date': working_teachers[0]['date'],

@@ -28,7 +28,7 @@ from service.common.common import calculate_age
 log = logging.getLogger('base')
 
 
-@acontroller('Получение групп для записи на вводный модуль.', True)
+@acontroller('Получение групп для записи на вводный модуль.')
 @api_view(('GET',))
 @asemaphore_handler
 async def get_forming_groups_for_join(request) -> Response:
@@ -47,7 +47,7 @@ async def get_forming_groups_for_join(request) -> Response:
     ), status=status.HTTP_200_OK)
 
 
-@acontroller('Добавление ученика на вводный модуль', True)
+@acontroller('Добавление ученика на вводный модуль')
 @api_view(('POST',))
 @asemaphore_handler
 async def student_to_forming_group(request) -> Response:
@@ -68,7 +68,7 @@ async def student_to_forming_group(request) -> Response:
     return Response(data={'success': True}, status=status.HTTP_200_OK)
 
 
-@acontroller('Проверка записан ли уже ученик', True)
+@acontroller('Проверка записан ли уже ученик')
 @api_view(('GET',))
 @asemaphore_handler
 async def get_is_student_in_group_on_discipline(request) -> Response:
@@ -81,7 +81,7 @@ async def get_is_student_in_group_on_discipline(request) -> Response:
     ), status=status.HTTP_200_OK)
 
 
-@acontroller('Отправка сообщения клиента в amo, что группы не подошли', True)
+@acontroller('Отправка сообщения клиента в amo, что группы не подошли')
 @api_view(('POST',))
 @asemaphore_handler
 async def send_nothing_fit(request) -> Response:
@@ -94,7 +94,7 @@ async def send_nothing_fit(request) -> Response:
     ), status=status.HTTP_200_OK)
 
 
-@acontroller('Сгенерировать ссылку для триггера amo на подбор группы ВМ', True)
+@acontroller('Сгенерировать ссылку для триггера amo на подбор группы ВМ')
 @api_view(('GET',))
 @asemaphore_handler
 async def build_link_for_join_to_forming_group(request) -> HttpResponse:
