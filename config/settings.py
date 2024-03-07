@@ -25,7 +25,7 @@ ROOT_URLCONF = 'apps.Core.urls'
 # Security and domain settings
 HTTPS = bool(int(env('HTTPS', 0)))
 MAIN_DOMAIN = env('MAIN_DOMAIN', '127.0.0.1')
-DOMAIN_URL = f'https://{MAIN_DOMAIN}'
+DOMAIN_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}'
 
 # Database and cache
 REDIS_BASE_URL = 'redis://127.0.0.1:6379/'
