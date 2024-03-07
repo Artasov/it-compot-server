@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime
 from urllib.parse import urlencode
 
 import aiohttp as aiohttp
@@ -353,3 +354,24 @@ class HolliHopApiV2Manager:
         #     {...},
         #     {...},
         # ]
+
+    async def get_student_by_amo_id(self, student_amo_id: int):
+        student = await self.get_students(
+            extraFieldName='id ученика',
+            extraFieldValue=student_amo_id
+        )
+        return student[0]
+
+    async def add_payment(self, **kwargs):
+        required_params = ['clientId', 'officeOrCompanyId', 'value']  # 'supplies', только для типа Supplies
+        if not all(param in kwargs for param in required_params):
+            raise ValueError(f"Missing required parameters: {', '.join(required_params)}")
+
+        # Для параметров, которые могут иметь значения по умолчанию
+        kwargs.setdefault('date', datetime.now().strftime('%Y-%m-%d'))
+        kwargs.setdefault('type', 'Study')
+        kwargs.setdefault('state', 'Paid')
+        kwargs.setdefault('notifyClient', False)
+
+        response = await self.api_post_call('AddPayment', **kwargs)
+        return response

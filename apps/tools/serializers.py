@@ -2,7 +2,7 @@ from adrf.serializers import Serializer as AsyncSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from apps.tools.services.signup_group.consts import amo_hh_levels_map, amo_hh_disciplines_map
+from service.hollihop.consts import amo_hh_levels_map, amo_hh_disciplines_map
 
 
 class FormingGroupParamsSerializer(AsyncSerializer):
@@ -24,6 +24,14 @@ class StudentAlreadyStudyingOnDisciplineSerializer(AsyncSerializer):
 class SendNothingFitSerializer(AsyncSerializer):
     msg = serializers.CharField(max_length=1000)
     student_id = serializers.IntegerField()
+
+
+class AddHhPaymentByAmoSerializer(AsyncSerializer):
+    student_id = serializers.IntegerField()  # id ученика
+    currency = serializers.CharField(max_length=50)  # валюта
+    sum = serializers.IntegerField()  # сумма
+    payment_type = serializers.CharField(max_length=50)  # вид платежа
+    course = serializers.CharField(max_length=150)  # курс для комментария
 
 
 class BuildLinkForJoinToFormingGroupSerializer(AsyncSerializer):

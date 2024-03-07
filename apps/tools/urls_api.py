@@ -6,6 +6,7 @@ from apps.tools.api import (
     get_forming_groups_for_join,
     student_to_forming_group,
     send_nothing_fit,
+    add_hh_payment_by_amo_view,
 )
 
 urlpatterns = [
@@ -24,4 +25,7 @@ urlpatterns = [
     path('build_link_for_join_to_forming_group/',
          build_link_for_join_to_forming_group,
          name='build_link_for_join_to_forming_group'),
+    path('add_hh_payment_by_amo/',
+         add_hh_payment_by_amo_view,
+         name='add_hh_payment_by_amo'),
 ]

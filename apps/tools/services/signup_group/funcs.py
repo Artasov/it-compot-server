@@ -5,11 +5,11 @@ from pprint import pprint
 import aiohttp
 from django.conf import settings
 
+from apps.tools.exeptions.common import UnitAlreadyFullException
 from apps.tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
-from apps.tools.services.signup_group.consts import amo_hh_disciplines_map
-from apps.tools.services.signup_group.exeptions.common import UnitAlreadyFullException
 from service.common.common import calculate_age
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
+from service.hollihop.consts import amo_hh_disciplines_map
 
 log = logging.getLogger('base')
 

@@ -11,19 +11,20 @@ from rest_framework.response import Response
 
 from apps.Core.services.common import asemaphore_handler, acontroller
 from apps.link_shorter.services.common import create_short_link
+from apps.tools.exeptions.common import UnitAlreadyFullException
 from apps.tools.serializers import (
     StudentAlreadyStudyingOnDisciplineSerializer,
     FormingGroupParamsSerializer,
     StudentToGroupSerializer,
     SendNothingFitSerializer,
-    BuildLinkForJoinToFormingGroupSerializer,
+    BuildLinkForJoinToFormingGroupSerializer, AddHhPaymentByAmoSerializer,
 )
-from apps.tools.services.signup_group.exeptions.common import UnitAlreadyFullException
 from apps.tools.services.signup_group.funcs import (
     is_student_in_group_on_discipline,
     add_student_to_forming_group, send_nothing_fit_units_to_amo
 )
 from service.common.common import calculate_age
+from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
 log = logging.getLogger('base')
 
@@ -112,3 +113,31 @@ async def build_link_for_join_to_forming_group(request) -> HttpResponse:
             f'student_id={serializer.validated_data["student_id"]}'
         )).get_short_url(),
         content_type="text/plain")
+
+
+@acontroller('Добавление платежа в hh по тригеру из amo')
+@api_view(('POST',))
+@asemaphore_handler
+async def add_hh_payment_by_amo_view(request) -> Response:
+    serializer = AddHhPaymentByAmoSerializer(data=request.POST)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    data = await serializer.adata()
+
+    log.critical(f'{data=}')
+    student_id = data.get('student_id')
+    currency = data.get('currency')
+    summ = data.get('sum')
+    payment_type = data.get('payment_type')
+    course = data.get('course')
+
+    result = await CustomHHApiV2Manager().add_hh_payment_by_amo(
+        student_amo_id=student_id,
+        amo_currency=currency,
+        summ=summ,
+        amo_payment_type=payment_type,
+        course=course
+    )
+    print(result)
+
+    return Response(data={'success': True}, status=status.HTTP_200_OK)
