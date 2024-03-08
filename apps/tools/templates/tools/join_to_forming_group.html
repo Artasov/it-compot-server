@@ -24,59 +24,82 @@
             right: -50px;
             filter: hue-rotate(25deg) contrast(.7) brightness(1.2);
         }
-        @media (max-width: 500px){
-            .cat-1{
+
+        @media (max-width: 500px) {
+            .cat-1 {
                 height: 200%;
                 width: auto;
                 right: -10px;
                 bottom: -24px;
             }
         }
-        @media (max-height: 750px) and (min-width: 600px){
-            .cat-1{
+
+        @media (max-height: 750px) and (min-width: 600px) {
+            .cat-1 {
                 right: -30px;
                 bottom: -130px;
             }
         }
-        @media (min-width: 1920px){
-            .cat-1{
+
+        @media (min-width: 1920px) {
+            .cat-1 {
                 width: 10vw;
                 right: -10px;
                 bottom: -24px;
             }
         }
+
         #content {
             color: #00000099;
 
         }
-        .ts-77{
+
+        .ts-77 {
             text-shadow: 0 0 3px #00000077;
         }
-        .ts-33{
+
+        .ts-33 {
             text-shadow: 0 0 3px #00000033;
         }
-        .modal-content{
+
+        .modal-content {
             background: #ffffffcc;
             backdrop-filter: blur(20px);
         }
-        #nothing_fit_user_textarea{
+
+        #nothing_fit_user_textarea {
             background: #ffffff77 !important;
         }
-        .btn-success{
-            background-color: rgba(32,64,225,0.39) !important;
+
+        .btn-success {
+            background-color: rgba(32, 64, 225, 0.39) !important;
             border-color: rgba(80, 110, 250, 0.58) !important;
         }
-        .text-success{
+
+        .text-success {
             color: #4058ff !important;
         }
-        .opacity-this85{
+
+        .opacity-this85 {
             opacity: 85%;
+        }
+
+        .bg-primary {
+            background-color: rgba(32, 64, 225, 0.39) !important;
+        }
+
+        .bg-primary-05 {
+            background-color: rgba(32, 64, 225, 0.29) !important;
+        }
+
+        .bg-primary-2 {
+            background-color: rgba(32, 64, 225, 0.56) !important;
         }
     </style>
     <div id="content" class="container overflow-x-hidden d-none fcc flex-grow-1 ts-77"
          style="max-width: 700px;">
         <img src="{% static 'Core/img/bg/bg2.png' %}" alt=""
-        class="position-absolute w-100 h-100 top-0 right-0 object-fit-cover"
+             class="position-absolute w-100 h-100 top-0 right-0 object-fit-cover"
              style="z-index: -1;  opacity: 50%">
         <div id="group_join_content" class="ts-33 fcc gap-2 disable-tap-and-selection py-3">
             <div class="frc position-relative">
@@ -93,12 +116,12 @@
                     <span class="text-secondary fs-6 mt-0 mt-sm-1">( Это может занять минутку )</span>
                 </h4>
             </div>
-            <p class="ts-33 px-2 fw-bold text-center opacity-this85">
-                Обратите внимание, время указано московское.
+            <p id="tz-info" class="d-none ts-33 px-2 fw-bold fs-5 text-center opacity-this85">
+                Время указано по UTC<span id="tz-span"></span>.
             </p>
 
             <div class="ts-33 d-none">
-                <p id="help-text" class="text-center fs-5 fw-bold  opacity-this85">Выберите удобную для вас группу.</p>
+                <p id="help-text" class="text-center fs-5 fw-bold mb-2 opacity-this85">Выберите удобную для вас группу.</p>
                 <ul class="result_container frc flex-wrap gap-2">
 
                 </ul>
@@ -183,11 +206,69 @@
                                   id="nothing_fit_user_textarea"
                                   class="mb-2 form-control p-2 px-3 border-1 border-secondary bg-white rounded-2"
                                   cols="30" rows="10"
-                                  placeholder="Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂"></textarea>
+                                  placeholder="Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂 (укажите так же временную зону)"></textarea>
                         <button id="btn-nothing-fit-submit" class="btn btn-success align-self-end" type="submit">
                             Отправить
                         </button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {#    Модальное окно Bootstrap для подтверждения TZ #}
+    <div class="modal fade" id="chooseTZModal" tabindex="-1" aria-labelledby="chooseTZModal"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mx-auto" style="max-width: 330px;">
+            <div class="modal-content border-3 border-secondary">
+                <div class="modal-body fcc">
+                    <p class="mb-2 fs-5 fw-bold text-center" style="color: #3d478e">Выберите вашу временную зону</p>
+                    <div class="fc gap-2">
+                        <button value="-1"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            -1 Азорские острова
+                        </button>
+                        <button value="+0"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +0 Лондон
+                        </button>
+                        <button value="+1"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +1 Берлин
+                        </button>
+                        <button value="+2"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +2 Афины
+                        </button>
+                        <button value="+3"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +3 Москва
+                        </button>
+                        <button value="+4"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +4 Дубай
+                        </button>
+                        <button value="+5"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +5 Екатеринбург
+                        </button>
+                        <button value="+6"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +6 Омск
+                        </button>
+                        <button value="+7"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +7 Красноярск
+                        </button>
+                        <button value="+8"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +8 Иркутск
+                        </button>
+                        <button value="+9"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +9 Владивосток
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
