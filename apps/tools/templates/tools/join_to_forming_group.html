@@ -14,38 +14,64 @@
 
 {% block content %}
     <style>
-
         .cat-1 {
             transform: rotate(-15deg);
             width: 19vw;
             min-width: 60px;
             position: absolute;
-            bottom: -50px;
-            right: -50px;
+            aspect-ratio: 1 / 1;
             filter: hue-rotate(25deg) contrast(.7) brightness(1.2);
         }
 
+        @media (max-width: 5000px) {
+            .cat-1 {
+                width: 9rem;
+                right: -10px;
+                bottom: -2rem;
+            }
+        }
+
+        @media (max-width: 1920px) {
+            .cat-1 {
+                width: 8rem;
+                right: -10px;
+                bottom: -2rem;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .cat-1 {
+                width: 7rem;
+                right: -10px;
+                bottom: -2rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .cat-1 {
+                width: 6rem;
+                right: -10px;
+                bottom: -2rem;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .cat-1 {
+                width: 5rem;
+                right: 30px;
+                bottom: 0;
+            }
+        }
+
         @media (max-width: 500px) {
-            .cat-1 {
-                height: 200%;
-                width: auto;
-                right: -10px;
-                bottom: -24px;
+            #group_join_content {
+                margin-top: 2rem;
             }
-        }
 
-        @media (max-height: 750px) and (min-width: 600px) {
             .cat-1 {
-                right: -30px;
-                bottom: -130px;
-            }
-        }
-
-        @media (min-width: 1920px) {
-            .cat-1 {
-                width: 10vw;
-                right: -10px;
-                bottom: -24px;
+                width: 4rem;
+                right: -20px;
+                bottom: 0;
             }
         }
 
@@ -121,7 +147,8 @@
             </p>
 
             <div class="ts-33 d-none">
-                <p id="help-text" class="text-center fs-5 fw-bold mb-2 opacity-this85">Выберите удобную для вас группу.</p>
+                <p id="help-text" class="text-center fs-5 fw-bold mb-2 opacity-this85">Выберите удобную для вас
+                    группу.</p>
                 <ul class="result_container frc flex-wrap gap-2">
 
                 </ul>
@@ -219,7 +246,7 @@
     {#    Модальное окно Bootstrap для подтверждения TZ #}
     <div class="modal fade" id="chooseTZModal" tabindex="-1" aria-labelledby="chooseTZModal"
          aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered mx-auto" style="max-width: 330px;">
+        <div class="modal-dialog modal-dialog-centered mx-auto rounded-3" style="max-width: 330px;">
             <div class="modal-content border-3 border-secondary">
                 <div class="modal-body fcc">
                     <p class="mb-2 fs-5 fw-bold text-center" style="color: #3d478e">Выберите вашу временную зону</p>

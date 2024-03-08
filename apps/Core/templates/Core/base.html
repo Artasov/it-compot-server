@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 
-    <link rel="icon" type="image/png" href="{% static 'Core/img/logo.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'Core/img/cat-1-small.png' %}">
     <link href="{% static 'Core/css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'Core/css/style.css' %}" rel="stylesheet">
     <link href="{% static 'Core/css/buttons.css' %}" rel="stylesheet">
@@ -27,9 +27,9 @@
     {# Отключает формирование ссылки у номера телефона на iOS #}
     <meta name="format-detection" content="telephone=no">
     {# Автор страницы #}
-    <meta name="Author" content="Nikita Artasov">
+    <meta name="Author" content="it-compot">
     {# Авторские права #}
-    <meta name="Copyright" content="Nikita Artasov">
+    <meta name="Copyright" content="it-compot">
     {# Адрес автора #}
     <meta name="Address" content="Russia">
     {# локализация сайта, для русскоязычного сайта ru_RU #}
@@ -39,7 +39,7 @@
     {# заголовок страницы, который будет выводиться в записи социальной сети #}
     <meta property="og:title" content="it-compot">
     {# ссылка на изображение, которое будет публиковаться в записи #}
-    {#    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'Core/img/logo.png' %}">#}
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'Core/img/cat-1.png' %}">
     {# ссылка на текущую страницу #}
     <meta property="og:url" content="{{ request.path }}">
     {# название сайта #}
@@ -47,7 +47,7 @@
     {# Тип карты, по умолчанию используется summary #}
     <meta name="twitter:card" content="summary">
     {# Имя/логин автора #}
-    <meta name="twitter:site" content="Nikita Artasov">
+    <meta name="twitter:site" content="it-compot">
     {# Название страницы #}
     <meta name="twitter:title" content="it-compot">
     {# Описание страницы #}
