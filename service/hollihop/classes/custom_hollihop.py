@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
+from apps.tools.exeptions.common import PaymentException
 from service.common.common import calculate_age
 from service.hollihop.classes.hollihop import HolliHopApiV2Manager
 from service.hollihop.consts import amo_hh_currencies, amo_hh_pay_methods
@@ -230,14 +231,11 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                                     summ: int, amo_payment_type: str, course: str):
         student = await self.get_student_by_amo_id(student_amo_id=student_amo_id)
         clientId = student['ClientId']
-        log.critical(f'{clientId=}')
 
         # Преобразование валюты и метода оплаты из AMO в HH
         currency_symbol = amo_hh_currencies.get(amo_currency, 'руб.')  # По умолчанию 'руб.'
         payment_method_id = amo_hh_pay_methods.get(amo_payment_type, 1)  # По умолчанию 1
 
-        log.critical(f'{currency_symbol=}')
-        log.critical(f'{payment_method_id=}')
         # Формирование значения платежа
         if amo_currency == 'Рубль':
             value = f"{summ} {currency_symbol}"
@@ -252,28 +250,10 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             "paymentMethodId": payment_method_id,
         }
         log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        log.critical(payment_data)
-        # response = await self.add_payment(**payment_data)
-        # print('Ответ от add_payment')
-        # print(response)
-        # if 'Id' in response:
-        #     return response
-        # else:
-        #     raise PaymentException('Не добавился платеж клиента.')
+        response = await self.add_payment(**payment_data)
+        print('Ответ от add_payment')
+        print(response)
+        if 'Id' in response:
+            return response
+        else:
+            raise PaymentException('Не добавился платеж клиента.')
