@@ -1,6 +1,5 @@
 import logging
-from datetime import datetime
-from pprint import pprint
+from datetime import datetime, timedelta
 
 import aiohttp
 from django.conf import settings
@@ -115,12 +114,13 @@ async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> 
     return groups_result
 
 
-async def add_student_to_forming_group(student_id, group_id):
+async def add_student_to_forming_group(student_id: int, group_id: int, client_tz: int):
     """
     !!! ДЕКОМПОЗИРОВАТЬ !!!
     Добавляет студента в группу через amo api и логирует в googlesheets результат выполнения.
     @param student_id: Сквозной id ученика amo hh
     @param group_id: EdUnit['Id'] идентификатор группы
+    @param client_tz: TZ клиента
     @return: Если хоть что-то пойдет не так вернется False либо raise Error, иначе True.
     """
     HHManager = CustomHHApiV2Manager()
@@ -136,15 +136,16 @@ async def add_student_to_forming_group(student_id, group_id):
     if not is_unit_vacant_for_join(unit=forming_unit):
         raise UnitAlreadyFullException
 
-    pprint(forming_unit)
+    start_forming_unit_date = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginDate'], '%Y-%m-%d')
+    start_forming_group_time = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginTime'], '%H:%M')
+
+    # pprint(forming_unit)
 
     result1 = await HHManager.add_ed_unit_student(
         edUnitId=group_id,
         studentClientId=student['ClientId'],
         comment=f'Добавлен(а) с помощью сайта в edUnits({group_id}).'
     )
-    start_forming_unit_date = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginDate'], '%Y-%m-%d')
-    start_forming_group_time = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginTime'], '%H:%M')
 
     if len(forming_unit['ScheduleItems']) == 1:
         start_forming_unit_date2 = datetime.strptime(forming_unit['ScheduleItems'][0]['EndDate'], '%Y-%m-%d')
@@ -161,6 +162,10 @@ async def add_student_to_forming_group(student_id, group_id):
 
     if result1.get('success'):
         # Отправляем отчет в амо тригер чтобы проставились данные в сделку.
+        datatime_start_moscow = datetime.combine(
+            start_forming_unit_date.date(),
+            start_forming_group_time.time()
+        )
         report_result = await send_report_join_to_forming_group(
             student_id=student_id,
             tel_number=student['Agents'][0]['Mobile'],
@@ -170,9 +175,8 @@ async def add_student_to_forming_group(student_id, group_id):
             zoom_url=forming_unit['ScheduleItems'][0]['ClassroomLink'],
             teacher_id=forming_unit['ScheduleItems'][0]['TeacherId'],
             teacher_name=forming_unit['ScheduleItems'][0]['Teacher'],
-            datetime_start=int(datetime.combine(
-                start_forming_unit_date.date(),
-                start_forming_group_time.time()).timestamp()),  # Дата и время старта ВМ
+            datetime_start_moscow=int(datatime_start_moscow.timestamp()),  # Дата и время старта ВМ
+            datetime_start_client_tz=int((datatime_start_moscow + timedelta(hours=client_tz - 3)).timestamp()),
             date_end=int(start_forming_unit_date2.timestamp()) if start_forming_unit_date2 else 0,  # Дата окончания ВМ
         )
         if not report_result:
@@ -307,7 +311,8 @@ async def send_report_join_to_forming_group(
         zoom_url: str,
         teacher_id: int,
         teacher_name: str,
-        datetime_start: int,
+        datetime_start_moscow: int,
+        datetime_start_client_tz: int,
         date_end: int,
 ) -> bool:
     """
@@ -318,7 +323,8 @@ async def send_report_join_to_forming_group(
     @param zoom_url: Ссылка для подключения на занятие в зум
     @param teacher_id: id преподавателя группы
     @param teacher_name: Его имя
-    @param datetime_start: Дата и время старта вводного модуля
+    @param datetime_start_moscow: timestamp Дата и время старта вводного модуля по москве
+    @param datetime_start_client_tz: timestamp Дата и время старта вводного модуля по TZ клиента
     @param date_end: Дата окончания вводного модуля
     @return:
     """
@@ -333,7 +339,8 @@ async def send_report_join_to_forming_group(
                     'zoom_url': zoom_url,
                     'teacher_id': teacher_id,
                     'teacher_name': teacher_name,
-                    'datetime_start': datetime_start,
+                    'datetime_start_moscow': datetime_start_moscow,
+                    'datetime_start_client_tz': datetime_start_client_tz,
                     'date_end': date_end,
                 },
         ) as response:

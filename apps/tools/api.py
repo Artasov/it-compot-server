@@ -58,7 +58,8 @@ async def student_to_forming_group(request) -> Response:
     try:
         await add_student_to_forming_group(
             student_id=serializer.validated_data.get('student_id'),
-            group_id=serializer.validated_data.get('group_id')
+            group_id=serializer.validated_data.get('group_id'),
+            client_tz=serializer.validated_data.get('client_tz')
         )
     except UnitAlreadyFullException:
         return Response(data={

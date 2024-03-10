@@ -68,15 +68,15 @@ function raiseSuccessModal(title, subtitle, contentElement) {
     successModal.show();
 }
 
-async function postJoinStudentToGroup(student_id, group_id) {
+async function postJoinStudentToGroup(student_id, group_id, TZ) {
     try {
         return await Client.sendPost(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/student_to_forming_group/',
             {
                 'student_id': student_id,
-                'group_id': group_id
-
+                'group_id': group_id,
+                'client_tz': TZ
             }
         );
     } catch (error) {
@@ -101,14 +101,14 @@ async function getIsStudentOnDiscipline() {
     }
 }
 
-function joinStudentToGroup(student_id, group) {
-    postJoinStudentToGroup(student_id, group['Id']).then(response => {
+function joinStudentToGroup(student_id, group, TZ) {
+    postJoinStudentToGroup(student_id, group['Id'], TZ).then(response => {
 
         confirmationModal.hide();
         document.getElementById('confirmationModal').classList.remove('show');
 
         if (response.success) {
-            const groupPreview = createGroupEl(group);
+            const groupPreview = createGroupEl(group, TZ);
             groupPreview.classList.remove('bg-primary');
             groupPreview.classList.add('bg-success', 'pointer-events-none', 'fs-5');
             raiseSuccessModal(
@@ -242,7 +242,7 @@ function showGroupsWithTZ(TZ) {
 
             document.getElementById('confirmJoin').onclick = () => {
                 document.getElementById('confirmSpinner').classList.remove('d-none')
-                joinStudentToGroup(studentId, group);
+                joinStudentToGroup(studentId, group, TZ);
                 document.getElementById('confirmJoin').setAttribute('disabled', 'true');
             };
         });
@@ -311,10 +311,16 @@ async function main() {
             btnTz.addEventListener('click', () => {
                 chooseTZModal.hide();
                 document.getElementById('tz-info').classList.remove('d-none');
-                document.getElementById('tz-span').innerHTML = btnTz.value;
+                const tzByMoscow = parseInt(btnTz.value) - 3;
+                document.getElementById('tz-span').innerHTML = tzByMoscow < 0 ? `${tzByMoscow}` : `+${tzByMoscow}`;
                 showGroupsWithTZ(parseInt(btnTz.value));
             })
         }
+        const btnChangeTz = document.getElementById('btn-change-tz');
+        btnChangeTz.addEventListener('click', () => {
+            resultContainerEl.innerHTML = '';
+            chooseTZModal.show();
+        })
         chooseTZModal.show();
     });
 

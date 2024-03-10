@@ -14,6 +14,7 @@ class FormingGroupParamsSerializer(AsyncSerializer):
 class StudentToGroupSerializer(AsyncSerializer):
     group_id = serializers.IntegerField()
     student_id = serializers.IntegerField()
+    client_tz = serializers.IntegerField()
 
 
 class StudentAlreadyStudyingOnDisciplineSerializer(AsyncSerializer):

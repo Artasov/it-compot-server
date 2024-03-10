@@ -102,10 +102,6 @@
             border-color: rgba(80, 110, 250, 0.58) !important;
         }
 
-        .text-success {
-            color: #4058ff !important;
-        }
-
         .opacity-this85 {
             opacity: 85%;
         }
@@ -142,9 +138,13 @@
                     <span class="text-secondary fs-6 mt-0 mt-sm-1">( Это может занять минутку )</span>
                 </h4>
             </div>
-            <p id="tz-info" class="d-none ts-33 px-2 fw-bold fs-5 text-center opacity-this85">
-                Время указано по UTC<span id="tz-span"></span>.
-            </p>
+            <div id="tz-info" class="d-none frcc gap-2 ts-33 px-2 fw-bold fs-5 text-center opacity-this85">
+                <span>Время указано по <span id="tz-span"></span> от МСК</span>
+                <button id="btn-change-tz"
+                        class="hover-scale-5 bg-primary text-white fw-bold rounded-2 px-2">
+                    Изменить
+                </button>
+            </div>
 
             <div class="ts-33 d-none">
                 <p id="help-text" class="text-center fs-5 fw-bold mb-2 opacity-this85">Выберите удобную для вас
@@ -249,51 +249,52 @@
         <div class="modal-dialog modal-dialog-centered mx-auto rounded-3" style="max-width: 330px;">
             <div class="modal-content border-3 border-secondary">
                 <div class="modal-body fcc">
-                    <p class="mb-2 fs-5 fw-bold text-center" style="color: #3d478e">Выберите вашу временную зону</p>
+                    <p class="mb-2 fs-5 fw-bold text-center" style="color: #3d478e">Выберите вашу временную зону
+                        относительно МСК.</p>
                     <div class="fc gap-2">
+                        <button value="+3"
+                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                            +0 МСК
+                        </button>
                         <button value="-1"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            -1 Азорские острова
+                            -4 МСК
                         </button>
                         <button value="+0"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +0 Лондон
+                            -3 МСК
                         </button>
                         <button value="+1"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +1 Берлин
+                            -2 МСК
                         </button>
                         <button value="+2"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +2 Афины
-                        </button>
-                        <button value="+3"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +3 Москва
+                            -1 МСК
                         </button>
                         <button value="+4"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +4 Дубай
+                            +1 МСК
                         </button>
                         <button value="+5"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +5 Екатеринбург
+                            +2 МСК
                         </button>
                         <button value="+6"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +6 Омск
+                            +3 МСК
                         </button>
                         <button value="+7"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +7 Красноярск
+                            +4 МСК
                         </button>
                         <button value="+8"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +8 Иркутск
+                            +5 МСК
                         </button>
                         <button value="+9"
                                 class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
-                            +9 Владивосток
+                            +6 МСК
                         </button>
                     </div>
                 </div>
