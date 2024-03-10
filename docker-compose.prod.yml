@@ -26,6 +26,7 @@ services:
       - POSTGRES_USER=${SQL_USER}
       - POSTGRES_PASSWORD=${SQL_PASSWORD}
       - POSTGRES_PORT=${SQL_PORT}
+      - POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256"
     ports:
       - "5432:5432"
     volumes:
