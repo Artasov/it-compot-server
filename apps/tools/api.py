@@ -139,6 +139,5 @@ async def add_hh_payment_by_amo_view(request) -> Response:
         amo_payment_type=payment_type,
         course=course
     )
-    print(result)
 
-    return Response(data={'success': True}, status=status.HTTP_200_OK)
+    return Response(data=result, status=status.HTTP_200_OK)

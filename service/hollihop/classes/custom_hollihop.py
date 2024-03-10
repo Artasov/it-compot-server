@@ -251,9 +251,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         }
         log.critical(payment_data)
         response = await self.add_payment(**payment_data)
-        print('Ответ от add_payment')
-        print(response)
-        if 'Id' in response:
+        if response.get('success'):
             return response
         else:
             raise PaymentException('Не добавился платеж клиента.')
