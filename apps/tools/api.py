@@ -123,7 +123,7 @@ async def add_hh_payment_by_amo_view(request) -> Response:
     serializer = AddHhPaymentByAmoSerializer(data=request.POST)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    data = await serializer.adata()
+    data = await serializer.adata
 
     log.critical(f'{data=}')
     student_id = data.get('student_id')
