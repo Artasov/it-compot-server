@@ -24,6 +24,7 @@ services:
       - POSTGRES_USER=${SQL_USER}
       - POSTGRES_PASSWORD=${SQL_PASSWORD}
       - POSTGRES_PORT=${SQL_PORT}
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
     ports:
       - "5432:5432"
     volumes:
@@ -187,7 +188,7 @@ services:
       - net
     healthcheck:
       test: [ "CMD", "echo", "'MinIO is up'" ]
-      interval: 30s
+      interval: 10s
       timeout: 4s
       retries: 10
       start_period: 5s

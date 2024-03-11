@@ -215,7 +215,6 @@ async function send_nothing_fit(student_id, msg) {
 
 
 let loadedGroups = undefined;
-
 const resultContainerEl = document.querySelector('.result_container');
 const groupLoadingStatusContainerEl = document.querySelector('.group_loading_status_container');
 

@@ -128,9 +128,18 @@ async def add_hh_payment_by_amo_view(request) -> Response:
     log.critical(f'{data=}')
     student_id = data.get('student_id')
     currency = data.get('currency')
+    if currency == '': currency = 'Рубль'
     summ = data.get('sum')
     payment_type = data.get('payment_type')
     course = data.get('course')
+
+    log.critical('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+    log.critical(student_id)
+    log.critical(currency)
+    log.critical(summ)
+    log.critical(payment_type)
+    log.critical(course)
+    log.critical('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
 
     result = await CustomHHApiV2Manager().add_hh_payment_by_amo(
         student_amo_id=student_id,

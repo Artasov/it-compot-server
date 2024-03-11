@@ -233,7 +233,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         clientId = student['ClientId']
 
         # Преобразование валюты и метода оплаты из AMO в HH
-        currency_symbol = amo_hh_currencies.get(amo_currency, 'руб.')  # По умолчанию 'руб.'
+        currency_symbol = amo_hh_currencies.get(amo_currency)  # По умолчанию 'руб.'
         payment_method_id = amo_hh_pay_methods.get(amo_payment_type, 1)  # По умолчанию 1
 
         # Формирование значения платежа

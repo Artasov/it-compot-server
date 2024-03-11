@@ -29,7 +29,7 @@ class SendNothingFitSerializer(AsyncSerializer):
 
 class AddHhPaymentByAmoSerializer(AsyncSerializer):
     student_id = serializers.IntegerField()  # id ученика
-    currency = serializers.CharField(max_length=50)  # валюта
+    currency = serializers.CharField(max_length=50, default='Рубль')  # валюта
     sum = serializers.IntegerField()  # сумма
     payment_type = serializers.CharField(max_length=50)  # вид платежа
     course = serializers.CharField(max_length=150)  # курс для комментария
