@@ -252,7 +252,7 @@ function showGroupsWithTZ(TZ) {
     groupLoadingStatusContainerEl.innerHTML = '';
     groupLoadingStatusContainerEl.className = '';
     const successEl = document.createElement('p');
-    successEl.className = 'fs-1 mb-0 mt-3 text-center';
+    successEl.className = 'fs-1 mb-0 mt-3 text-center welcome-text';
     successEl.innerHTML = 'Добро пожаловать<br>в компьютерную школу будущего!<br>' +
         '<p id="help-text" class="text-center fs-5 fw-bold my-2 opacity-this85">Выберите удобную для вас группу</p>';
     groupLoadingStatusContainerEl.appendChild(successEl);

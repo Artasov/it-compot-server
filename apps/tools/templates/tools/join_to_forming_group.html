@@ -68,7 +68,7 @@
                 </ul>
             </div>
 
-            <button class="schedule_item-button mb-2 d-none mx-auto text-nowrap" id="btn-nothing-fit"
+            <button class="schedule_item-button mw-90 w-min mb-2 d-none mx-auto text-nowrap" id="btn-nothing-fit"
                     data-bs-toggle="modal" style="filter: hue-rotate(116deg) brightness(1.2)"
                     data-bs-target="#nothingFitModal">
                 Ничего не подошло
@@ -80,8 +80,8 @@
     {#    Модальное окно Bootstrap для подтверждения записи в группу #}
     <div class="join_confirm modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="modalLabel"
          aria-hidden="true">
-        <div class="mw-400px modal-dialog modal-dialog-centered">
-            <div class="modal-content fccc gap-1 border-0 py-4 position-relative overflow-hidden">
+        <div class="mw-400px modal-dialog modal-dialog-centered mx-auto">
+            <div class="modal-content mw-90vw mx-auto fccc gap-1 border-0 py-4 position-relative overflow-hidden">
                 <img src="{% static 'tools/img/join_to_group/cat1.svg' %}"
                      class="position-absolute" alt="" width="180"
                      style="bottom: -26px; left: -67px; transform: rotate(41deg);">
@@ -107,8 +107,8 @@
 
     {#    Модальное окно Bootstrap для ошибок #}
     <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content modal-content-error border-3 border-danger">
+        <div class="modal-dialog modal-dialog-centered mx-auto">
+            <div class="modal-content mw-90vw mx-auto modal-content-error border-3 border-danger">
                 <div class="frc mt-3">
                     <h5 class="modal-title text-center fw-bold text-white text-white fs-1 ts-33" id="errorModalLabel">Ошибка</h5>
                     <button type="button" class="m-0 position-absolute top-3 right-3" data-bs-dismiss="modal" aria-label="Close">
@@ -128,8 +128,8 @@
 
     {#    Модальное окно Bootstrap для успеха #}
     <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3 border-3 border-secondary position-relative w-max overflow-hidden">
+        <div class="modal-dialog modal-dialog-centered mx-auto">
+            <div class="modal-content mw-90vw mx-auto p-3 border-3 border-secondary position-relative w-max overflow-hidden">
                 <div class="modal-body fccc join_confirm">
                     <span class="text-white mx-auto fw-bold modal-title fs-5 text-center">Вы успешно записаны</span>
                     <img src="{% static 'tools/img/join_to_group/cat2.svg' %}" alt="" width="200">
@@ -145,8 +145,8 @@
     {#    Модальное окно Bootstrap для не подошло #}
     <div class="modal fade" id="nothingFitModal" tabindex="-1" aria-labelledby="nothingFitModalLabel"
          aria-hidden="true">
-        <div class="modal-dialog fccc modal-dialog-centered">
-            <div class="modal-content p-3 border-3 border-secondary position-relative w-max overflow-hidden">
+        <div class="modal-dialog fccc modal-dialog-centered mx-auto">
+            <div class="modal-content mw-90vw mx-auto p-3 border-3 border-secondary position-relative w-max overflow-hidden">
                 <img src="{% static 'tools/img/join_to_group/cat1.svg' %}"
                      class="position-absolute" alt="" width="180"
                      style="bottom: -26px; left: -67px; transform: rotate(41deg);">
@@ -177,7 +177,7 @@
     <div class="modal fade" id="chooseTZModal" tabindex="-1" aria-labelledby="chooseTZModal"
          aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered mx-auto rounded-3" style="max-width: 330px;">
-            <div class="modal-content border-3 border-secondary">
+            <div class="modal-content mw-90vw mx-auto border-3 border-secondary">
                 <div class="modal-body fcc">
                     <p class="mb-2 fs-5 fw-bold text-white text-center">Выберите вашу временную зону
                         относительно МСК.</p>
