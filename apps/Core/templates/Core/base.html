@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="overflow-x-hidden">
 <head>
     <title>{% block title %} {% endblock %}</title>
 
@@ -57,10 +57,10 @@
     <meta id="theme" content="{{ theme }}">
 </head>
 
-<body data-bs-theme="{% if theme %}{{ theme }}{% else %}dark{% endif %}">
-<div id="wrapper" class="wrapper d-flex flex-column position-relative">
+<body data-bs-theme="{% if theme %}{{ theme }}{% else %}dark{% endif %}" class="overflow-x-hidden">
+<div id="wrapper" class="wrapper d-flex flex-column position-relative overflow-x-hidden">
     {% include 'Core/includes/header.html' %}
-    <main class="no_scrollbar d-flex flex-column flex-grow-1" style="margin-top: 0;">
+    <main class="no-scrollbar fccc flex-grow-1 overflow-x-hidden overflow-y-auto mh-100vh" style="margin-top: 0;">
         <div id="loading_spinner_block">
             <div id="loading_spinner_block-help">
                 <div id="loading_spinner" class="spinner-border fs-4" style="color: #888" role="status"></div>

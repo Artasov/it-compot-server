@@ -38,7 +38,7 @@ async function getAvailableFormingGroups() {
 
 function raiseErrorModal(error) {
     hideAllModals();
-    document.querySelector('.error-modal-body').textContent = error;
+    document.querySelector('.error-modal-text-content').textContent = error;
     document.querySelector('#group_join_content').classList.add('d-none');
     errorModal.show();
 }
@@ -102,24 +102,22 @@ async function getIsStudentOnDiscipline() {
 }
 
 function joinStudentToGroup(student_id, group, TZ) {
-    postJoinStudentToGroup(student_id, group['Id'], TZ).then(response => {
+    confirmationModal.hide();
+    document.getElementById('confirmationModal').classList.remove('show');
 
-        confirmationModal.hide();
-        document.getElementById('confirmationModal').classList.remove('show');
-
-        if (response.success) {
-            const groupPreview = createGroupEl(group, TZ);
-            groupPreview.classList.remove('bg-primary');
-            groupPreview.classList.add('bg-success', 'pointer-events-none', 'fs-5');
-            raiseSuccessModal(
-                'Вы успешно записаны на занятие',
-                'Сделайте скриншот, чтобы не забыть 😉',
-                groupPreview
-            )
-        } else {
-            raiseErrorModal('Похоже произошла ошибка, менеджер свяжется с вами в рабочее время.')
-        }
-    })
+    // if (response.success) {
+    const groupPreview = createGroupEl(group, TZ);
+    groupPreview.classList.remove('bg-primary');
+    groupPreview.classList.add('frcc');
+    raiseSuccessModal(
+        'Вы успешно записаны на занятие',
+        'Сделайте скриншот, чтобы не забыть 😉',
+        groupPreview
+    )
+    // } else {
+    //     raiseErrorModal('Похоже произошла ошибка, менеджер свяжется с вами в рабочее время.')
+    // }
+    // })
 }
 
 
@@ -137,12 +135,12 @@ function adjustDateHours(date, hoursChange) {
     return newDate;
 }
 
-function createGroupEl(group, TZ) {
-    const li = document.createElement('li');
-    li.className = "unit-item rounded-3 text-light bg-primary";
+function createGroupEl(group, TZ, wrapperFilterStyle = '') {
+    const div = document.createElement('div');
+    div.className = 'schedule_item';
 
     const dateP = document.createElement('p');
-    dateP.classList.add('fw-bold', 'fs-5', 'frsc', 'gap-2');
+    dateP.className = 'frcc gap-2 fs-5';
     const schedule = group.ScheduleItems[0];
 
     // Вычисляем даты относительно TZ
@@ -164,35 +162,39 @@ function createGroupEl(group, TZ) {
     const endMinutes = datetimeEnd.getMinutes().toString().padStart(2, '0');
 
     dateP.innerHTML = `
-        <div class="frcc gap-2">
-            <span class="bg-primary-05 rounded-2 px-2" style="padding-top: 0.1em;">
-                ${day}.${month}
-            </span>
-            <span class="bg-primary-05 rounded-2 px-2 fw-normal fs-6" style="padding-top: 0.1em;">
-                ${startHours}:${startMinutes} - ${endHours}:${endMinutes}
-            </span>
-        </div>
+        <img src="/static/tools/img/join_to_group/time.svg" width="24" alt="">
+        <p class="schedule_item-date">${day}.${month}</p>
+        <p class="schedule_item-time">
+            ${startHours}:${startMinutes} - ${endHours}:${endMinutes}
+        </p>
     `;
-    li.appendChild(dateP);
+    div.appendChild(dateP);
 
-    // Добавляем информацию о количестве учеников и вакансиях
-    const frbDiv = document.createElement('div');
-    frbDiv.className = "d-flex gap-2";
-    const studentsSpan = document.createElement('span');
-    studentsSpan.classList.add('fw-bold');
-    studentsSpan.textContent = 'Осталось мест: ';
-    const vacanciesSpan = document.createElement('span');
-    const vacancies_count = parseInt(group.Vacancies);
-    vacanciesSpan.textContent = `${vacancies_count}`;
-    frbDiv.appendChild(studentsSpan);
-    frbDiv.appendChild(vacanciesSpan);
-    li.appendChild(frbDiv);
+    // Добавляем разделитель
+    const divider = document.createElement('div');
+    divider.className = 'schedule_item-divider';
+    div.appendChild(divider);
 
     // Добавляем информацию о преподавателе
     const teacherP = document.createElement('p');
-    teacherP.classList.add('fw-bold');
-    teacherP.innerHTML = `Педагог: <br><span class="fw-normal">${schedule.Teacher}</span>`;
-    li.appendChild(teacherP);
+    teacherP.className = 'schedule_item-teacher';
+    teacherP.innerHTML = `Педагог<br><span>${schedule.Teacher}</span>`;
+    div.appendChild(teacherP);
+
+    // Добавляем кнопку для записи
+    const btnJoin = document.createElement('button');
+    btnJoin.className = 'schedule_item-button';
+    btnJoin.innerHTML = `Записаться`;
+    div.appendChild(btnJoin);
+
+    const studentsSpan = document.createElement('span');
+    studentsSpan.className = 'schedule_item-place_leave';
+    studentsSpan.textContent = `Осталось мест: ${parseInt(group.Vacancies)}`;
+    div.appendChild(studentsSpan);
+
+    const li = document.createElement('li');
+    li.style.filter = wrapperFilterStyle;
+    li.appendChild(div);
 
     return li;
 }
@@ -222,26 +224,24 @@ function showGroupsWithTZ(TZ) {
     // TZ - цифра (данные в группах указаны по умолчанию в +3)
     // например -1 +1 +3 +2 и тому подобные цифры.
     // Могут быть как отрицательные, так и положительные.
-    for (const group of loadedGroups) {
-        const groupEl = createGroupEl(group, TZ)
+    const hueRotateValues = [0, 55, 280, 343]; // Значения для hue-rotate
+    for (let i = 0; i < loadedGroups.length; i++) {
+        const hueRotate = hueRotateValues[i % hueRotateValues.length]; // Циклическое применение значений
+        const groupEl = createGroupEl(loadedGroups[i], TZ, `hue-rotate(${hueRotate}deg)`);
         groupEl.addEventListener('click', () => {
             const studentId = Client.getParamsFromCurrentURL()['student_id'];
             confirmationModal.show();
 
             const modalBodyEl = document.querySelector('.confirmation-modal-body');
             modalBodyEl.innerHTML = '';
-            const groupPreview = createGroupEl(group, TZ);
+            const groupPreview = createGroupEl(loadedGroups[i], TZ);
             groupPreview.classList.add('pointer-events-none', 'fs-5');
-            const submitQuestionText = document.createElement('p');
-            submitQuestionText.className = 'text-center mb-0 mt-2 fs-5';
-            submitQuestionText.innerHTML = 'Вы действительно хотите записаться в выбранную группу?';
             modalBodyEl.appendChild(groupPreview);
-            modalBodyEl.appendChild(submitQuestionText);
 
 
             document.getElementById('confirmJoin').onclick = () => {
                 document.getElementById('confirmSpinner').classList.remove('d-none')
-                joinStudentToGroup(studentId, group, TZ);
+                joinStudentToGroup(studentId, loadedGroups[i], TZ);
                 document.getElementById('confirmJoin').setAttribute('disabled', 'true');
             };
         });
@@ -252,9 +252,9 @@ function showGroupsWithTZ(TZ) {
     groupLoadingStatusContainerEl.innerHTML = '';
     groupLoadingStatusContainerEl.className = '';
     const successEl = document.createElement('p');
-    successEl.className = 'text-center fw-bold fs-5 m-0 opacity-75';
-    successEl.style.color = '#4058ff'
-    successEl.innerHTML = 'Готово! Найденные группы ниже.';
+    successEl.className = 'fs-1 mb-0 mt-3 text-center';
+    successEl.innerHTML = 'Добро пожаловать<br>в компьютерную школу будущего!<br>' +
+        '<p id="help-text" class="text-center fs-5 fw-bold my-2 opacity-this85">Выберите удобную для вас группу</p>';
     groupLoadingStatusContainerEl.appendChild(successEl);
 }
 

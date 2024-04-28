@@ -11,7 +11,10 @@ services:
       web:
         condition: service_healthy
     volumes:
-      - ./nginx.nossl.conf:/etc/nginx/conf.d/default.conf
+      #      - ./nginx.nossl.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl/ssl.crt:/etc/nginx/ssl/ssl.crt
+      - ./ssl/ssl.key:/etc/nginx/ssl/ssl.key
     networks:
       - net
 
@@ -115,58 +118,58 @@ services:
     cap_add:
       - SYS_TIME
 
-#  celery:
-#    user: "1000:1000"
-#    hostname: celery
-#    build:
-#      context: .
-#      dockerfile: DockerfileCelery
-#    volumes:
-#      - ./data:/srv/data
-#      - ./logs:/srv/logs
-#      - ./entrypoint_celery.sh:/srv/entrypoint_celery.sh
-#    links:
-#      - redis
-#    environment:
-#      - DEBUG=${DEBUG}
-#      - DEV=${DEV}
-#      - HTTPS=${HTTPS}
-#      - MAIN_DOMAIN=${MAIN_DOMAIN}
-#      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-#      - HOLLIHOP_DOMAIN=${HOLLIHOP_DOMAIN}
-#      - HOLLIHOP_AUTHKEY=${HOLLIHOP_AUTHKEY}
-#      - REDIS_CACHE_URL=${REDIS_URL}
-#      - REDIS_URL=${REDIS_URL}
-#      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-#      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-#      - MINIO_EXTERNAL_ENDPOINT_USE_HTTPS=${MINIO_EXTERNAL_ENDPOINT_USE_HTTPS}
-#      - MINIO_USE_HTTPS=${MINIO_USE_HTTPS}
-#      - GSDOCID_TEACHERS_SALARY=${GSDOCID_TEACHERS_SALARY}
-#      - GSDOCID_LOG_JOIN_FORMING_GROUPS=${GSDOCID_LOG_JOIN_FORMING_GROUPS}
-#      - GSCREDS_FILE_NAME=${GSCREDS_FILE_NAME}
-#      - TZ=${TZ}
-#      - SECRET_KEY=${SECRET_KEY}
-#      - SITE_ID=${SITE_ID}
-#      - SQL_HOST=${SQL_HOST}
-#      - SQL_ENGINE=${SQL_ENGINE}
-#      - SQL_DATABASE_NAME=${SQL_DATABASE_NAME}
-#      - SQL_USER=${SQL_USER}
-#      - SQL_PASSWORD=${SQL_PASSWORD}
-#      - SQL_PORT=${SQL_PORT}
-#
-#      - LOG_PREFIX=celery
-#    #      - CELERY_BROKER_URL=${REDIS_URL}
-#    #      - CELERY_RESULT_BACKEND=${REDIS_URL}
-#    #      - CELERY_ACCEPT_CONTENT=application/json
-#    #      - CELERY_TASK_SERIALIZER=json
-#    #      - CELERY_RESULT_SERIALIZER=json
-#    depends_on:
-#      redis:
-#        condition: service_healthy
-#      web:
-#        condition: service_healthy
-#    networks:
-#      - net
+  #  celery:
+  #    user: "1000:1000"
+  #    hostname: celery
+  #    build:
+  #      context: .
+  #      dockerfile: DockerfileCelery
+  #    volumes:
+  #      - ./data:/srv/data
+  #      - ./logs:/srv/logs
+  #      - ./entrypoint_celery.sh:/srv/entrypoint_celery.sh
+  #    links:
+  #      - redis
+  #    environment:
+  #      - DEBUG=${DEBUG}
+  #      - DEV=${DEV}
+  #      - HTTPS=${HTTPS}
+  #      - MAIN_DOMAIN=${MAIN_DOMAIN}
+  #      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+  #      - HOLLIHOP_DOMAIN=${HOLLIHOP_DOMAIN}
+  #      - HOLLIHOP_AUTHKEY=${HOLLIHOP_AUTHKEY}
+  #      - REDIS_CACHE_URL=${REDIS_URL}
+  #      - REDIS_URL=${REDIS_URL}
+  #      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+  #      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+  #      - MINIO_EXTERNAL_ENDPOINT_USE_HTTPS=${MINIO_EXTERNAL_ENDPOINT_USE_HTTPS}
+  #      - MINIO_USE_HTTPS=${MINIO_USE_HTTPS}
+  #      - GSDOCID_TEACHERS_SALARY=${GSDOCID_TEACHERS_SALARY}
+  #      - GSDOCID_LOG_JOIN_FORMING_GROUPS=${GSDOCID_LOG_JOIN_FORMING_GROUPS}
+  #      - GSCREDS_FILE_NAME=${GSCREDS_FILE_NAME}
+  #      - TZ=${TZ}
+  #      - SECRET_KEY=${SECRET_KEY}
+  #      - SITE_ID=${SITE_ID}
+  #      - SQL_HOST=${SQL_HOST}
+  #      - SQL_ENGINE=${SQL_ENGINE}
+  #      - SQL_DATABASE_NAME=${SQL_DATABASE_NAME}
+  #      - SQL_USER=${SQL_USER}
+  #      - SQL_PASSWORD=${SQL_PASSWORD}
+  #      - SQL_PORT=${SQL_PORT}
+  #
+  #      - LOG_PREFIX=celery
+  #    #      - CELERY_BROKER_URL=${REDIS_URL}
+  #    #      - CELERY_RESULT_BACKEND=${REDIS_URL}
+  #    #      - CELERY_ACCEPT_CONTENT=application/json
+  #    #      - CELERY_TASK_SERIALIZER=json
+  #    #      - CELERY_RESULT_SERIALIZER=json
+  #    depends_on:
+  #      redis:
+  #        condition: service_healthy
+  #      web:
+  #        condition: service_healthy
+  #    networks:
+  #      - net
 
   minio:
     hostname: minio

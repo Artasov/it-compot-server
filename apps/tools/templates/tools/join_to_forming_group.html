@@ -9,92 +9,18 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'tools/css/join_to_group.css' %}">
+    <link rel="stylesheet" href="{% static 'tools/css/atom_load.css' %}">
     <script defer type="module" src="{% static 'tools/js/join_to_group.js' %}"></script>
 {% endblock %}
 
 {% block content %}
     <style>
-        .cat-1 {
-            transform: rotate(-15deg);
-            width: 19vw;
-            min-width: 60px;
-            position: absolute;
-            aspect-ratio: 1 / 1;
-            filter: hue-rotate(25deg) contrast(.7) brightness(1.2);
-        }
-
-        @media (max-width: 5000px) {
-            .cat-1 {
-                width: 9rem;
-                right: -10px;
-                bottom: -2rem;
-            }
-        }
-
-        @media (max-width: 1920px) {
-            .cat-1 {
-                width: 8rem;
-                right: -10px;
-                bottom: -2rem;
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .cat-1 {
-                width: 7rem;
-                right: -10px;
-                bottom: -2rem;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .cat-1 {
-                width: 6rem;
-                right: -10px;
-                bottom: -2rem;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .cat-1 {
-                width: 5rem;
-                right: 30px;
-                bottom: 0;
-            }
-        }
-
-        @media (max-width: 500px) {
-            #group_join_content {
-                margin-top: 2rem;
-            }
-
-            .cat-1 {
-                width: 4rem;
-                right: -20px;
-                bottom: 0;
-            }
-        }
-
-        #content {
-            color: #00000099;
-
-        }
-
         .ts-77 {
             text-shadow: 0 0 3px #00000077;
         }
 
         .ts-33 {
             text-shadow: 0 0 3px #00000033;
-        }
-
-        .modal-content {
-            background: #ffffffcc;
-            backdrop-filter: blur(20px);
-        }
-
-        #nothing_fit_user_textarea {
-            background: #ffffff77 !important;
         }
 
         .btn-success {
@@ -105,57 +31,46 @@
         .opacity-this85 {
             opacity: 85%;
         }
-
-        .bg-primary {
-            background-color: rgba(32, 64, 225, 0.39) !important;
-        }
-
-        .bg-primary-05 {
-            background-color: rgba(32, 64, 225, 0.29) !important;
-        }
-
-        .bg-primary-2 {
-            background-color: rgba(32, 64, 225, 0.56) !important;
-        }
     </style>
-    <div id="content" class="container overflow-x-hidden d-none fcc flex-grow-1 ts-77"
-         style="max-width: 700px;">
-        <img src="{% static 'Core/img/bg/bg2.png' %}" alt=""
-             class="position-absolute w-100 h-100 top-0 right-0 object-fit-cover"
-             style="z-index: -1;  opacity: 50%">
-        <div id="group_join_content" class="ts-33 fcc gap-2 disable-tap-and-selection py-3">
-            <div class="frc position-relative">
-                <h1 class="fs-1 text-center mb-0 mt-3 opacity-this85 ts-33">Запись в группу</h1>
-                <img src="{% static 'Core/img/cat-1.png' %}" alt=""
-                     class="cat-1">
-            </div>
-            <div class="ts-33 group_loading_status_container pe-3 pe-sm-0 ps-0 ps-sm-5 frsc justify-content-center justify-content-sm-start gap-3">
-                <div class="p-1">
-                    <div class="spinner-border" style="color: #888"></div>
+    <img class="moon" src="{% static 'tools/img/join_to_group/moon.svg' %}" alt="">
+    <img class="earth" src="{% static 'tools/img/join_to_group/earth.svg' %}" alt="">
+    <img class="earth2" src="{% static 'tools/img/join_to_group/earth2.svg' %}" alt="">
+    <img class="rocket" src="{% static 'tools/img/join_to_group/rocket.svg' %}" alt="">
+    <div id="content" class="z-3 overflow-x-hidden d-none no-scrollbar mw-700px">
+        <div id="group_join_content" class="fccc gap-2 text-white disable-tap-and-selection py-3 mw-95 mx-auto">
+            <div class="ts-33 group_loading_status_container text-center fc">
+                <h1 class="fs-01 mb-0 mt-3 text-nowrap">Запись в группу</h1>
+                <span class="fs-2 opacity-this85">Ищем группы для вас</span>
+                <span class="text-white-80 fs-6">( Это может занять минутку )</span>
+                <div class="frcc mt-3">
+                    <div class="p-1">
+                        <div class="atom">
+                            <div class="electron"></div>
+                            <div class="electron-alpha"></div>
+                            <div class="electron-omega"></div>
+                        </div>
+                    </div>
                 </div>
-                <h4 class="m-0 frsc gap-0 gap-sm-2 flex-column flex-sm-row w-min-content text-nowrap">
-                    <span class=" opacity-this85">Ищем группы для вас</span>
-                    <span class="text-secondary fs-6 mt-0 mt-sm-1">( Это может занять минутку )</span>
-                </h4>
             </div>
-            <div id="tz-info" class="d-none frcc gap-2 ts-33 px-2 fw-bold fs-5 text-center opacity-this85">
-                <span>Время указано по <span id="tz-span"></span> от МСК</span>
-                <button id="btn-change-tz"
-                        class="hover-scale-5 bg-primary text-white fw-bold rounded-2 px-2">
+            <div id="tz-info"
+                 class="d-none frcc flex-wrap gap-1 gap-sm-3 ts-33 px-5 py-2 fw-bold fs-6 text-center time_zone_info_block">
+                <img src="{% static 'tools/img/join_to_group/warning.svg' %}" alt="" width="35"
+                     class="d-sm-block d-none">
+                <span class="text-nowrap">Время по <span id="tz-span"></span> от МСК</span>
+                <button id="btn-change-tz" class="schedule_item-button py-1">
                     Изменить
                 </button>
             </div>
 
-            <div class="ts-33 d-none">
-                <p id="help-text" class="text-center fs-5 fw-bold mb-2 opacity-this85">Выберите удобную для вас
-                    группу.</p>
+            <div class="d-none my-3">
                 <ul class="result_container frc flex-wrap gap-2">
 
                 </ul>
             </div>
 
-            <button class="btn fw-bold bg-black bg-opacity-25 text-white mb-2 d-none mx-auto" id="btn-nothing-fit"
-                    data-bs-toggle="modal" style="max-width: 230px;" data-bs-target="#nothingFitModal">
+            <button class="schedule_item-button mb-2 d-none mx-auto text-nowrap" id="btn-nothing-fit"
+                    data-bs-toggle="modal" style="filter: hue-rotate(116deg) brightness(1.2)"
+                    data-bs-target="#nothingFitModal">
                 Ничего не подошло
             </button>
 
@@ -163,25 +78,29 @@
     </div>
 
     {#    Модальное окно Bootstrap для подтверждения записи в группу #}
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0">
-                <div class="modal-header">
-                    <h5 class="modal-title opacity-this85" id="modalLabel">Подтверждение записи в группу</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body confirmation-modal-body pb-1">
+    <div class="join_confirm modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="modalLabel"
+         aria-hidden="true">
+        <div class="mw-400px modal-dialog modal-dialog-centered">
+            <div class="modal-content fccc gap-1 border-0 py-4 position-relative overflow-hidden">
+                <img src="{% static 'tools/img/join_to_group/cat1.svg' %}"
+                     class="position-absolute" alt="" width="180"
+                     style="bottom: -26px; left: -67px; transform: rotate(41deg);">
+                <h5 class="modal-title opacity-this85 fs-5 fw-bold text-white mw-90 text-center" id="modalLabel">
+                    Подтверждение записи в
+                    группу</h5>
+                <ul class="fccc modal-body confirmation-modal-body pb-2 mb-2">
 
-                </div>
-                <div class="modal-footer frc">
-                    <button type="button" class="btn btn-success frcc gap-2" id="confirmJoin">
-                        <div class="fcc d-none" id="confirmSpinner">
-                            <div class="spinner-border" style="color: #eee; width: 25px; height: 25px;"></div>
-                        </div>
-                        <span style="padding-bottom: 1px;">Подтвердить</span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                </div>
+                </ul>
+                <button type="button" class="schedule_item-button frcc gap-2 mb-2" id="confirmJoin">
+                    <div class="fcc d-none" id="confirmSpinner">
+                        <div class="spinner-border" style="color: #eee; width: 25px; height: 25px;"></div>
+                    </div>
+                    <span style="padding-bottom: 1px;">Подтвердить</span>
+                </button>
+                <button type="button" class="schedule_item-button fs-6 mb-2"
+                        style="filter: grayscale(1) brightness(1.6) contrast(.9)"
+                        data-bs-dismiss="modal">Отмена
+                </button>
             </div>
         </div>
     </div>
@@ -189,16 +108,19 @@
     {#    Модальное окно Bootstrap для ошибок #}
     <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-3 border-danger">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold text-danger" id="errorModalLabel">Ошибка</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content modal-content-error border-3 border-danger">
+                <div class="frc mt-3">
+                    <h5 class="modal-title text-center fw-bold text-white text-white fs-1 ts-33" id="errorModalLabel">Ошибка</h5>
+                    <button type="button" class="m-0 position-absolute top-3 right-3" data-bs-dismiss="modal" aria-label="Close">
+                        <img src="{% static 'tools/img/join_to_group/btn-close-danger.svg' %}" width="40" alt="">
+                    </button>
                 </div>
-                <div class="modal-body error-modal-body">
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Закрыть</button>
+                <div class="fccc pb-4">
+                    <img src="{% static 'tools/img/join_to_group/cat3.svg' %}" alt="" width="150">
+                    <div class="schedule_item schedule_item-white modal-body error-modal-body fccc">
+                        <img src="{% static 'tools/img/join_to_group/error-warrning.svg' %}" width="50" alt="">
+                        <p class="text-danger error-modal-text-content text-center fs-5"></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -207,13 +129,14 @@
     {#    Модальное окно Bootstrap для успеха #}
     <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-5 border-success">
-                <div class="modal-header pb-1 fcc">
-                    <h5 class="modal-title fw-bold text-success text-start" id="successModalLabel"></h5>
-                    <p class="modal-subtitle m-0 text-start"></p>
-                </div>
-                <div class="modal-body success-modal-body">
+            <div class="modal-content p-3 border-3 border-secondary position-relative w-max overflow-hidden">
+                <div class="modal-body fccc join_confirm">
+                    <span class="text-white mx-auto fw-bold modal-title fs-5 text-center">Вы успешно записаны</span>
+                    <img src="{% static 'tools/img/join_to_group/cat2.svg' %}" alt="" width="200">
+                    <ul class="success-modal-body mt-2">
 
+                    </ul>
+                    <span class="dark-color mt-2 mb-1 mx-auto fw-bold modal-subtitle fs-8 text-center">Вы успешно записаны</span>
                 </div>
             </div>
         </div>
@@ -222,20 +145,27 @@
     {#    Модальное окно Bootstrap для не подошло #}
     <div class="modal fade" id="nothingFitModal" tabindex="-1" aria-labelledby="nothingFitModalLabel"
          aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-3 border-secondary">
-                <div class="modal-body fcc">
+        <div class="modal-dialog fccc modal-dialog-centered">
+            <div class="modal-content p-3 border-3 border-secondary position-relative w-max overflow-hidden">
+                <img src="{% static 'tools/img/join_to_group/cat1.svg' %}"
+                     class="position-absolute" alt="" width="180"
+                     style="bottom: -26px; left: -67px; transform: rotate(41deg);">
+                <div class="modal-body fcc join_confirm">
                     <span class="text-danger fw-bold" id="nothing_fit-error-message"></span>
                     <span class="text-success mb-1 mx-auto fw-bold" id="nothing_fit-success-message"></span>
-                    <form id="form-nothing_fit">
+                    <form id="form-nothing_fit" class="fccc">
                         <textarea name="nothing_fit_user_msg"
                                   minlength="6" maxlength="1000"
                                   id="nothing_fit_user_textarea"
-                                  class="mb-2 form-control p-2 px-3 border-1 border-secondary bg-white rounded-2"
-                                  cols="30" rows="10"
+                                  class="schedule_item mb-2 py-3 px-3 border-0 w-100 fw-4"
+                                  cols="30" rows="6"
                                   placeholder="Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂 (укажите так же временную зону)"></textarea>
-                        <button id="btn-nothing-fit-submit" class="btn btn-success align-self-end" type="submit">
+                        <button id="btn-nothing-fit-submit" class="schedule_item-button my-3" type="submit">
                             Отправить
+                        </button>
+                        <button type="button" class="schedule_item-button fs-6 mb-2"
+                                style="filter: grayscale(1) brightness(1.6) contrast(.9)"
+                                data-bs-dismiss="modal">Отмена
                         </button>
                     </form>
                 </div>
@@ -249,51 +179,40 @@
         <div class="modal-dialog modal-dialog-centered mx-auto rounded-3" style="max-width: 330px;">
             <div class="modal-content border-3 border-secondary">
                 <div class="modal-body fcc">
-                    <p class="mb-2 fs-5 fw-bold text-center" style="color: #3d478e">Выберите вашу временную зону
+                    <p class="mb-2 fs-5 fw-bold text-white text-center">Выберите вашу временную зону
                         относительно МСК.</p>
-                    <div class="fc gap-2">
-                        <button value="+3"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                    <div class="fccc gap-2">
+                        <button value="+3" class="btn-choose-tz schedule_item-button w-70">
                             +0 МСК
                         </button>
-                        <button value="-1"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="-1" class="btn-choose-tz schedule_item-button w-70">
                             -4 МСК
                         </button>
-                        <button value="+0"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+0" class="btn-choose-tz schedule_item-button w-70">
                             -3 МСК
                         </button>
-                        <button value="+1"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+1" class="btn-choose-tz schedule_item-button w-70">
                             -2 МСК
                         </button>
-                        <button value="+2"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+2" class="btn-choose-tz schedule_item-button w-70">
                             -1 МСК
                         </button>
-                        <button value="+4"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+4" class="btn-choose-tz schedule_item-button w-70">
                             +1 МСК
                         </button>
-                        <button value="+5"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+5" class="btn-choose-tz schedule_item-button w-70">
                             +2 МСК
                         </button>
-                        <button value="+6"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+6" class="btn-choose-tz schedule_item-button w-70">
                             +3 МСК
                         </button>
-                        <button value="+7"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+7" class="btn-choose-tz schedule_item-button w-70">
                             +4 МСК
                         </button>
-                        <button value="+8"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+8" class="btn-choose-tz schedule_item-button w-70">
                             +5 МСК
                         </button>
-                        <button value="+9"
-                                class="text-left hover-scale-5 btn-choose-tz bg-primary-2 text-white py-1 ps-3 pe-2 fw-bold rounded-4">
+                        <button value="+9" class="btn-choose-tz schedule_item-button w-70">
                             +6 МСК
                         </button>
                     </div>
