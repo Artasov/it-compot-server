@@ -35,8 +35,8 @@ DJANGO_REDIS_LOGGER = 'RedisLogger'
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 # SESSION_ENGINE = 'redis_sessions.session'
 # SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-# SESSION_ENGINE = "django.contrib.sessions.backends.db"
-# SESSION_CACHE_ALIAS = "default"
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_CACHE_ALIAS = "default"
 SESSION_COOKIE_AGE = 86400  # seconds 2 days
 # SESSION_SAVE_EVERY_REQUEST = True
 # CSRF_COOKIE_SECURE = True
@@ -135,7 +135,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 'corsheaders',
+    'corsheaders',
     'rest_framework',
     'adrf',
     # 'channels',
@@ -165,15 +165,15 @@ else:
         }
     }
 
-# CACHES = {
-#     'default': {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         'LOCATION': REDIS_CACHE_URL,
-#         'OPTIONS': {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         }
-#     }
-# }
+CACHES = {
+    'default': {
+        "BACKEND": "django_redis.cache.RedisCache",
+        'LOCATION': REDIS_CACHE_URL,
+        'OPTIONS': {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
