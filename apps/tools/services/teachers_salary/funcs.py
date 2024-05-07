@@ -66,7 +66,7 @@ async def filter_and_aggregate_teacher_lessons(teacher_month_lessons) -> dict:
     lessons_df['money'] = pd.to_numeric(lessons_df['money'], errors='coerce')
 
     # Фильтрация уроков
-    lessons_df = lessons_df[~((lessons_df['skip'] == 'TRUE') & (lessons_df['duration'] == 0))]
+    # lessons_df = lessons_df[~((lessons_df['skip'] == 'TRUE') & (lessons_df['duration'] == 0))]
 
     # Группировка данных по месяцам
     result = {}
