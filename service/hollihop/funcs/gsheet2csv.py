@@ -1,7 +1,10 @@
 import csv
+import logging
 from io import StringIO
 
 import aiohttp
+
+log = logging.getLogger('base')
 
 
 async def download_google_sheet_as_csv(spreadsheet_id: str, gid: str) -> list:
@@ -12,6 +15,8 @@ async def download_google_sheet_as_csv(spreadsheet_id: str, gid: str) -> list:
     @return: list rows
     """
     url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?format=csv&gid={gid}"
+    log.info(f'{url} to google sheet downloading...')
+    print(f'{url} to google sheet downloading...')
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status != 200:

@@ -4,7 +4,7 @@ from config.settings import TEACHER_SALARY_PASSWORD
 from apps.Core.error_messages import TEACHER_EMAIL_NOT_FOUND, TEACHER_SALARY_PASSWORD_WRONG
 
 
-class GetTeacherSalaryForm(forms.Form):
+class StupidAuthForm(forms.Form):
     email = forms.CharField(
         label='HH Email',
         min_length=4,

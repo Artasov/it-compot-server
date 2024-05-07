@@ -1,15 +1,13 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from apps.Core.services.common import acontroller
+from apps.Core.services.base import acontroller
 from apps.tools.forms.other import LoadHHTeachersScheduleXLSXForm
-from apps.tools.forms.teachers_salary import GetTeacherSalaryForm
 from apps.tools.services.teachers_salary.funcs import (
     fetch_teacher_lessons_data_by_email,
     filter_and_aggregate_teacher_lessons
 )
 from apps.tools.services.teachers_shedule.funcs import handle_teachers_schedule_upload
-from service.hollihop.classes.exeptions import TeacherNotFound
 
 
 @acontroller('Страница для записи на вводный модуль', True)
@@ -28,20 +26,24 @@ async def daily_teacher_schedule_by_interval_gsheet_export(request) -> HttpRespo
     return render(request, 'tools/parse_teachers_schedule.html', context)
 
 
-@acontroller('Отображение зарплаты учителя по email & unipass', True)
+@acontroller('Отображение зарплаты учителя по email & unipass', auth=True)
 async def teacher_salary(request) -> HttpResponse:
-    form = GetTeacherSalaryForm(request.POST or None)
-    if form.is_valid():
-        email = form.cleaned_data['email']
-        try:
-            filtered_lessons, sum_salary = await filter_and_aggregate_teacher_lessons(
-                await fetch_teacher_lessons_data_by_email(email)
-            )
-            return render(request, 'tools/teachers_salary_result.html', {
-                'teacher_month_lessons_list': filtered_lessons,
-                'sum_salary': sum_salary,
-                'email': email
-            })
-        except TeacherNotFound:
-            form.add_error(None, "email не найден.")
-    return render(request, 'tools/teachers_salary.html', {'form': form})
+    email = request.user.email
+    lessons = await filter_and_aggregate_teacher_lessons(
+        await fetch_teacher_lessons_data_by_email(email)
+    )
+    total_salary = sum(data['total_money'] for month, data in lessons.items())
+    return render(request, 'tools/teachers_salary_result.html', {
+        'teacher_month_lessons_list': lessons,
+        'total_salary': total_salary,
+        'email': email
+    })
+
+
+@acontroller('Отчет за урок по email & unipass педагога', auth=True)
+async def teacher_set_lesson_report(request) -> HttpResponse:
+    # HHManager = CustomHHApiV2Manager()
+    # print(await HHManager.set_ed_unit_comment(ed_unit_id, 'ASdAW пукпруцкр'))
+    return render(request, 'tools/set_lesson_report.html', {
+
+    })

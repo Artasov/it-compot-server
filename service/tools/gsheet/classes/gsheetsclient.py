@@ -1,5 +1,6 @@
 from typing import TypedDict, Literal, Optional
 
+import pandas as pd
 from django.conf import settings
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -49,10 +50,10 @@ class GSDocument:
         self.creds_json_path = creds_json_path
         self.doc_id = doc_id
         self.sheets: dict[str, GSSheet] = {}
-        self.service = self.authenticate()
+        self.service = self._authenticate()
         self.sheets_init()
 
-    def authenticate(self):
+    def _authenticate(self):
         # Загружаем учетные данные и создаем сервис
         credentials = service_account.Credentials.from_service_account_file(
             self.creds_json_path,
@@ -60,6 +61,33 @@ class GSDocument:
         )
         service = build('sheets', 'v4', credentials=credentials)
         return service
+
+    def get_sheet_data_as_df(self, sheet_name: str, range: str = None):
+        """
+        Получает данные из указанного листа Google Sheets и возвращает их как DataFrame pandas.
+
+        @param sheet_name: Название листа, из которого нужно извлечь данные.
+        @param range: Диапазон ячеек для извлечения (например, 'A1:D500'). Если None, извлекаются все данные листа.
+        """
+        # Если диапазон не задан, берем все данные листа
+        if range is None:
+            range = f"{sheet_name}"
+        else:
+            range = f"{sheet_name}!{range}"
+
+        # Получаем данные
+        result = self.service.spreadsheets().values().get(spreadsheetId=self.doc_id, range=range).execute()
+        values = result.get('values', [])
+
+        # Преобразуем данные в DataFrame
+        if not values:
+            print(f"Данные в листе {sheet_name} не найдены.")
+            return pd.DataFrame()
+        else:
+            df = pd.DataFrame(values)
+            df.columns = df.iloc[0]  # Установка первой строки как заголовки столбцов
+            df = df[1:]  # Удаление первой строки с данными, т.к. она теперь заголовок
+            return df
 
     def sheets_init(self):
         sheets_meta = self.get_sheets_meta()

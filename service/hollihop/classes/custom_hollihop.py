@@ -54,12 +54,21 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         return short_names_teachers
 
     @staticmethod
-    async def isEdUnitStartInDateRange(unit, start_date: datetime, end_date: datetime):
+    async def is_ed_unit_start_in_date_range(unit, start_date: datetime, end_date: datetime):
         begin_date_str = unit['ScheduleItems'][0]['BeginDate']  # Например, '2024-01-31'
         begin_time_str = unit['ScheduleItems'][0]['BeginTime']  # Например, '10:00'
         begin_datetime_str = f"{begin_date_str} {begin_time_str}"
         begin_datetime = datetime.strptime(begin_datetime_str, '%Y-%m-%d %H:%M')
         return True if start_date <= begin_datetime <= end_date else False
+
+    @staticmethod
+    def is_ed_unit_has_lessons_in_date_range(unit, start_date: datetime, end_date: datetime):
+        for day in unit['Days']:
+            lesson_date = datetime.strptime(day['Date'], '%Y-%m-%d')
+            # print(f'{start_date.date()} <= {lesson_date.date()} <= {end_date.date()}')
+            if start_date.date() <= lesson_date.date() <= end_date.date():
+                return True
+        return False
 
     @staticmethod
     async def get_parent_email(student):
@@ -86,14 +95,34 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             for teacher_id in teacher_ids:
                 fGroupT = await HHManager.get_ed_units(id=group['Id'], teacherId=teacher_id)
                 try:  # Если почему-то выдает 2 педагога, но в группе 1. Когда-то давно был и сменили
-                    if not await self.isEdUnitStartInDateRange(fGroupT[0], start_date, end_date):
+                    if not await self.is_ed_unit_start_in_date_range(fGroupT[0], start_date, end_date):
                         return False
                 except IndexError:
                     pass
         except KeyError:
-            if not await self.isEdUnitStartInDateRange(group, start_date, end_date):
+            if not await self.is_ed_unit_start_in_date_range(group, start_date, end_date):
                 return False
         return True
+
+    async def get_teacher_by_email(self, email):
+        teachers = await self.getActiveTeachers()
+        for teacher in teachers:
+            if teacher['EMail'] == email:
+                return teacher
+
+    async def get_ed_units_in_daterange(self, start_date: datetime, end_date: datetime, **kwargs) -> list:
+        ed_units = await self.get_ed_units(
+            dateFrom=start_date.strftime("%Y-%m-%d"),
+            maxTake=10000,
+            batchSize=1000,
+            **kwargs
+        )
+        # print(ed_units)
+        return [unit for unit in ed_units if
+                self.is_ed_unit_has_lessons_in_date_range(
+                    unit=unit,
+                    start_date=start_date,
+                    end_date=end_date)]
 
     async def getAvailableFutureStartingEdUnits(self, **kwargs) -> list:
         level = kwargs.pop('level', None)

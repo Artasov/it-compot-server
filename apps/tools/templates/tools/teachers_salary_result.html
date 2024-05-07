@@ -1,4 +1,5 @@
 {% extends 'Core/base.html' %}
+{% load custom_filters %}
 {% load Core_tags %}
 {% load static %}
 {% block title %}it-compot | Teacher Salary{% endblock %}
@@ -9,52 +10,66 @@
 {% block meta_twitter_description %}Teacher Salary{% endblock %}
 
 {% block content %}
-    <div id="content" class="mt-4 px-3 d-none rounded-top-4 overflow-y-scroll"
+    <div id="content" class="mt-4 px-3 d-none rounded-top-4 overflow-y-scroll mw-100"
          data-bs-theme="dark">
-        <h1 class="text-white fs-1 text-center mt-4">
-            Зарплата<br>
-            {{ teacher_month_lessons_list.1.teacher }}<br>
-            {{ email }} </h1>
-        <p class="fs-2 mt-4 text-white-90 fw-bold">Итог: <span style="color: #8dff97">{% get_beauty_int sum_salary %} ₽</span></p>
-        <div class="mt-2 overflow-scroll no_scrollbar">
-            {% if teacher_month_lessons_list %}
-                <table class="table table-sm table-bordered table-hover white-space-no-wrap">
-                    <thead class="table-dark fs-5">
-                    <tr>
-                        <th>Группа</th>
-{#                        <th>Название</th>#}
-                        <th>Дисциплина</th>
-{#                        <th>Уровень</th>#}
-                        <th>Тип</th>
-                        <th>Ученик</th>
-                        <th>Дата</th>
-                        <th>Пропуск</th>
-                        <th>Время</th>
-{#                        <th>Дата начала</th>#}
-{#                        <th>Дата окончания</th>#}
-                        <th>Монетки</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for lesson in teacher_month_lessons_list %}
-                        {% if not forloop.first %}
-                            <tr>
-                                <td>{{ lesson.gid }}</td>
-                                <td>{{ lesson.discipline }}</td>
-                                <td>{{ lesson.type }}</td>
-                                <td>{{ lesson.student }}</td>
-                                <td>{{ lesson.date }}</td>
-                                <td>{{ lesson.skip }}</td>
-                                <td>{{ lesson.duration }}</td>
-                                <td>{{ lesson.money }}</td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>Нет данных о зарплате.</p>
-            {% endif %}
+        <h1 class="text-white fs-1 text-center mt-4">Оплата за уроки</h1>
+        <p class="fs-2 mb-2">Итог: <span style="color: #8dff97">{% get_beauty_int total_salary %} ₽</span></p>
+        <div class="accordion" id="accordionExample">
+            {% for month, details in teacher_month_lessons_list.items %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fs-4" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapse{{ month }}" aria-expanded="false"
+                                aria-controls="collapse{{ month }}">
+                            {{ month|month_to_russian }}:&nbsp;<span
+                                style="color: #b4c4ff">{% get_beauty_int details.total_money %} ₽</span>
+                        </button>
+                    </h2>
+                    <div id="collapse{{ month }}" class="accordion-collapse collapse"
+                         data-bs-parent="#accordionExample">
+                        <div class="accordion-body">
+
+                            <div class="mt-2 overflow-scroll no_scrollbar">
+                                {% if details.lessons %}
+                                    <table class="table table-sm table-bordered table-hover white-space-no-wrap">
+                                        <thead class="table-dark fs-5">
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Дисциплина</th>
+                                            <th>Тип</th>
+                                            <th>Ученик</th>
+                                            <th>Монетки</th>
+                                            <th>Пропуск</th>
+                                            <th>Время</th>
+                                            <th>Id</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for lesson in details.lessons %}
+                                            {% if not forloop.first %}
+                                                <tr>
+                                                    <td class="text-nowrap">{{ lesson.date|date:"Y-m-d" }}</td>
+                                                    <td>{{ lesson.discipline }}</td>
+                                                    <td>{{ lesson.type }}</td>
+                                                    <td>{{ lesson.student }}</td>
+                                                    <td>{{ lesson.money }}</td>
+                                                    <td>{{ lesson.skip }}</td>
+                                                    <td>{{ lesson.duration }}</td>
+                                                    <td>{{ lesson.gid }}</td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    <p>Нет данных о зарплате.</p>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
 {% endblock %}

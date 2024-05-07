@@ -35,13 +35,19 @@ DJANGO_REDIS_LOGGER = 'RedisLogger'
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 # SESSION_ENGINE = 'redis_sessions.session'
 # SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_CACHE_ALIAS = "default"
+# SESSION_ENGINE = "django.contrib.sessions.backends.db"
+# SESSION_CACHE_ALIAS = "default"
 SESSION_COOKIE_AGE = 86400  # seconds 2 days
 # SESSION_SAVE_EVERY_REQUEST = True
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [f'https://{MAIN_DOMAIN}']
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    f'https://{MAIN_DOMAIN}'
+]
 
 # Static and media files
 STATICFILES_FINDERS = [
@@ -113,8 +119,12 @@ AMOLINK_REPORT_JOIN_TO_INTRODUCTION_GROUPS = env('AMOLINK_REPORT_JOIN_TO_INTRODU
 GOOGLE_API_JSON_CREDS_PATH = BASE_DIR / env('GSCREDS_FILE_NAME', '')
 GSDOCID_LOG_JOIN_FORMING_GROUPS = env('GSDOCID_LOG_JOIN_FORMING_GROUPS', '')
 GSDOCID_TEACHERS_SALARY = env('GSDOCID_TEACHERS_SALARY', '')
-TABLE_TEACHERS_SALARY = (GSDOCID_TEACHERS_SALARY, '690189137')
+GSDOCID_COURSES_RESUME = env('GSDOCID_COURSES_RESUME', '')
+TABLE_TEACHERS_SALARY = (GSDOCID_TEACHERS_SALARY, '957421404')
 
+ALLOWED_DAYS_FOR_LESSON_REPORT = 2
+
+LOGIN_URL = '/login/'
 # Django settings
 INSTALLED_APPS = [
     'daphne',
@@ -125,9 +135,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # 'corsheaders',
     'rest_framework',
     'adrf',
-    'channels',
+    # 'channels',
     'django_celery_beat',
 
     'apps.link_shorter',
@@ -154,19 +165,23 @@ else:
         }
     }
 
-CACHES = {
-    'default': {
-        "BACKEND": "django_redis.cache.RedisCache",
-        'LOCATION': REDIS_CACHE_URL,
-        'OPTIONS': {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
+# CACHES = {
+#     'default': {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         'LOCATION': REDIS_CACHE_URL,
+#         'OPTIONS': {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
@@ -339,3 +354,4 @@ log.info(f'{MEDIA_ROOT=}')
 log.info('#####################################')
 log.info('#####################################')
 log.info('#####################################')
+

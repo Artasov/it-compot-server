@@ -9,23 +9,31 @@
 
 
 {% block content %}
-    <div id="content" class="container d-none  fcc flex-grow-1"
-         data-bs-theme="dark"
-         style="max-width: 400px;">
+    <div id="content" class="container d-none fc flex-grow-1 mt-3 mw-400px w-min"
+         data-bs-theme="dark">
         <div class="row disable-tap-and-selection">
 
-            <h2 class="text-dark-emphasis fs-1 text-center">It-compot</h2>
-            <h2 class="text-dark-emphasis fs-3">Tools</h2>
-            <ul class="ps-5">
+            <h2 class="text-dark-emphasis fs-1 text-center mb-3">Меню</h2>
+            <ul class="fc gap-2 text-nowrap">
+                {#                <li>#}
+                {#                    <a href="{% url 'tools:daily_teacher_schedule_by_interval_gsheet_export' %}"#}
+                {#                       class="fs-5 text-dark-emphasis link">#}
+                {#                        Teachers Schedule</a>#}
+                {#                </li>#}
                 <li>
-                    <a href="{% url 'tools:daily_teacher_schedule_by_interval_gsheet_export' %}"
-                       class="fs-5 text-dark-emphasis link">
-                        Teachers Schedule</a>
+                    <a href="{% url 'tools:lesson_report' %}"
+                       class="fs-4 btn bg-primary bg-opacity-75">
+                        Комментарий к уроку</a>
                 </li>
                 <li>
                     <a href="{% url 'tools:teachers_salary' %}"
-                       class="fs-5 text-dark-emphasis link">
-                        Teachers Salary</a>
+                       class="fs-4 btn bg-primary bg-opacity-75">
+                        Оплата</a>
+                </li>
+                <li>
+                    <a href="{% url 'signout' %}"
+                       class="fs-6 btn border border-1 border-secondary">
+                        Выход</a>
                 </li>
             </ul>
         </div>

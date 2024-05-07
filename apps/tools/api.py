@@ -1,15 +1,15 @@
-import datetime
 import logging
+from datetime import datetime, timedelta
 from urllib.parse import quote
 
-from adrf.decorators import api_view
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from apps.Core.services.common import asemaphore_handler, acontroller
+from apps.Core.services.base import asemaphore_handler, acontroller
 from apps.link_shorter.services.common import create_short_link
 from apps.tools.exeptions.common import UnitAlreadyFullException
 from apps.tools.serializers import (
@@ -19,6 +19,7 @@ from apps.tools.serializers import (
     SendNothingFitSerializer,
     BuildLinkForJoinToFormingGroupSerializer, AddHhPaymentByAmoSerializer,
 )
+from apps.tools.services.other import get_course_themes
 from apps.tools.services.signup_group.funcs import (
     is_student_in_group_on_discipline,
     add_student_to_forming_group, send_nothing_fit_units_to_amo
@@ -27,6 +28,55 @@ from service.common.common import calculate_age
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
 log = logging.getLogger('base')
+
+
+@acontroller('Отправка отчета по занятию.', auth=True)
+@asemaphore_handler
+async def send_lesson_report(request):
+    theme_number = request.POST.get('theme_number')
+    theme_name = request.POST.get('theme_name')
+    lesson_completion_percentage = request.POST.get('lesson_completion_percentage')
+    additional_info = request.POST.get('additional_info')
+    if not all((theme_number, theme_name, lesson_completion_percentage)):
+        return JsonResponse({'error': 'Неверные данные для отправки отчета.'}, 400)
+
+
+    print(theme_number)
+    print(theme_name)
+    print(lesson_completion_percentage)
+    print(additional_info)
+    return JsonResponse({'success': True})
+
+
+@acontroller('Получение учебных единиц для отчета по занятию.', auth=True)
+@asemaphore_handler
+async def get_course_themes_view(request):
+    return JsonResponse({
+        'themes': await get_course_themes(request.GET['discipline'])
+    })
+
+
+# adrf неверно использует аутентификацию и пользователь всегда анонимный
+@acontroller('Получение учебных единиц для отчета по уроку.', auth=True)
+@asemaphore_handler
+async def get_teacher_lesson_for_report(request) -> JsonResponse:
+    HHManager = CustomHHApiV2Manager()
+    now = datetime.now()
+    email = request.user.email
+    teacher = await HHManager.get_teacher_by_email(email=email)
+    units = await HHManager.get_ed_units_in_daterange(
+        start_date=now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT),
+        end_date=now,
+        types='Group,MiniGroup,Individual',
+        queryDays=True,
+        statuses='Forming',
+        teacherId=teacher['Id']
+    )
+    res = []
+    for unit in units:
+        if 'EVENTS' not in unit['Name']:
+            res.append(unit)
+    return JsonResponse({'units': res})
 
 
 @acontroller('Получение групп для записи на вводный модуль.')

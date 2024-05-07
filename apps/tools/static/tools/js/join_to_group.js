@@ -102,22 +102,23 @@ async function getIsStudentOnDiscipline() {
 }
 
 function joinStudentToGroup(student_id, group, TZ) {
-    confirmationModal.hide();
-    document.getElementById('confirmationModal').classList.remove('show');
+    postJoinStudentToGroup(student_id, group['Id'], TZ).then(response => {
+        confirmationModal.hide();
+        document.getElementById('confirmationModal').classList.remove('show');
 
-    // if (response.success) {
-    const groupPreview = createGroupEl(group, TZ);
-    groupPreview.classList.remove('bg-primary');
-    groupPreview.classList.add('frcc');
-    raiseSuccessModal(
-        'Вы успешно записаны на занятие',
-        'Сделайте скриншот, чтобы не забыть 😉',
-        groupPreview
-    )
-    // } else {
-    //     raiseErrorModal('Похоже произошла ошибка, менеджер свяжется с вами в рабочее время.')
-    // }
-    // })
+        if (response.success) {
+            const groupPreview = createGroupEl(group, TZ);
+            groupPreview.classList.remove('bg-primary');
+            groupPreview.classList.add('frcc');
+            raiseSuccessModal(
+                'Вы успешно записаны на занятие',
+                'Сделайте скриншот, чтобы не забыть 😉',
+                groupPreview
+            )
+        } else {
+            raiseErrorModal('Похоже произошла ошибка, менеджер свяжется с вами в рабочее время.')
+        }
+    })
 }
 
 

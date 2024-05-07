@@ -187,8 +187,8 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     all_teachers = await CustomHHApiV2Manager().getActiveTeachersShortNames()  # Все имена преподаватели
     # pprint(all_teachers)
-    for teacher in working_teachers:
-        print(teacher['name'].lower())
+    # for teacher in working_teachers:
+    #     print(teacher['name'].lower())
     # Добавим преподавателей не работающих в этот день и проставим занятость 'Выходной'
     for teacher in all_teachers:
         found = False  # Флаг для отслеживания наличия учителя в списке

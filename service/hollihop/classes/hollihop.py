@@ -16,10 +16,6 @@ class HolliHopApiV2Manager:
         self.domain = domain
         self.authkey = authkey
 
-    async def get_teachers(self, **kwargs):
-        teachers = await self.api_call('GetTeachers', **kwargs)
-        return teachers.get('Teachers', [])
-
     @staticmethod
     async def fetch(session, url):
         async with session.get(url) as response:
@@ -67,6 +63,10 @@ class HolliHopApiV2Manager:
         async with aiohttp.ClientSession() as session:
             response = await self.post_fetch(session, url, params)
             return response
+
+    async def get_teachers(self, **kwargs):
+        teachers = await self.api_call('GetTeachers', **kwargs)
+        return teachers.get('Teachers', [])
 
     async def add_ed_unit_student(self, **kwargs):
         required_params = ['edUnitId', 'studentClientId']

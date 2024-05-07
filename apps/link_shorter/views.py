@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from rest_framework.response import Response
 
-from apps.Core.services.common import acontroller
+from apps.Core.services.base import acontroller
 from .models import ShortLink
 from .serializers import LinkSerializer
 from .services.common import create_short_link

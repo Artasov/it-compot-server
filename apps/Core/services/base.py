@@ -3,16 +3,25 @@ import logging
 from time import time
 
 from aiohttp import ClientConnectorError
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.auth import logout
+from django.contrib.auth.models import Group
 from django.core.handlers.asgi import ASGIRequest
 from django.core.handlers.wsgi import WSGIRequest
+from django.db import transaction
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.response import Response
 
 log = logging.getLogger('base')
+
+
+def add_user_to_group(user, group_name):
+    group, created = Group.objects.get_or_create(name=group_name)
+    if user not in group.user_set.all():
+        group.user_set.add(user)
 
 
 def allowed_only(allowed_methods: list[str, ...] | tuple[str, ...]):
@@ -50,7 +59,7 @@ def semaphore_handler(fn) -> callable:
     return inner
 
 
-def acontroller(name=None, log_time=False) -> callable:
+def acontroller(name=None, log_time=False, auth: bool = False) -> callable:
     def decorator(fn) -> callable:
         @functools.wraps(fn)
         async def inner(request: ASGIRequest, *args, **kwargs):
@@ -58,6 +67,11 @@ def acontroller(name=None, log_time=False) -> callable:
             log.info(f'Async Controller: {request.method} | {fn_name}')
             if log_time:
                 start_time = time()
+
+            if auth:
+                is_authenticated = await sync_to_async(lambda: request.user.is_authenticated)()
+                if not is_authenticated:
+                    return redirect(settings.LOGIN_URL)
 
             if settings.DEBUG:
                 return await fn(request, *args, **kwargs)
@@ -77,7 +91,7 @@ def acontroller(name=None, log_time=False) -> callable:
     return decorator
 
 
-def controller(name=None, log_time=False) -> callable:
+def controller(name=None, log_time=False, auth=False) -> callable:
     def decorator(fn) -> callable:
         @functools.wraps(fn)
         def inner(request: WSGIRequest, *args, **kwargs):
@@ -85,16 +99,20 @@ def controller(name=None, log_time=False) -> callable:
             log.info(f'Sync Controller: {request.method} | {fn_name}')
             if log_time:
                 start_time = time()
-
+            if auth:
+                if not request.user.is_authenticated:
+                    return redirect(settings.LOGIN_URL)
             if settings.DEBUG:
-                return fn(request, *args, **kwargs)
+                with transaction.atomic():
+                    return fn(request, *args, **kwargs)
             else:
                 try:
                     if log_time:
                         end_time = time()
                         elapsed_time = end_time - start_time
                         log.info(f"Execution time of {fn_name}: {elapsed_time:.2f} seconds")
-                    return fn(request, *args, **kwargs)
+                    with transaction.atomic():
+                        return fn(request, *args, **kwargs)
                 except Exception as e:
                     log.critical(f"ERROR in {fn_name}: {str(e)}", exc_info=True)
                     raise e

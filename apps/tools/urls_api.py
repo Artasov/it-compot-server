@@ -7,12 +7,22 @@ from apps.tools.api import (
     student_to_forming_group,
     send_nothing_fit,
     add_hh_payment_by_amo_view,
+    get_teacher_lesson_for_report,
+    get_course_themes_view,
+    send_lesson_report,
 )
 
 urlpatterns = [
+    path('send_lesson_report/', send_lesson_report,
+         name='send_lesson_report'),
+    path('get_course_themes_view/', get_course_themes_view,
+         name='get_course_themes_view'),
     path('get_forming_groups_for_join/',
          get_forming_groups_for_join,
          name='get_forming_groups_for_join'),
+    path('get_teacher_lesson_for_report/',
+         get_teacher_lesson_for_report,
+         name='get_teacher_lesson_for_report'),
     path('student_to_forming_group/',
          student_to_forming_group,
          name='student_to_forming_group'),

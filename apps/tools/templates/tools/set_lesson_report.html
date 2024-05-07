@@ -1,0 +1,57 @@
+{% extends 'Core/base.html' %}
+{% load static %}
+{% block title %}it-compot | Lesson Report{% endblock %}
+
+{% block meta_keywords %}Lesson Report{% endblock %}
+{% block meta_description %}Lesson Report{% endblock %}
+{% block meta_og_description %}Комментарий к уроку{% endblock %}
+{% block meta_twitter_description %}Lesson Report{% endblock %}
+
+{% block head %}
+    <script defer type="module" src="{% static 'tools/js/lesson_report.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="container d-none  fcc flex-grow-1"
+         data-bs-theme="dark"
+         style="max-width: 400px;">
+        <div class="row disable-tap-and-selection ">
+            <h1 class="text-dark-emphasis fs-2 text-center">Комментарий к уроку</h1>
+            <form class="px-3 py-1 text-center" method="post" action="{% url 'stupid_auth' %}">
+                {% csrf_token %}
+
+                <div class="choose_unit_container">
+                    <p class="mb-2">Выберите занятие для заполнения</p>
+                    <div id="units-container" class="fcc gap-2"></div>
+                </div>
+
+                <div class="lesson_set_info_container d-none">
+                    <p class="mb-2">Заполните информацию о занятии</p>
+                    <div id="lesson-preview" class="mb-2"></div>
+                    <select class="lesson_theme_select form-select form-select-sm mb-2"
+                            aria-label=".form-select-lg" name="lesson_theme_select">
+                        <option selected>Выберите тему урока</option>
+                        <option value="1">Один</option>
+                        <option value="2">Два</option>
+                        <option value="3">Три</option>
+                    </select>
+                    <div class="fc mb-2">
+                        <label for="lesson_completion_percentage" class="text-left">Насколько % закончена тема?</label>
+                        <div class="frcc gap-2">
+                            <input type="range" class="form-range" min="0" max="100" value="0"
+                                   name="lesson_completion_percentage"
+                                   id="lesson_completion_percentage">
+                            <span id="lesson_completion_percentage-count"></span>
+                        </div>
+                    </div>
+                    <textarea name="additional_info" rows="6" placeholder="Дополнительная информация"
+                              class="bg-secondary bg-opacity-25 w-100 border-0 mb-2 rounded-2 p-2"></textarea>
+                    <button id="btn-report-submit" type="submit" class="fw-bold px-2 btn btn-success">
+                        Подтвердить
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+{% endblock %}ёё
