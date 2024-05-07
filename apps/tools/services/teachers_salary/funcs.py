@@ -45,7 +45,6 @@ async def filter_and_aggregate_teacher_lessons(teacher_month_lessons) -> dict:
     """
     if not teacher_month_lessons:
         return {}
-
     # Создаем DataFrame из списка уроков
     lessons_df = pd.DataFrame(teacher_month_lessons)
 
@@ -82,5 +81,4 @@ async def filter_and_aggregate_teacher_lessons(teacher_month_lessons) -> dict:
             'lessons': month_lessons,
             'total_money': total_money
         }
-
     return result

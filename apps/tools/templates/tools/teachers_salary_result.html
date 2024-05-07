@@ -46,18 +46,16 @@
                                         </thead>
                                         <tbody>
                                         {% for lesson in details.lessons %}
-                                            {% if not forloop.first %}
-                                                <tr>
-                                                    <td class="text-nowrap">{{ lesson.date|date:"Y-m-d" }}</td>
-                                                    <td>{{ lesson.discipline }}</td>
-                                                    <td>{{ lesson.type }}</td>
-                                                    <td>{{ lesson.student }}</td>
-                                                    <td>{{ lesson.money }}</td>
-                                                    <td>{{ lesson.skip }}</td>
-                                                    <td>{{ lesson.duration }}</td>
-                                                    <td>{{ lesson.gid }}</td>
-                                                </tr>
-                                            {% endif %}
+                                            <tr>
+                                                <td class="text-nowrap">{{ lesson.date|date:"Y-m-d" }}</td>
+                                                <td>{{ lesson.discipline }}</td>
+                                                <td>{{ lesson.type }}</td>
+                                                <td>{{ lesson.student }}</td>
+                                                <td>{{ lesson.money }}</td>
+                                                <td>{{ lesson.skip }}</td>
+                                                <td>{{ lesson.duration }}</td>
+                                                <td>{{ lesson.gid }}</td>
+                                            </tr>
                                         {% endfor %}
                                         </tbody>
                                     </table>
