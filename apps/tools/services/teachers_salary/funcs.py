@@ -41,7 +41,7 @@ async def filter_and_aggregate_teacher_lessons(teacher_month_lessons) -> dict:
     на основе данных из 'fetch_teacher_lessons_data_by_email', группируя по месяцам.
 
     @param teacher_month_lessons: Список словарей с данными об уроках.
-    @return: Словарь, где ключи - это месяцы, а значения - объекты с списком уроков и суммой зарплаты.
+    @return: Словарь, где ключи - это месяцы, а значения - объекты со списком уроков и суммой зарплаты.
     """
     if not teacher_month_lessons:
         return {}

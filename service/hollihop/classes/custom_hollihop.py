@@ -10,8 +10,48 @@ from service.hollihop.consts import amo_hh_currencies, amo_hh_pay_methods
 log = logging.getLogger('base')
 
 
+class SetCommentError(BaseException):
+    pass
+
+
 class CustomHHApiV2Manager(HolliHopApiV2Manager):
-    async def getEdUnitStudentsByUnitId(self, ids: list[int, ...] | tuple[int, ...]):
+
+    async def set_comment_for_all_students_ed_unit(self, ed_unit_id: int, date: str, description: str) -> None:
+        """
+        date: Строка формата YYYY-MM-DD
+        """
+        students = await self.get_ed_unit_students_by_unit_id(ids=(ed_unit_id,))
+        # Отсекаем тех кого в группе уже нет, но когда-то были
+        students = [student for student in students
+                    if datetime.strptime(student['EndDate'], '%Y-%m-%d').date() >= datetime.now().date()]
+        for student in students:
+            await self.set_student_passes(**{
+                'like_array': [
+                    {
+                        'Date': date,
+                        'EdUnitId': ed_unit_id,
+                        'StudentClientId': student['StudentClientId'],
+                        'Pass': True
+                    }
+                ]
+            })
+        for student in students:
+            result = await self.set_student_passes(**{
+                'like_array': [
+                    {
+                        'Date': date,
+                        'EdUnitId': ed_unit_id,
+                        'StudentClientId': student['StudentClientId'],
+                        'Description': description,
+                        'Pass': False
+                    }
+                ]
+            })
+            if not result.get('success'):
+                raise SetCommentError('Ошибка при добавлении комментария')
+
+
+    async def get_ed_unit_students_by_unit_id(self, ids: list[int, ...] | tuple[int, ...]):
         tasks = [self.get_ed_unit_student(edUnitId=id) for id in ids]
         results = await asyncio.gather(*tasks)
         return [item for sublist in results if sublist for item in sublist]
@@ -112,7 +152,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
 
     async def get_ed_units_in_daterange(self, start_date: datetime, end_date: datetime, **kwargs) -> list:
         ed_units = await self.get_ed_units(
-            dateFrom=start_date.strftime("%Y-%m-%d"),
             maxTake=10000,
             batchSize=1000,
             **kwargs
@@ -186,7 +225,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # print(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
         # print([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
 
-        edUnitsStudent = await self.getEdUnitStudentsByUnitId(
+        edUnitsStudent = await self.get_ed_unit_students_by_unit_id(
             [int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin]
         )
         log.info(f'Count edUnitsStudent: {len(edUnitsStudent)}')

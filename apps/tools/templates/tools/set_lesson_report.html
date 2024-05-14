@@ -19,7 +19,7 @@
             <h1 class="text-dark-emphasis fs-2 text-center">Комментарий к уроку</h1>
             <form class="px-3 py-1 text-center" method="post" action="{% url 'stupid_auth' %}">
                 {% csrf_token %}
-
+                <span class="error-text text-danger fw-bold text-center"></span>
                 <div class="choose_unit_container">
                     <p class="mb-2">Выберите занятие для заполнения</p>
                     <div id="units-container" class="fcc gap-2"></div>
@@ -27,6 +27,7 @@
 
                 <div class="lesson_set_info_container d-none">
                     <p class="mb-2">Заполните информацию о занятии</p>
+                    <input id="ed_unit_id" type="hidden" name="ed_unit_id">
                     <div id="lesson-preview" class="mb-2"></div>
                     <select class="lesson_theme_select form-select form-select-sm mb-2"
                             aria-label=".form-select-lg" name="lesson_theme_select">

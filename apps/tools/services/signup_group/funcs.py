@@ -36,7 +36,7 @@ async def is_unit_vacant_for_join(unit: dict) -> bool:
 async def is_unit_suits_for_join(unit: dict, search_levels: list, age: int, discipline: str) -> bool:
     HHM = CustomHHApiV2Manager()
     # Получаем студентов группы
-    edUnitsStudent = await HHM.getEdUnitStudentsByUnitId([unit['Id']])
+    edUnitsStudent = await HHM.get_ed_unit_students_by_unit_id([unit['Id']])
     students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
                     unitS['EdUnitId'] == unit['Id']]
     students_ids_set = set(students_ids)

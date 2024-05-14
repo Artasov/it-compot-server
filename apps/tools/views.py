@@ -1,3 +1,5 @@
+import datetime
+
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -8,6 +10,7 @@ from apps.tools.services.teachers_salary.funcs import (
     filter_and_aggregate_teacher_lessons
 )
 from apps.tools.services.teachers_shedule.funcs import handle_teachers_schedule_upload
+from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
 
 @acontroller('Страница для записи на вводный модуль', True)
@@ -35,15 +38,12 @@ async def teacher_salary(request) -> HttpResponse:
     total_salary = sum(data['total_money'] for month, data in lessons.items())
     return render(request, 'tools/teachers_salary_result.html', {
         'teacher_month_lessons_list': lessons,
-        'total_salary': total_salary,
-        'email': email
+        'total_salary': total_salary
     })
 
 
 @acontroller('Отчет за урок по email & unipass педагога', auth=True)
 async def teacher_set_lesson_report(request) -> HttpResponse:
-    # HHManager = CustomHHApiV2Manager()
-    # print(await HHManager.set_ed_unit_comment(ed_unit_id, 'ASdAW пукпруцкр'))
     return render(request, 'tools/set_lesson_report.html', {
 
     })

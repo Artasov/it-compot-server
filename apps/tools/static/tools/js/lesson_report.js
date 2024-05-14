@@ -1,5 +1,10 @@
 import Client from "../../../../static/Core/js/classes/Client.js";
 
+function isDateInRange(dateStr, startDate, endDate) {
+    const date = new Date(dateStr);
+    return date >= startDate && date <= endDate;
+}
+
 async function getEdUnitsForReport() {
     try {
         return await Client.sendGet(
@@ -30,12 +35,14 @@ async function getThemesByDiscipline(discipline) {
 }
 
 
-async function postSendReport(theme_number, theme_name, additionalInfo, lessonCompletionPercentage) {
+async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, additionalInfo, lessonCompletionPercentage) {
     try {
         return await Client.sendPost(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/send_lesson_report/',
             {
+                ed_unit_id: ed_unit_id,
+                day_date: day_date,
                 theme_number: theme_number,
                 theme_name: theme_name,
                 lesson_completion_percentage: lessonCompletionPercentage,
@@ -43,13 +50,18 @@ async function postSendReport(theme_number, theme_name, additionalInfo, lessonCo
             }
         );
     } catch (error) {
-        console.log('Ошибка отправки отчета')
+        setError('Ошибка отправки отчета')
         console.log(error)
         return null;
     }
 }
 
+function setError(error_text) {
+    errorTextEl.innerHTML = error_text;
+}
+
 const chooseUnitContainer = document.querySelector('.choose_unit_container');
+const errorTextEl = document.querySelector('.error-text');
 
 const lessonSetInfoContainer = document.querySelector('.lesson_set_info_container');
 const lessonPreviewEl = document.getElementById('lesson-preview');
@@ -58,6 +70,7 @@ const btnReportSubmit = document.getElementById('btn-report-submit');
 const themeSelectEl = document.querySelector('.lesson_theme_select');
 const additionalInfoEl = document.querySelector('textarea[name="additional_info"]');
 btnReportSubmit.addEventListener('click', sendReport);
+const edUnitIdInput = document.getElementById('ed_unit_id');
 const lessonCompletionPercentage = document.getElementById('lesson_completion_percentage');
 const lessonCompletionPercentageCount = document.getElementById('lesson_completion_percentage-count');
 lessonCompletionPercentageCount.textContent = lessonCompletionPercentage.value;
@@ -68,26 +81,31 @@ lessonCompletionPercentage.oninput = function () {
 async function sendReport(e) {
     e.preventDefault();
     if (themeSelectEl.value === '0') {
-        console.log('Вы не выбрали тему для занятия.')
+        setError('Вы не выбрали тему для занятия.')
         return;
     }
     if (lessonCompletionPercentage.value < 1) {
-        console.log('Урок пройден менее чем на 1%.')
+        setError('Урок пройден менее чем на 1%.')
         return;
     }
     const result = await postSendReport(
+        edUnitIdInput.value.split(' ')[0],
+        edUnitIdInput.value.split(' ')[1],
         themeSelectEl.value,
         themeSelectEl.querySelector(`option[value="${themeSelectEl.value}"]`).textContent.slice(3, themeSelectEl.textContent.length),
         additionalInfoEl.value,
         lessonCompletionPercentage.value
     )
-
     console.log(result)
+    if (result.error) {
+        setError(result.error)
+    }
 }
 
-async function chooseEdUnit(unit) {
+async function chooseEdUnitDay(unit, day_index) {
     chooseUnitContainer.classList.add('d-none');
-    lessonPreviewEl.appendChild(createEdUnitEl(unit));
+    edUnitIdInput.value = `${unit.Id} ${unit.Days[day_index].Date}`
+    lessonPreviewEl.appendChild(createEdUnitEl(unit, day_index));
     const response = await getThemesByDiscipline(unit.Discipline);
     // add select title
     themeSelectEl.innerHTML = '';
@@ -106,7 +124,7 @@ async function chooseEdUnit(unit) {
 }
 
 
-function createEdUnitEl(unit) {
+function createEdUnitEl(unit, day_index) {
     console.log(unit)
     const unitEl = document.createElement('div');
     unitEl.className = 'fcss bg-opacity-25 bg-secondary p-2 rounded-2';
@@ -117,7 +135,7 @@ function createEdUnitEl(unit) {
 
     const timeEl = document.createElement('p');
     if (unit.ScheduleItems && unit.ScheduleItems.length !== 0) {
-        timeEl.textContent = `Время: ${unit.ScheduleItems[0].BeginTime}`;
+        timeEl.textContent = `${unit.Days[day_index].Date} ${unit.ScheduleItems[0].BeginTime}`;
     } else {
         timeEl.textContent = 'Время не указано';
     }
@@ -128,10 +146,20 @@ function createEdUnitEl(unit) {
 
 
 const response = await getEdUnitsForReport()
-for (const unit of response.units) {
-    const unitEl = createEdUnitEl(unit)
-    unitEl.addEventListener('click', () => {
-        chooseEdUnit(unit);
-    })
-    document.getElementById('units-container').appendChild(unitEl)
+const units = response.units
+const today = new Date();
+const thirtyDaysAgo = new Date(today);
+thirtyDaysAgo.setDate(today.getDate() - 30);
+
+for (const unit of units) {
+    const unitDays = unit.Days;
+    for (let i = 0; i < unitDays.length; i++) {
+        if (isDateInRange(unitDays[i].Date, thirtyDaysAgo, today) && !unitDays[i].Pass) {
+            const unitEl = createEdUnitEl(unit, i)
+            unitEl.addEventListener('click', () => {
+                chooseEdUnitDay(unit, i);
+            })
+            document.getElementById('units-container').appendChild(unitEl)
+        }
+    }
 }

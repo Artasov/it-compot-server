@@ -25,7 +25,7 @@ from apps.tools.services.signup_group.funcs import (
     add_student_to_forming_group, send_nothing_fit_units_to_amo
 )
 from service.common.common import calculate_age
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
+from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
 
 log = logging.getLogger('base')
 
@@ -33,18 +33,26 @@ log = logging.getLogger('base')
 @acontroller('Отправка отчета по занятию.', auth=True)
 @asemaphore_handler
 async def send_lesson_report(request):
+    ed_unit_id = request.POST.get('ed_unit_id')
+    day_date = request.POST.get('day_date')
     theme_number = request.POST.get('theme_number')
     theme_name = request.POST.get('theme_name')
     lesson_completion_percentage = request.POST.get('lesson_completion_percentage')
     additional_info = request.POST.get('additional_info')
-    if not all((theme_number, theme_name, lesson_completion_percentage)):
+    if not all((ed_unit_id, day_date, theme_number, theme_name, lesson_completion_percentage)):
         return JsonResponse({'error': 'Неверные данные для отправки отчета.'}, 400)
 
-
-    print(theme_number)
-    print(theme_name)
-    print(lesson_completion_percentage)
-    print(additional_info)
+    HHManager = CustomHHApiV2Manager()
+    try:
+        await HHManager.set_comment_for_all_students_ed_unit(
+            ed_unit_id=ed_unit_id,
+            date=day_date,
+            description=f'* {theme_number}. {theme_name}\n'
+                        f'* Завершено на: {lesson_completion_percentage}%\n'
+                        f'* {additional_info}'
+        )
+    except SetCommentError:
+        return JsonResponse({'error': 'Ошибка при добавлении комментария в HH'}, 400)
     return JsonResponse({'success': True})
 
 

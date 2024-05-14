@@ -55,14 +55,23 @@ class HolliHopApiV2Manager:
             if response.status == 200:
                 return {'success': True}
             else:
+                print(json)
                 return {'success': False}
 
     async def api_post_call(self, endpoint, **params):
-        url = f"https://{self.domain}/Api/V2/{endpoint}"
+        # url = f"https://{self.domain}/Api/V2/{endpoint}"
+        url = f"https://{self.domain}/Api/V2/{endpoint}?authkey={self.authkey}"
         params['authkey'] = self.authkey
         async with aiohttp.ClientSession() as session:
-            response = await self.post_fetch(session, url, params)
+            if params['like_array']:
+                response = await self.post_fetch(session, url, data=params['like_array'])
+            else:
+                response = await self.post_fetch(session, url, data=params)
             return response
+
+    async def set_student_passes(self, **kwargs):
+        response = await self.api_post_call('SetStudentPasses', **kwargs)
+        return response
 
     async def get_teachers(self, **kwargs):
         teachers = await self.api_call('GetTeachers', **kwargs)
