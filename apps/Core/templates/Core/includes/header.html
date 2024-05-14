@@ -1,8 +1,9 @@
-<header class="frcc gap-3 px-2 py-3 bg-secondary bg-opacity-25">
-        <span>{{ request.user.username }}@</span>
-        <a href="{% url 'menu' %}" class="fcc gap-2" style="width: 27px; height: 17px">
-            <span style="height: 2px;" class="bg-white-c0 w-100"></span>
-            <span style="height: 2px;" class="bg-white-c0 w-100"></span>
-            <span style="height: 2px;" class="bg-white-c0 w-100"></span>
-        </a>
+<header class="frcc gap-3 px-2 py-3 w-100 position-fixed left-0 top-0"
+        style="height: 70px; background: #34393E;">
+    <span>{{ request.user.username }}@</span>
+    <a href="{% url 'menu' %}" class="fcc gap-2" style="width: 27px; height: 17px">
+        <span style="height: 2px;" class="bg-white-c0 w-100"></span>
+        <span style="height: 2px;" class="bg-white-c0 w-100"></span>
+        <span style="height: 2px;" class="bg-white-c0 w-100"></span>
+    </a>
 </header>
