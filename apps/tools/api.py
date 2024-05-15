@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime, timedelta
 from urllib.parse import quote
@@ -38,25 +39,35 @@ async def send_lesson_report(request):
     theme_number = request.POST.get('theme_number')
     theme_name = request.POST.get('theme_name')
     lesson_completion_percentage = request.POST.get('lesson_completion_percentage')
-    additional_info = request.POST.get('additional_info')
+    students_comments = request.POST.get('students_comments')
     if not all((ed_unit_id, day_date, theme_number, theme_name, lesson_completion_percentage)):
-        return JsonResponse({'error': 'Неверные данные для отправки отчета.'}, 400)
+        return JsonResponse({'success': False, 'error': 'Неверные данные для отправки отчета.'}, 400)
+
+    try:
+        students_comments = json.loads(students_comments)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Неверный формат данных студентов.'}, 400)
 
     HHManager = CustomHHApiV2Manager()
-    try:
-        await HHManager.set_comment_for_all_students_ed_unit(
-            ed_unit_id=ed_unit_id,
-            date=day_date,
-            description=f'* {theme_number}. {theme_name}\n'
-                        f'* Завершено на: {lesson_completion_percentage}%\n'
-                        f'* {additional_info}'
-        )
-    except SetCommentError:
-        return JsonResponse({'error': 'Ошибка при добавлении комментария в HH'}, 400)
+    for student_comment in students_comments:
+        try:
+            await HHManager.set_comment_for_student_ed_unit(
+                ed_unit_id=ed_unit_id,
+                student_client_id=student_comment['ClientId'],
+                date=day_date,
+                description=f'* {theme_number}. {theme_name}\n'
+                            f'* Завершено на: {lesson_completion_percentage}%\n'
+                            f'* {student_comment["Description"]}'
+            )
+        except SetCommentError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Ошибка при добавлении комментария в HH'
+            }, 400)
     return JsonResponse({'success': True})
 
 
-@acontroller('Получение учебных единиц для отчета по занятию.', auth=True)
+@acontroller('Получение тем курса по его названию', auth=True)
 @asemaphore_handler
 async def get_course_themes_view(request):
     return JsonResponse({
@@ -72,7 +83,7 @@ async def get_teacher_lesson_for_report(request) -> JsonResponse:
     now = datetime.now()
     email = request.user.email
     teacher = await HHManager.get_teacher_by_email(email=email)
-    units = await HHManager.get_ed_units_in_daterange(
+    units = await HHManager.get_ed_units_with_days_in_daterange(
         start_date=now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT),
         end_date=now,
         types='Group,MiniGroup,Individual',
@@ -80,11 +91,21 @@ async def get_teacher_lesson_for_report(request) -> JsonResponse:
         statuses='Forming',
         teacherId=teacher['Id']
     )
-    res = []
+    # Убираем школьные события
+    filtered_units = []
     for unit in units:
         if 'EVENTS' not in unit['Name']:
-            res.append(unit)
-    return JsonResponse({'units': res})
+            filtered_units.append(unit)
+    # Добавляем информацию по ученикам с днями для каждой учебной еденицы
+    for i in range(0, len(filtered_units)):
+        unit_students = await HHManager.get_ed_unit_students(
+            edUnitId=filtered_units[i]['Id'],
+            queryDays=True,
+            dateFrom=(now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT)).strftime('%Y-%m-%d'),
+            dateTo=now.strftime('%Y-%m-%d'),
+        )
+        filtered_units[i]['Students'] = unit_students
+    return JsonResponse({'units': filtered_units})
 
 
 @acontroller('Получение групп для записи на вводный модуль.')

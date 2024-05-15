@@ -16,40 +16,35 @@ class SetCommentError(BaseException):
 
 class CustomHHApiV2Manager(HolliHopApiV2Manager):
 
-    async def set_comment_for_all_students_ed_unit(self, ed_unit_id: int, date: str, description: str) -> None:
+    async def set_comment_for_student_ed_unit(
+            self, ed_unit_id: int, student_client_id: int, date: str, description: str
+    ) -> None:
         """
         date: Строка формата YYYY-MM-DD
         """
-        students = await self.get_ed_unit_students_by_unit_id(ids=(ed_unit_id,))
-        # Отсекаем тех кого в группе уже нет, но когда-то были
-        students = [student for student in students
-                    if datetime.strptime(student['EndDate'], '%Y-%m-%d').date() >= datetime.now().date()]
-        for student in students:
-            await self.set_student_passes(**{
-                'like_array': [
-                    {
-                        'Date': date,
-                        'EdUnitId': ed_unit_id,
-                        'StudentClientId': student['StudentClientId'],
-                        'Pass': True
-                    }
-                ]
-            })
-        for student in students:
-            result = await self.set_student_passes(**{
-                'like_array': [
-                    {
-                        'Date': date,
-                        'EdUnitId': ed_unit_id,
-                        'StudentClientId': student['StudentClientId'],
-                        'Description': description,
-                        'Pass': False
-                    }
-                ]
-            })
-            if not result.get('success'):
-                raise SetCommentError('Ошибка при добавлении комментария')
-
+        await self.set_student_passes(**{
+            'like_array': [
+                {
+                    'Date': date,
+                    'EdUnitId': ed_unit_id,
+                    'StudentClientId': student_client_id,
+                    'Pass': True
+                }
+            ]
+        })
+        result = await self.set_student_passes(**{
+            'like_array': [
+                {
+                    'Date': date,
+                    'EdUnitId': ed_unit_id,
+                    'StudentClientId': student_client_id,
+                    'Description': description,
+                    'Pass': False
+                }
+            ]
+        })
+        if not result.get('success'):
+            raise SetCommentError('Ошибка при добавлении комментария')
 
     async def get_ed_unit_students_by_unit_id(self, ids: list[int, ...] | tuple[int, ...]):
         tasks = [self.get_ed_unit_student(edUnitId=id) for id in ids]
@@ -150,7 +145,8 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             if teacher['EMail'] == email:
                 return teacher
 
-    async def get_ed_units_in_daterange(self, start_date: datetime, end_date: datetime, **kwargs) -> list:
+    async def get_ed_units_in_daterange(self, start_date: datetime, end_date: datetime, **kwargs) -> list[dict]:
+        """Возвращает учебные единицы имеющие хотя бы один день в указанном диапазоне"""
         ed_units = await self.get_ed_units(
             maxTake=10000,
             batchSize=1000,
@@ -162,6 +158,28 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                     unit=unit,
                     start_date=start_date,
                     end_date=end_date)]
+
+    async def get_ed_units_with_days_in_daterange(
+            self, start_date: datetime, end_date: datetime, **kwargs
+    ) -> list[dict]:
+        return [
+            self.filter_ed_unit_days_by_daterange(unit, start_date, end_date)
+            for unit in await self.get_ed_units_in_daterange(
+                start_date=start_date, end_date=end_date, **kwargs
+            )
+        ]
+
+    @staticmethod
+    def filter_ed_unit_days_by_daterange(
+            ed_unit: dict, start_date: datetime, end_date: datetime
+    ) -> dict:
+        filtered_days = []
+        for day in ed_unit['Days']:
+            date = datetime.strptime(day['Date'], '%Y-%m-%d')
+            if start_date.date() <= date.date() <= end_date.date():
+                filtered_days.append(day)
+        ed_unit['Days'] = filtered_days
+        return ed_unit
 
     async def getAvailableFutureStartingEdUnits(self, **kwargs) -> list:
         level = kwargs.pop('level', None)

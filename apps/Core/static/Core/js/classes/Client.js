@@ -25,7 +25,12 @@ class Client {
         return new Promise((resolve, reject) => {
             const formData = new FormData();
             for (const key in params) {
-                formData.append(key, params[key]);
+                // Если параметр является массивом, сериализуем его в JSON
+                if (Array.isArray(params[key])) {
+                    formData.append(key, JSON.stringify(params[key]));
+                } else {
+                    formData.append(key, params[key]);
+                }
             }
 
             const xhr = new XMLHttpRequest();

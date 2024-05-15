@@ -32,9 +32,15 @@ async def get_teacher_salary_by_email(email: str) -> list:
         raise TeacherNotFound
 
     teacher_target_full_name = f"{teacher_target['LastName']} {teacher_target['FirstName']} {teacher_target['MiddleName']}"
+
+    # doc = GSDocument(settings.GSDOCID_TEACHERS_SALARY)
+    # teacher_salary = doc.get_sheet_data_as_df('выгрузка')
+    # # Первые две строки бесполезны
+    # teacher_salary = teacher_salary.iloc[1:, :].astype(str).values.tolist()
+
     teacher_salary = await get_teachers_salary_csv()
     # Первые две строки бесполезны
-    teacher_salary = teacher_salary[2:]
+    teacher_salary = teacher_salary[1:]
     target_salary_stats = []
     for row in teacher_salary:
         if row[11].strip() == teacher_target_full_name.strip():

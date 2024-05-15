@@ -35,8 +35,9 @@ async function getThemesByDiscipline(discipline) {
 }
 
 
-async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, additionalInfo, lessonCompletionPercentage) {
+async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, students_comments, lessonCompletionPercentage) {
     try {
+        console.log(students_comments)
         return await Client.sendPost(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/send_lesson_report/',
@@ -46,7 +47,7 @@ async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, ad
                 theme_number: theme_number,
                 theme_name: theme_name,
                 lesson_completion_percentage: lessonCompletionPercentage,
-                additional_info: additionalInfo,
+                students_comments: students_comments,
             }
         );
     } catch (error) {
@@ -58,19 +59,26 @@ async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, ad
 
 function setError(error_text) {
     errorTextEl.innerHTML = error_text;
+    setLoading(false);
+}
+
+const loadingEl = document.getElementById('loading_spinner_block-lessons');
+
+function setLoading(flag) {
+    loadingEl.className = `${flag ? '' : 'd-none'}`
 }
 
 const chooseUnitContainer = document.querySelector('.choose_unit_container');
 const errorTextEl = document.querySelector('.error-text');
+const successTextEl = document.querySelector('.success-text');
 
 const lessonSetInfoContainer = document.querySelector('.lesson_set_info_container');
 const lessonPreviewEl = document.getElementById('lesson-preview');
 
 const btnReportSubmit = document.getElementById('btn-report-submit');
 const themeSelectEl = document.querySelector('.lesson_theme_select');
-const additionalInfoEl = document.querySelector('textarea[name="additional_info"]');
+const additionalInfoTextEl = document.querySelector('textarea[name="additional_info_text"]');
 btnReportSubmit.addEventListener('click', sendReport);
-const edUnitIdInput = document.getElementById('ed_unit_id');
 const lessonCompletionPercentage = document.getElementById('lesson_completion_percentage');
 const lessonCompletionPercentageCount = document.getElementById('lesson_completion_percentage-count');
 lessonCompletionPercentageCount.textContent = lessonCompletionPercentage.value;
@@ -78,8 +86,13 @@ lessonCompletionPercentage.oninput = function () {
     lessonCompletionPercentageCount.textContent = this.value;
 }
 
+let choosedEdUnitDay = [];
+
 async function sendReport(e) {
     e.preventDefault();
+    lessonSetInfoContainer.classList.add('d-none');
+    setLoading(true);
+
     if (themeSelectEl.value === '0') {
         setError('Вы не выбрали тему для занятия.')
         return;
@@ -88,23 +101,43 @@ async function sendReport(e) {
         setError('Урок пройден менее чем на 1%.')
         return;
     }
+    let studentsComments = [];
+    for (const student of choosedEdUnitDay[0]['Students']) {
+        for (const sDay of student['Days']) {
+            if (sDay['Date'] === choosedEdUnitDay[0]['Days'][choosedEdUnitDay[1]]['Date']) {
+                studentsComments.push({
+                    ClientId: student['StudentClientId'],
+                    Description: sDay.Description || additionalInfoTextEl.value
+                });
+            }
+        }
+    }
+
     const result = await postSendReport(
-        edUnitIdInput.value.split(' ')[0],
-        edUnitIdInput.value.split(' ')[1],
+        choosedEdUnitDay[0]['Id'],
+        choosedEdUnitDay[0]['Days'][choosedEdUnitDay[1]]['Date'],
         themeSelectEl.value,
-        themeSelectEl.querySelector(`option[value="${themeSelectEl.value}"]`).textContent.slice(3, themeSelectEl.textContent.length),
-        additionalInfoEl.value,
+        themeSelectEl.querySelector(`option[value="${themeSelectEl.value}"]`).textContent.slice(
+            3, themeSelectEl.textContent.length
+        ),
+        studentsComments,
         lessonCompletionPercentage.value
     )
     console.log(result)
-    if (result.error) {
+    if (result.success) {
+        successTextEl.innerHTML = 'Комментарий к уроку успешно отправлен!'
+    } else {
         setError(result.error)
+        lessonSetInfoContainer.classList.remove('d-none');
     }
+    setLoading(false);
 }
 
+
 async function chooseEdUnitDay(unit, day_index) {
+    setLoading(true);
     chooseUnitContainer.classList.add('d-none');
-    edUnitIdInput.value = `${unit.Id} ${unit.Days[day_index].Date}`
+    choosedEdUnitDay = [unit, day_index]
     lessonPreviewEl.appendChild(createEdUnitEl(unit, day_index));
     const response = await getThemesByDiscipline(unit.Discipline);
     // add select title
@@ -121,13 +154,14 @@ async function chooseEdUnitDay(unit, day_index) {
         themeSelectEl.appendChild(themeOptionEl);
     }
     lessonSetInfoContainer.classList.remove('d-none');
+    setLoading(false);
 }
 
 
 function createEdUnitEl(unit, day_index) {
     console.log(unit)
     const unitEl = document.createElement('div');
-    unitEl.className = 'fcss bg-opacity-25 bg-secondary p-2 rounded-2';
+    unitEl.className = 'fcss bg-opacity-25 bg-secondary p-2 rounded-2 position-relative';
 
     const nameEl = document.createElement('span');
     nameEl.textContent = unit.Name;
@@ -145,21 +179,35 @@ function createEdUnitEl(unit, day_index) {
 }
 
 
+setLoading(true);
 const response = await getEdUnitsForReport()
 const units = response.units
-const today = new Date();
-const thirtyDaysAgo = new Date(today);
-thirtyDaysAgo.setDate(today.getDate() - 30);
+
+setLoading(false);
 
 for (const unit of units) {
     const unitDays = unit.Days;
     for (let i = 0; i < unitDays.length; i++) {
-        if (isDateInRange(unitDays[i].Date, thirtyDaysAgo, today) && !unitDays[i].Pass) {
-            const unitEl = createEdUnitEl(unit, i)
-            unitEl.addEventListener('click', () => {
-                chooseEdUnitDay(unit, i);
-            })
-            document.getElementById('units-container').appendChild(unitEl)
+        if (!unitDays[i].Pass) {
+            let commentExists = true;
+            for (const student of unit['Students']) {
+                for (const sDay of student['Days']) {
+                    if (sDay['Date'] === unit['Days'][i]['Date']) {
+                        if (!sDay.Description) {
+                            commentExists = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!commentExists) {
+                const unitEl = createEdUnitEl(unit, i)
+                unitEl.addEventListener('click', () => {
+                    chooseEdUnitDay(unit, i);
+                })
+                document.getElementById('units-container').appendChild(unitEl)
+            }
         }
     }
 }
+chooseUnitContainer.classList.remove('d-none');
