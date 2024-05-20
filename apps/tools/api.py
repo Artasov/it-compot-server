@@ -3,16 +3,16 @@ import logging
 from datetime import datetime, timedelta
 from urllib.parse import quote
 
+from adrf.decorators import api_view
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from apps.Core.services.base import asemaphore_handler, acontroller
 from apps.link_shorter.services.common import create_short_link
-from apps.tools.exeptions.common import UnitAlreadyFullException
+from apps.tools.exceptions.common import UnitAlreadyFullException
 from apps.tools.serializers import (
     StudentAlreadyStudyingOnDisciplineSerializer,
     FormingGroupParamsSerializer,
@@ -20,6 +20,7 @@ from apps.tools.serializers import (
     SendNothingFitSerializer,
     BuildLinkForJoinToFormingGroupSerializer, AddHhPaymentByAmoSerializer,
 )
+from apps.tools.services.lesson_report import send_gs_lesson_report
 from apps.tools.services.other import get_course_themes
 from apps.tools.services.signup_group.funcs import (
     is_student_in_group_on_discipline,
@@ -40,6 +41,7 @@ async def send_lesson_report(request):
     theme_name = request.POST.get('theme_name')
     lesson_completion_percentage = request.POST.get('lesson_completion_percentage')
     students_comments = request.POST.get('students_comments')
+    type_ed_unit = request.POST.get('type')
     if not all((ed_unit_id, day_date, theme_number, theme_name, lesson_completion_percentage)):
         return JsonResponse({'success': False, 'error': 'Неверные данные для отправки отчета.'}, 400)
 
@@ -49,10 +51,22 @@ async def send_lesson_report(request):
         return JsonResponse({'success': False, 'error': 'Неверный формат данных студентов.'}, 400)
 
     HHManager = CustomHHApiV2Manager()
+    teacher_name = await HHManager.get_full_teacher_name_by_email(request.user.email)
     for student_comment in students_comments:
         try:
             await HHManager.set_comment_for_student_ed_unit(
                 ed_unit_id=ed_unit_id,
+                student_client_id=student_comment['ClientId'],
+                date=day_date,
+                description=f'* {theme_number}. {theme_name}\n'
+                            f'* Завершено на: {lesson_completion_percentage}%\n'
+                            f'* {student_comment["Description"]}'
+            )
+            await send_gs_lesson_report(
+                teacher_name=teacher_name,
+                type_ed_unit=type_ed_unit,
+                ed_unit_id=ed_unit_id,
+                student_name=student_comment['StudentName'],
                 student_client_id=student_comment['ClientId'],
                 date=day_date,
                 description=f'* {theme_number}. {theme_name}\n'
@@ -64,6 +78,7 @@ async def send_lesson_report(request):
                 'success': False,
                 'error': 'Ошибка при добавлении комментария в HH'
             }, 400)
+
     return JsonResponse({'success': True})
 
 
@@ -76,18 +91,17 @@ async def get_course_themes_view(request):
 
 
 # adrf неверно использует аутентификацию и пользователь всегда анонимный
-@acontroller('Получение учебных единиц для отчета по уроку.', auth=True)
+@acontroller('Получение учебных единиц для отчета по уроку', auth=True)
 @asemaphore_handler
 async def get_teacher_lesson_for_report(request) -> JsonResponse:
     HHManager = CustomHHApiV2Manager()
     now = datetime.now()
     email = request.user.email
     teacher = await HHManager.get_teacher_by_email(email=email)
-    units = await HHManager.get_ed_units_with_days_in_daterange(
+    units = await HHManager.get_ed_units_with_filtered_days_in_daterange(
         start_date=now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT),
         end_date=now,
         types='Group,MiniGroup,Individual',
-        queryDays=True,
         statuses='Forming',
         teacherId=teacher['Id']
     )
@@ -96,9 +110,9 @@ async def get_teacher_lesson_for_report(request) -> JsonResponse:
     for unit in units:
         if 'EVENTS' not in unit['Name']:
             filtered_units.append(unit)
-    # Добавляем информацию по ученикам с днями для каждой учебной еденицы
+    # Добавляем информацию по ученикам с днями для каждой учебной единицы
     for i in range(0, len(filtered_units)):
-        unit_students = await HHManager.get_ed_unit_students(
+        unit_students = await HHManager.getEdUnitStudents(
             edUnitId=filtered_units[i]['Id'],
             queryDays=True,
             dateFrom=(now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT)).strftime('%Y-%m-%d'),
@@ -108,7 +122,7 @@ async def get_teacher_lesson_for_report(request) -> JsonResponse:
     return JsonResponse({'units': filtered_units})
 
 
-@acontroller('Получение групп для записи на вводный модуль.')
+@acontroller('Получение групп для авто-записи')
 @api_view(('GET',))
 @asemaphore_handler
 async def get_forming_groups_for_join(request) -> Response:
@@ -122,7 +136,7 @@ async def get_forming_groups_for_join(request) -> Response:
         level=serializer.validated_data['level'],
         discipline=serializer.validated_data['discipline'],
         age=calculate_age(
-            datetime.datetime.fromtimestamp(age_or_tsmp_birth).strftime('%Y-%m-%d')
+            datetime.fromtimestamp(age_or_tsmp_birth).strftime('%Y-%m-%d')
         ) if age_or_tsmp_birth > 100 else age_or_tsmp_birth,
     ), status=status.HTTP_200_OK)
 
@@ -138,7 +152,8 @@ async def student_to_forming_group(request) -> Response:
         await add_student_to_forming_group(
             student_id=serializer.validated_data.get('student_id'),
             group_id=serializer.validated_data.get('group_id'),
-            client_tz=serializer.validated_data.get('client_tz')
+            client_tz=serializer.validated_data.get('client_tz'),
+            join_type=serializer.validated_data.get('join_type')
         )
     except UnitAlreadyFullException:
         return Response(data={

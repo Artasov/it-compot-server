@@ -166,7 +166,7 @@ class GSDocument:
 
     def auto_resize_rows(self, sheet_name: str, start_row: int, end_row: Optional[int] = None):
         """
-        Автоматически изменяет ширину столбцов в указанном диапазоне, чтобы содержимое помещалось.
+        Автоматически изменяет ширину строк в указанном диапазоне, чтобы содержимое помещалось.
 
         @param sheet_name: Название листа.
         @param start_row: Начальный индекс столбца для изменения размера (начинается с 0).
@@ -179,6 +179,44 @@ class GSDocument:
 
         if end_row is None:
             end_row = start_row + 1  # Автоизменение размера будет применено только к start_row
+
+        requests = [{
+            "autoResizeDimensions": {
+                "dimensions": {
+                    "sheetId": sheet_id,
+                    "dimension": "ROWS",
+                    "startIndex": start_row,
+                    "endIndex": end_row
+                }
+            }
+        }]
+
+        body = {'requests': requests}
+        response = self.service.spreadsheets().batchUpdate(spreadsheetId=self.doc_id, body=body).execute()
+        return response
+
+    def auto_resize_last_row(self, sheet_name: str):
+        """
+        Автоматически изменяет ширину последней строки на указанном листе, чтобы содержимое помещалось.
+
+        @param sheet_name: Название листа.
+        """
+        sheet_id = self.sheets[sheet_name].id
+        if sheet_id is None:
+            print(f"Лист с именем '{sheet_name}' не найден.")
+            return
+
+        # Получить текущий индекс последней строки
+        response = self.service.spreadsheets().values().get(spreadsheetId=self.doc_id, range=sheet_name).execute()
+        num_rows = len(response.get('values', []))
+
+        # Если нет данных, нет смысла изменять размер строки
+        if num_rows == 0:
+            print(f"Лист '{sheet_name}' пустой.")
+            return
+
+        start_row = num_rows - 1
+        end_row = num_rows  # end_row не включается в диапазон, поэтому он равен индексу последней строки
 
         requests = [{
             "autoResizeDimensions": {

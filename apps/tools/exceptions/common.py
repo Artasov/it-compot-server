@@ -14,6 +14,10 @@ class NotFoundCourseUnitBySlotCodeException(BaseException):
     pass
 
 
+class StudentByAmoIdNotFound(BaseException):
+    pass
+
+
 class PaymentException(APIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = 'Произошла ошибка при добавлении платежа.'

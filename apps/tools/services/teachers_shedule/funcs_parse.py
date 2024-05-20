@@ -185,7 +185,7 @@ async def parse_teachers_schedule_from_dj_mem(uploaded_file):
 
     working_teachers = teachers_schedules
 
-    all_teachers = await CustomHHApiV2Manager().getActiveTeachersShortNames()  # Все имена преподаватели
+    all_teachers = await CustomHHApiV2Manager().get_active_teachers_short_names()  # Все имена преподаватели
     # pprint(all_teachers)
     # for teacher in working_teachers:
     #     print(teacher['name'].lower())

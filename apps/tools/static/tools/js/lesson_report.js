@@ -35,7 +35,7 @@ async function getThemesByDiscipline(discipline) {
 }
 
 
-async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, students_comments, lessonCompletionPercentage) {
+async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, students_comments, lessonCompletionPercentage, type) {
     try {
         console.log(students_comments)
         return await Client.sendPost(
@@ -48,6 +48,7 @@ async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, st
                 theme_name: theme_name,
                 lesson_completion_percentage: lessonCompletionPercentage,
                 students_comments: students_comments,
+                type: type,
             }
         );
     } catch (error) {
@@ -107,12 +108,12 @@ async function sendReport(e) {
             if (sDay['Date'] === choosedEdUnitDay[0]['Days'][choosedEdUnitDay[1]]['Date']) {
                 studentsComments.push({
                     ClientId: student['StudentClientId'],
-                    Description: sDay.Description || additionalInfoTextEl.value
+                    StudentName: student['StudentName'],
+                    Description: (sDay.Description.toLowerCase().includes('перенос') ? false : sDay.Description) || additionalInfoTextEl.value
                 });
             }
         }
     }
-
     const result = await postSendReport(
         choosedEdUnitDay[0]['Id'],
         choosedEdUnitDay[0]['Days'][choosedEdUnitDay[1]]['Date'],
@@ -121,7 +122,8 @@ async function sendReport(e) {
             3, themeSelectEl.textContent.length
         ),
         studentsComments,
-        lessonCompletionPercentage.value
+        lessonCompletionPercentage.value,
+        choosedEdUnitDay[0]['Type'],
     )
     console.log(result)
     if (result.success) {
@@ -187,19 +189,30 @@ setLoading(false);
 
 for (const unit of units) {
     const unitDays = unit.Days;
+    // Проверяем дни учебной единицы на отсутствие комментария
     for (let i = 0; i < unitDays.length; i++) {
         if (!unitDays[i].Pass) {
             let commentExists = true;
             for (const student of unit['Students']) {
                 for (const sDay of student['Days']) {
                     if (sDay['Date'] === unit['Days'][i]['Date']) {
-                        if (!sDay.Description) {
+                        if (!sDay.Description ||
+                            (
+                                sDay.Description.toLowerCase().includes('перенос') &&
+                                !sDay.Description.toLowerCase().includes('*'))
+                        ) {
                             commentExists = false;
                             break;
                         }
+                        console.log(sDay.Description.toLowerCase())
                     }
                 }
             }
+            // Проверяем студентов на 'пропуск' в комментарии
+            // const students = unit.Students
+            // for (const student of students) {
+            //
+            // }
             if (!commentExists) {
                 const unitEl = createEdUnitEl(unit, i)
                 unitEl.addEventListener('click', () => {
@@ -207,7 +220,9 @@ for (const unit of units) {
                 })
                 document.getElementById('units-container').appendChild(unitEl)
             }
+
         }
     }
+
 }
 chooseUnitContainer.classList.remove('d-none');

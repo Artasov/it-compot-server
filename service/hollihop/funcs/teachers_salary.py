@@ -22,7 +22,7 @@ async def get_teacher_salary_by_email(email: str) -> list:
     @return: List of teacher with completed lessons by email
     """
     teacher_target = None
-    teachers_active = await CustomHHApiV2Manager().getActiveTeachers()
+    teachers_active = await CustomHHApiV2Manager().get_active_teachers()
     for teacher in teachers_active:
         if teacher['EMail'] == email:
             teacher_target = teacher

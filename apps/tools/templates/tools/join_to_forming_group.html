@@ -15,17 +15,8 @@
 
 {% block content %}
     <style>
-        .ts-77 {
-            text-shadow: 0 0 3px #00000077;
-        }
-
         .ts-33 {
             text-shadow: 0 0 3px #00000033;
-        }
-
-        .btn-success {
-            background-color: rgba(32, 64, 225, 0.39) !important;
-            border-color: rgba(80, 110, 250, 0.58) !important;
         }
 
         .opacity-this85 {
@@ -37,7 +28,7 @@
     <img class="earth2" src="{% static 'tools/img/join_to_group/earth2.svg' %}" alt="">
     <img class="rocket" src="{% static 'tools/img/join_to_group/rocket.svg' %}" alt="">
     <div id="content" class="z-3 overflow-x-hidden d-none no-scrollbar mw-700px">
-        <div id="group_join_content" class="fccc gap-2 text-white disable-tap-and-selection py-3 mw-95 mx-auto">
+        <div id="group_join_content" class="fccc gap-2 text-white disable-tap-and-selection py-3 px-4 mx-auto">
             <div class="ts-33 group_loading_status_container text-center fc">
                 <h1 class="fs-01 mb-0 mt-3 text-nowrap">Запись в группу</h1>
                 <span class="fs-2 opacity-this85">Ищем группы для вас</span>
@@ -53,7 +44,8 @@
                 </div>
             </div>
             <div id="tz-info"
-                 class="d-none frcc flex-wrap gap-1 gap-sm-3 ts-33 px-5 py-2 fw-bold fs-6 text-center time_zone_info_block">
+                 class="d-none frcc flex-wrap gap-1 gap-sm-3 ts-33 px-5
+                        py-2 fw-bold fs-6 text-center time_zone_info_block">
                 <img src="{% static 'tools/img/join_to_group/warning.svg' %}" alt="" width="35"
                      class="d-sm-block d-none">
                 <span class="text-nowrap">Время по <span id="tz-span"></span> от МСК</span>
@@ -67,7 +59,6 @@
 
                 </ul>
             </div>
-
             <button class="schedule_item-button mw-90 w-min mb-2 d-none mx-auto text-nowrap" id="btn-nothing-fit"
                     data-bs-toggle="modal" style="filter: hue-rotate(116deg) brightness(1.2)"
                     data-bs-target="#nothingFitModal">
@@ -110,8 +101,10 @@
         <div class="modal-dialog modal-dialog-centered mx-auto">
             <div class="modal-content mw-90vw mx-auto modal-content-error border-3 border-danger">
                 <div class="frc mt-3">
-                    <h5 class="modal-title text-center fw-bold text-white text-white fs-1 ts-33" id="errorModalLabel">Ошибка</h5>
-                    <button type="button" class="m-0 position-absolute top-3 right-3" data-bs-dismiss="modal" aria-label="Close">
+                    <h5 class="modal-title text-center fw-bold text-white text-white fs-1 ts-33" id="errorModalLabel">
+                        Ошибка</h5>
+                    <button type="button" class="m-0 position-absolute top-3 right-3" data-bs-dismiss="modal"
+                            aria-label="Close">
                         <img src="{% static 'tools/img/join_to_group/btn-close-danger.svg' %}" width="40" alt="">
                     </button>
                 </div>
@@ -138,6 +131,27 @@
                     </ul>
                     <span class="dark-color mt-2 mb-1 mx-auto fw-bold modal-subtitle fs-8 text-center">Вы успешно записаны</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {#    Модальное окно Bootstrap для инормировании о летних занятиях #}
+    <div class="modal fade" id="summerInfo" tabindex="-1" aria-labelledby="summerInfoModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog fccc modal-dialog-centered mx-auto">
+            <div class="fccc modal-content mw-90vw mx-auto p-3 border-3 border-secondary position-relative overflow-hidden">
+                <img src="{% static 'tools/img/join_to_group/cat1.svg' %}"
+                     class="position-absolute" alt="" width="100"
+                     style="bottom: -16px; left: -27px; transform: rotate(41deg);">
+                <div class="modal-body fcc join_confirm">
+                    <h3 class="fw-bold text-center">Внимание!</h3>
+                    <p class="fs-5">Записываясь на уроки убедитесь, что вам подходят даты и время
+                        <span class="fw-bold">первого</span> и <span class="fw-bold">второго</span> урока.
+                        (В неделю два урока)</p>
+                </div>
+                <button type="button" class="schedule_item-button fs-6 mb-2"
+                        data-bs-dismiss="modal">Понятно
+                </button>
             </div>
         </div>
     </div>

@@ -15,6 +15,7 @@ class StudentToGroupSerializer(AsyncSerializer):
     group_id = serializers.IntegerField()
     student_id = serializers.IntegerField()
     client_tz = serializers.IntegerField()
+    join_type = serializers.CharField(max_length=50)
 
 
 class StudentAlreadyStudyingOnDisciplineSerializer(AsyncSerializer):

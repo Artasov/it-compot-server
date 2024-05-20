@@ -1,5 +1,3 @@
-import datetime
-
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -10,13 +8,13 @@ from apps.tools.services.teachers_salary.funcs import (
     filter_and_aggregate_teacher_lessons
 )
 from apps.tools.services.teachers_shedule.funcs import handle_teachers_schedule_upload
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
 
 @acontroller('Страница для записи на вводный модуль', True)
 async def join_to_forming_group(request) -> HttpResponse:
     return render(request, 'tools/join_to_forming_group.html', {
-        'theme': 'light'
+        'theme': 'light',
+        'without_header': True
     })
 
 

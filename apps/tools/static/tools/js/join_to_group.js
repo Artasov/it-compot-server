@@ -16,6 +16,9 @@ const chooseTZModal = new bootstrap.Modal(document.getElementById('chooseTZModal
     backdrop: 'static',
     keyboard: false
 });
+const summerInfoModal = new bootstrap.Modal(document.getElementById('summerInfo'), {
+    keyboard: false
+});
 
 function hideAllModals() {
     successModal.hide();
@@ -68,15 +71,16 @@ function raiseSuccessModal(title, subtitle, contentElement) {
     successModal.show();
 }
 
-async function postJoinStudentToGroup(student_id, group_id, TZ) {
+async function postJoinStudentToGroup(student_id, group_id, TZ, join_type) {
     try {
         return await Client.sendPost(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/student_to_forming_group/',
             {
-                'student_id': student_id,
-                'group_id': group_id,
-                'client_tz': TZ
+                student_id: student_id,
+                group_id: group_id,
+                client_tz: TZ,
+                join_type: join_type
             }
         );
     } catch (error) {
@@ -102,12 +106,12 @@ async function getIsStudentOnDiscipline() {
 }
 
 function joinStudentToGroup(student_id, group, TZ) {
-    postJoinStudentToGroup(student_id, group['Id'], TZ).then(response => {
+    postJoinStudentToGroup(student_id, group['Id'], TZ, join_type).then(response => {
         confirmationModal.hide();
         document.getElementById('confirmationModal').classList.remove('show');
 
         if (response.success) {
-            const groupPreview = createGroupEl(group, TZ);
+            const groupPreview = createUnitEl(group, TZ);
             groupPreview.classList.remove('bg-primary');
             groupPreview.classList.add('frcc');
             raiseSuccessModal(
@@ -121,9 +125,7 @@ function joinStudentToGroup(student_id, group, TZ) {
     })
 }
 
-
 function createDateFromString(dateTimeString) {
-    // Пример входной строки '2024-03-23 19:40'
     const parts = dateTimeString.split(' ');
     const dateParts = parts[0].split('-');
     const timeParts = parts[1].split(':');
@@ -131,58 +133,98 @@ function createDateFromString(dateTimeString) {
 }
 
 function adjustDateHours(date, hoursChange) {
-    const newDate = new Date(date); // Создаем копию, чтобы не изменять исходный объект
+    const newDate = new Date(date);
     newDate.setHours(newDate.getHours() + hoursChange);
     return newDate;
 }
 
-function createGroupEl(group, TZ, wrapperFilterStyle = '') {
+function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
     const div = document.createElement('div');
     div.className = 'schedule_item';
 
-    const dateP = document.createElement('p');
-    dateP.className = 'frcc gap-2 fs-5';
-    const schedule = group.ScheduleItems[0];
+    const dateP = document.createElement('div');
+    dateP.className = 'frcc gap-2 fs-5 w-100';
 
-    // Вычисляем даты относительно TZ
-    const moscowTZ = 3; // Московское время +3
+    const schedule = unit.ScheduleItems[0];
+    const first_day = unit.Days[0];
+
+    const moscowTZ = 3;
     const diff = TZ - moscowTZ;
     const datetimeStart = adjustDateHours(
-        createDateFromString(`${schedule.BeginDate} ${schedule.BeginTime}`),
+        createDateFromString(`${first_day.Date} ${schedule.BeginTime}`),
         diff
     );
     const datetimeEnd = adjustDateHours(
-        createDateFromString(`${schedule.BeginDate} ${schedule.EndTime}`),
+        createDateFromString(`${first_day.Date} ${schedule.EndTime}`),
         diff
     );
     const day = datetimeStart.getDate().toString().padStart(2, '0');
-    const month = (datetimeStart.getMonth() + 1).toString().padStart(2, '0'); // месяцы начинаются с 0
+    const month = (datetimeStart.getMonth() + 1).toString().padStart(2, '0');
     const startHours = datetimeStart.getHours().toString().padStart(2, '0');
     const startMinutes = datetimeStart.getMinutes().toString().padStart(2, '0');
     const endHours = datetimeEnd.getHours().toString().padStart(2, '0');
     const endMinutes = datetimeEnd.getMinutes().toString().padStart(2, '0');
 
-    dateP.innerHTML = `
-        <img src="/static/tools/img/join_to_group/time.svg" width="24" alt="">
-        <p class="schedule_item-date">${day}.${month}</p>
-        <p class="schedule_item-time">
-            ${startHours}:${startMinutes} - ${endHours}:${endMinutes}
-        </p>
-    `;
+    if (join_type === 'summer') {
+        const second_day = unit.Days[1];
+        const datetimeStart2 = adjustDateHours(
+            createDateFromString(`${second_day.Date} ${schedule.BeginTime}`),
+            diff
+        );
+        const datetimeEnd2 = adjustDateHours(
+            createDateFromString(`${second_day.Date} ${schedule.EndTime}`),
+            diff
+        );
+        const day2 = datetimeStart2.getDate().toString().padStart(2, '0');
+        const month2 = (datetimeStart2.getMonth() + 1).toString().padStart(2, '0');
+        const startHours2 = datetimeStart2.getHours().toString().padStart(2, '0');
+        const startMinutes2 = datetimeStart2.getMinutes().toString().padStart(2, '0');
+        const endHours2 = datetimeEnd2.getHours().toString().padStart(2, '0');
+        const endMinutes2 = datetimeEnd2.getMinutes().toString().padStart(2, '0');
+
+        dateP.innerHTML = `
+            <div class="fc w-100">
+                <div class="frc gap-2">
+                    <img src="/static/tools/img/join_to_group/time.svg" width="24" alt="">
+                    <p class="schedule_item-date">${day}.${month}</p>
+                    <p class="schedule_item-time">
+                        ${startHours}:${startMinutes} - ${endHours}:${endMinutes}
+                    </p>
+                </div>
+                <div class="frc gap-2">
+                    <img src="/static/tools/img/join_to_group/time.svg" width="24" alt="" class="opacity-0">
+                    <p class="schedule_item-date">${day2}.${month2}</p>
+                    <p class="schedule_item-time">
+                        ${startHours2}:${startMinutes2} - ${endHours2}:${endMinutes2}
+                    </p>
+                </div>
+            </div>
+        `;
+    } else {
+        dateP.innerHTML = `
+            <div class="fc w-100">
+                <div class="frc gap-2">
+                    <img src="/static/tools/img/join_to_group/time.svg" width="24" alt="">
+                    <p class="schedule_item-date">${day}.${month}</p>
+                    <p class="schedule_item-time">
+                        ${startHours}:${startMinutes} - ${endHours}:${endMinutes}
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+
     div.appendChild(dateP);
 
-    // Добавляем разделитель
     const divider = document.createElement('div');
     divider.className = 'schedule_item-divider';
     div.appendChild(divider);
 
-    // Добавляем информацию о преподавателе
     const teacherP = document.createElement('p');
     teacherP.className = 'schedule_item-teacher';
     teacherP.innerHTML = `Педагог<br><span>${schedule.Teacher}</span>`;
     div.appendChild(teacherP);
 
-    // Добавляем кнопку для записи
     const btnJoin = document.createElement('button');
     btnJoin.className = 'schedule_item-button';
     btnJoin.innerHTML = `Записаться`;
@@ -190,7 +232,7 @@ function createGroupEl(group, TZ, wrapperFilterStyle = '') {
 
     const studentsSpan = document.createElement('span');
     studentsSpan.className = 'schedule_item-place_leave';
-    studentsSpan.textContent = `Осталось мест: ${parseInt(group.Vacancies)}`;
+    studentsSpan.textContent = `Осталось мест: ${parseInt(unit.Vacancies)}`;
     div.appendChild(studentsSpan);
 
     const li = document.createElement('li');
@@ -199,6 +241,7 @@ function createGroupEl(group, TZ, wrapperFilterStyle = '') {
 
     return li;
 }
+
 
 async function send_nothing_fit(student_id, msg) {
     try {
@@ -217,6 +260,7 @@ async function send_nothing_fit(student_id, msg) {
 }
 
 
+let join_type = undefined;
 let loadedGroups = undefined;
 const resultContainerEl = document.querySelector('.result_container');
 const groupLoadingStatusContainerEl = document.querySelector('.group_loading_status_container');
@@ -228,14 +272,14 @@ function showGroupsWithTZ(TZ) {
     const hueRotateValues = [0, 55, 280, 343]; // Значения для hue-rotate
     for (let i = 0; i < loadedGroups.length; i++) {
         const hueRotate = hueRotateValues[i % hueRotateValues.length]; // Циклическое применение значений
-        const groupEl = createGroupEl(loadedGroups[i], TZ, `hue-rotate(${hueRotate}deg)`);
+        const groupEl = createUnitEl(loadedGroups[i], TZ, `hue-rotate(${hueRotate}deg)`);
         groupEl.addEventListener('click', () => {
             const studentId = Client.getParamsFromCurrentURL()['student_id'];
             confirmationModal.show();
 
             const modalBodyEl = document.querySelector('.confirmation-modal-body');
             modalBodyEl.innerHTML = '';
-            const groupPreview = createGroupEl(loadedGroups[i], TZ);
+            const groupPreview = createUnitEl(loadedGroups[i], TZ);
             groupPreview.classList.add('pointer-events-none', 'fs-5');
             modalBodyEl.appendChild(groupPreview);
 
@@ -294,7 +338,9 @@ async function main() {
     } else if (alreadyStudying === null) return;
 
     // Подгружаем группы
-    getAvailableFormingGroups().then(groups => {
+    getAvailableFormingGroups().then(result => {
+        join_type = result.join_type
+        const groups = result.groups
         if (groups.length === 0) {
             document.getElementById('nothing_fit_user_textarea').setAttribute(
                 'placeholder',
@@ -310,6 +356,9 @@ async function main() {
         for (const btnTz of btnsChooseTz) {
             btnTz.addEventListener('click', () => {
                 chooseTZModal.hide();
+                if (join_type === 'summer') {
+                    summerInfoModal.show();
+                }
                 document.getElementById('tz-info').classList.remove('d-none');
                 const tzByMoscow = parseInt(btnTz.value) - 3;
                 document.getElementById('tz-span').innerHTML = tzByMoscow < 0 ? `${tzByMoscow}` : `+${tzByMoscow}`;

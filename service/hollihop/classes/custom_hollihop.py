@@ -2,7 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
-from apps.tools.exeptions.common import PaymentException
+from apps.tools.exceptions.common import PaymentException
 from service.common.common import calculate_age
 from service.hollihop.classes.hollihop import HolliHopApiV2Manager
 from service.hollihop.consts import amo_hh_currencies, amo_hh_pay_methods
@@ -22,7 +22,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         """
         date: Строка формата YYYY-MM-DD
         """
-        await self.set_student_passes(**{
+        await self.setStudentPasses(**{
             'like_array': [
                 {
                     'Date': date,
@@ -32,7 +32,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                 }
             ]
         })
-        result = await self.set_student_passes(**{
+        result = await self.setStudentPasses(**{
             'like_array': [
                 {
                     'Date': date,
@@ -47,12 +47,12 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             raise SetCommentError('Ошибка при добавлении комментария')
 
     async def get_ed_unit_students_by_unit_id(self, ids: list[int, ...] | tuple[int, ...]):
-        tasks = [self.get_ed_unit_student(edUnitId=id) for id in ids]
+        tasks = [self.getEdUnitStudent(edUnitId=id) for id in ids]
         results = await asyncio.gather(*tasks)
         return [item for sublist in results if sublist for item in sublist]
 
-    async def getActiveTeachers(self):
-        teachers = await self.get_teachers(take=10000)
+    async def get_active_teachers(self):
+        teachers = await self.getTeachers(take=10000)
         active_teachers = []
         if teachers is not None:
             for teacher in teachers:
@@ -61,8 +61,8 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                     active_teachers.append(teacher)
         return active_teachers
 
-    async def getActiveTeachersShortNames(self) -> list:
-        all_teachers = await self.getActiveTeachers()
+    async def get_active_teachers_short_names(self) -> list:
+        all_teachers = await self.get_active_teachers()
         short_names_teachers = []
         for teacher in all_teachers:
             try:
@@ -114,21 +114,21 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         return None
 
     @staticmethod
-    async def isEdUnitStudentEndDateInFuture(unitStudent):
+    async def is_ed_unit_student_end_date_in_future(unitStudent):
         end_date_str = unitStudent['EndDate']
         end_time_str = unitStudent['EndTime']
         end_datetime_str = f"{end_date_str} {end_time_str}"
         end_date = datetime.strptime(end_datetime_str, '%Y-%m-%d %H:%M')
         return True if end_date > datetime.now() else False
 
-    async def isEdUnitStartInDateRangeForAllTeachers(
+    async def is_ed_unit_start_in_date_range_for_all_teachers(
             self, group, start_date: datetime, end_date: datetime
     ) -> bool:
         HHManager = HolliHopApiV2Manager()
         try:  # Если есть список учителей
             teacher_ids = [teacher['TeacherId'] for teacher in group['TeacherPrices']]
             for teacher_id in teacher_ids:
-                fGroupT = await HHManager.get_ed_units(id=group['Id'], teacherId=teacher_id)
+                fGroupT = await HHManager.getEdUnits(id=group['Id'], teacherId=teacher_id)
                 try:  # Если почему-то выдает 2 педагога, но в группе 1. Когда-то давно был и сменили
                     if not await self.is_ed_unit_start_in_date_range(fGroupT[0], start_date, end_date):
                         return False
@@ -140,16 +140,39 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         return True
 
     async def get_teacher_by_email(self, email):
-        teachers = await self.getActiveTeachers()
+        teachers = await self.get_active_teachers()
         for teacher in teachers:
             if teacher['EMail'] == email:
                 return teacher
 
-    async def get_ed_units_in_daterange(self, start_date: datetime, end_date: datetime, **kwargs) -> list[dict]:
+    async def get_full_teacher_name_by_email(self, email):
+        teacher = await self.get_teacher_by_email(email)
+        return f'{teacher["LastName"]} {teacher["FirstName"]} {teacher["MiddleName"]}'
+
+    @staticmethod
+    def filter_ed_units_with_days_later_than_date(units: list, date: datetime) -> list[dict]:
+        """Фильтрует массив учебных единиц у которых все дни(занятия) позже даты(date) включительно"""
+        return [
+            unit for unit in units
+            if all(datetime.strptime(day['Date'], '%Y-%m-%d') >= date for day in unit['Days'])
+        ]
+
+    @staticmethod
+    def filter_ed_units_with_days_earlier_than_date(units: list, date: datetime) -> list[dict]:
+        """Фильтрует массив учебных единиц у которых все дни(занятия) раньше даты(date) включительно"""
+        return [
+            unit for unit in units
+            if all(datetime.strptime(day['Date'], '%Y-%m-%d') <= date for day in unit['Days'])
+        ]
+
+    async def get_ed_units_with_day_in_daterange(
+            self, start_date: datetime, end_date: datetime, **kwargs
+    ) -> list[dict]:
         """Возвращает учебные единицы имеющие хотя бы один день в указанном диапазоне"""
-        ed_units = await self.get_ed_units(
+        ed_units = await self.getEdUnits(
             maxTake=10000,
             batchSize=1000,
+            queryDays=True,
             **kwargs
         )
         # print(ed_units)
@@ -159,12 +182,12 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                     start_date=start_date,
                     end_date=end_date)]
 
-    async def get_ed_units_with_days_in_daterange(
+    async def get_ed_units_with_filtered_days_in_daterange(
             self, start_date: datetime, end_date: datetime, **kwargs
     ) -> list[dict]:
         return [
             self.filter_ed_unit_days_by_daterange(unit, start_date, end_date)
-            for unit in await self.get_ed_units_in_daterange(
+            for unit in await self.get_ed_units_with_day_in_daterange(
                 start_date=start_date, end_date=end_date, **kwargs
             )
         ]
@@ -181,7 +204,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         ed_unit['Days'] = filtered_days
         return ed_unit
 
-    async def getAvailableFutureStartingEdUnits(self, **kwargs) -> list:
+    async def get_available_future_starting_ed_units(self, **kwargs) -> list:
         level = kwargs.pop('level', None)
         age = kwargs.pop('age', None)
         discipline = kwargs.get('discipline', None)
@@ -209,10 +232,10 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                 search_levels.append('Medium-hard')
         now = datetime.now()
 
-        # DIS = await self.get_disciplines()
+        # DIS = await self.getDisciplines()
         # pprint(DIS)
 
-        edUnitsFromToday = await self.get_ed_units(
+        edUnitsFromToday = await self.getEdUnits(
             # id=18111,
             queryTeacherPrices='true',
             disciplines=discipline,
@@ -233,7 +256,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # для каждого преподавателя побывавшего в группе
         edUnitsFromNowAvailableForJoin = [
             unit for unit in edUnitsFromTodayAvailableForJoin
-            if await self.isEdUnitStartInDateRangeForAllTeachers(
+            if await self.is_ed_unit_start_in_date_range_for_all_teachers(
                 unit,
                 now,
                 now + timedelta(weeks=3))
@@ -336,7 +359,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             "paymentMethodId": payment_method_id,
         }
         log.critical(payment_data)
-        response = await self.add_payment(**payment_data)
+        response = await self.addPayment(**payment_data)
         if response.get('success'):
             return response
         else:

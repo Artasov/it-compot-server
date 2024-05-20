@@ -6,6 +6,8 @@ from urllib.parse import urlencode
 import aiohttp as aiohttp
 from django.conf import settings
 
+from apps.tools.exceptions.common import StudentByAmoIdNotFound
+
 log = logging.getLogger('base')
 
 
@@ -63,28 +65,28 @@ class HolliHopApiV2Manager:
         url = f"https://{self.domain}/Api/V2/{endpoint}?authkey={self.authkey}"
         params['authkey'] = self.authkey
         async with aiohttp.ClientSession() as session:
-            if params['like_array']:
+            if params.get('like_array'):
                 response = await self.post_fetch(session, url, data=params['like_array'])
             else:
                 response = await self.post_fetch(session, url, data=params)
             return response
 
-    async def set_student_passes(self, **kwargs):
+    async def setStudentPasses(self, **kwargs):
         response = await self.api_post_call('SetStudentPasses', **kwargs)
         return response
 
-    async def get_teachers(self, **kwargs):
+    async def getTeachers(self, **kwargs):
         teachers = await self.api_call('GetTeachers', **kwargs)
         return teachers.get('Teachers', [])
 
-    async def add_ed_unit_student(self, **kwargs):
+    async def addEdUnitStudent(self, **kwargs):
         required_params = ['edUnitId', 'studentClientId']
         if not all(param in kwargs for param in required_params):
             raise ValueError(f"Missing required parameters: {', '.join(required_params)}")
         response = await self.api_post_call('AddEdUnitStudent', **kwargs)
         return response
 
-    async def edit_user_extra_fields(self, **kwargs):
+    async def editUserExtraFields(self, **kwargs):
         if 'leadId' not in kwargs and 'studentClientId' not in kwargs:
             raise ValueError("At least one of 'leadId' or 'studentClientId' must be provided")
         if 'fields' not in kwargs or not kwargs['fields']:
@@ -111,14 +113,14 @@ class HolliHopApiV2Manager:
             fields_for_api.append({'name': field_name, 'value': field_value})
 
         # Отправляем обновленные поля
-        response = await self.edit_user_extra_fields(
+        response = await self.editUserExtraFields(
             studentClientId=student['ClientId'],
             fields=fields_for_api
         )
 
         return response
 
-    async def set_student_auth_info(self, **kwargs):
+    async def setStudentAuthInfo(self, **kwargs):
         required_params = ['studentClientId']
         optional_params_with_defaults = {
             'loginType': 'Email',  # Значение по умолчанию, если не указано другое
@@ -131,15 +133,15 @@ class HolliHopApiV2Manager:
         response = await self.api_post_call('SetStudentAuthInfo', **kwargs)
         return response
 
-    async def get_disciplines(self, **kwargs):
+    async def getDisciplines(self, **kwargs):
         disciplines = await self.api_call('GetDisciplines', **kwargs)
         return disciplines.get('Disciplines', [])
 
-    async def get_levels(self, **kwargs):
+    async def getLevels(self, **kwargs):
         disciplines = await self.api_call('GetLevels', **kwargs)
         return disciplines.get('Levels', [])
 
-    async def get_students(self, **kwargs):
+    async def getStudents(self, **kwargs):
         students = await self.api_call('GetStudents', **kwargs)
         students = students.get('Students', [])
         return students if students else []
@@ -207,14 +209,14 @@ class HolliHopApiV2Manager:
         return [student[0] for student in students if student]
 
     async def get_student_by_id(self, session, student_id):
-        student_data = await self.get_students(clientId=str(student_id), session=session)
+        student_data = await self.getStudents(clientId=str(student_id), session=session)
         return student_data
 
-    async def get_ed_unit_student(self, **kwargs):
+    async def getEdUnitStudent(self, **kwargs):
         student_units = await self.api_call('GetEdUnitStudents', **kwargs)
         return student_units.get('EdUnitStudents', [])
 
-    async def get_ed_units(self, **kwargs):
+    async def getEdUnits(self, **kwargs):
         edUnits = await self.api_call_pagination('GetEdUnits', **kwargs)
         result_list = []
         for result in edUnits:
@@ -305,7 +307,7 @@ class HolliHopApiV2Manager:
         #     }
         # ]
 
-    async def get_ed_unit_students(self, **kwargs):
+    async def getEdUnitStudents(self, **kwargs):
         ed_unit_students = await self.api_call_pagination('GetEdUnitStudents', **kwargs)
         result_list = []
         for result in ed_unit_students:
@@ -365,13 +367,15 @@ class HolliHopApiV2Manager:
         # ]
 
     async def get_student_by_amo_id(self, student_amo_id: int):
-        student = await self.get_students(
+        students = await self.getStudents(
             extraFieldName='id ученика',
             extraFieldValue=student_amo_id
         )
-        return student[0]
+        if not students:
+            raise StudentByAmoIdNotFound(student_amo_id)
+        return students[0]
 
-    async def add_payment(self, **kwargs):
+    async def addPayment(self, **kwargs):
         required_params = ['clientId', 'officeOrCompanyId', 'value']  # 'supplies', только для типа Supplies
         if not all(param in kwargs for param in required_params):
             raise ValueError(f"Missing required parameters: {', '.join(required_params)}")
