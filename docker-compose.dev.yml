@@ -93,7 +93,7 @@ services:
 
       - LOG_PREFIX=server
     volumes:
-      - ./data:/data
+      - ./data:/srv/data
       - ./logs:/srv/logs
       - ../static:/static
       - ../media:/media
