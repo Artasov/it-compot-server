@@ -1,3 +1,4 @@
+import pandas as pd
 from django.conf import settings
 
 from service.tools.gsheet.classes.gsheetsclient import GSDocument
@@ -16,6 +17,6 @@ async def get_course_themes(course_name) -> list[str] | None:
     if not matched_sheet_name:
         return None
 
-    course_sheet = doc.get_sheet_data_as_df(matched_sheet_name)
-    res = course_sheet.iloc[1:, 1:].astype(str).values.tolist()
+    course_sheet = pd.DataFrame(doc.get_sheet_as_list(matched_sheet_name))
+    res = course_sheet.iloc[2:, 1:].astype(str).values.tolist()
     return res

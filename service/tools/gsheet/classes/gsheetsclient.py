@@ -1,8 +1,9 @@
 from typing import TypedDict, Literal, Optional
 
-import pandas as pd
+import httplib2
 from django.conf import settings
 from google.oauth2 import service_account
+from google_auth_httplib2 import AuthorizedHttp
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -54,20 +55,24 @@ class GSDocument:
         self.sheets_init()
 
     def _authenticate(self):
-        # Загружаем учетные данные и создаем сервис
         credentials = service_account.Credentials.from_service_account_file(
             self.creds_json_path,
             scopes=['https://www.googleapis.com/auth/spreadsheets']
         )
-        service = build('sheets', 'v4', credentials=credentials)
+
+        http = httplib2.Http(timeout=600)
+        authed_http = AuthorizedHttp(credentials, http=http)
+
+        service = build('sheets', 'v4', http=authed_http)
         return service
 
-    def get_sheet_data_as_df(self, sheet_name: str, range: str = None):
+    def get_sheet_as_list(self, sheet_name: str, range: str = None) -> list[list[str]]:
         """
-        Получает данные из указанного листа Google Sheets и возвращает их как DataFrame pandas.
+        Получает данные из указанного листа Google Sheets и возвращает их как массив строк.
 
         @param sheet_name: Название листа, из которого нужно извлечь данные.
         @param range: Диапазон ячеек для извлечения (например, 'A1:D500'). Если None, извлекаются все данные листа.
+        @return: Массив строк, представляющий данные листа.
         """
         # Если диапазон не задан, берем все данные листа
         if range is None:
@@ -79,15 +84,7 @@ class GSDocument:
         result = self.service.spreadsheets().values().get(spreadsheetId=self.doc_id, range=range).execute()
         values = result.get('values', [])
 
-        # Преобразуем данные в DataFrame
-        if not values:
-            print(f"Данные в листе {sheet_name} не найдены.")
-            return pd.DataFrame()
-        else:
-            df = pd.DataFrame(values)
-            df.columns = df.iloc[0]  # Установка первой строки как заголовки столбцов
-            df = df[1:]  # Удаление первой строки с данными, т.к. она теперь заголовок
-            return df
+        return values
 
     def sheets_init(self):
         sheets_meta = self.get_sheets_meta()

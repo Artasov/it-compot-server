@@ -20,6 +20,7 @@ def signout(request):
     logout(request)
     return redirect('stupid_auth')
 
+
 def stupid_auth(request) -> HttpResponse:
     form = StupidAuthForm(request.POST or None)
     if form.is_valid():
