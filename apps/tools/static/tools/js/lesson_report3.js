@@ -1,11 +1,17 @@
 import Client from "../../../../static/Core/js/classes/Client.js";
 
 const errorTextEl = document.querySelector('.error-text');
+const loadingEl = document.getElementById('loading_spinner_block-lessons');
+
+function setLoading(flag) {
+    loadingEl.className = `${flag ? '' : 'd-none'}`
+}
 
 function setError(error_text) {
     errorTextEl.innerHTML = error_text;
     setLoading(false);
 }
+
 try {
     function isDateInRange(dateStr, startDate, endDate) {
         const date = new Date(dateStr);
@@ -65,11 +71,6 @@ try {
         }
     }
 
-    const loadingEl = document.getElementById('loading_spinner_block-lessons');
-
-    function setLoading(flag) {
-        loadingEl.className = `${flag ? '' : 'd-none'}`
-    }
 
     const chooseUnitContainer = document.querySelector('.choose_unit_container');
     const successTextEl = document.querySelector('.success-text');
@@ -95,7 +96,7 @@ try {
         lessonSetInfoContainer.classList.add('d-none');
         setLoading(true);
 
-        if (themeSelectEl.value === '0') {
+        if (!themeSelectEl.classList.contains('d-none') && themeSelectEl.value === '0') {
             setError('Вы не выбрали тему для занятия.')
             return;
         }
@@ -116,14 +117,20 @@ try {
                 }
             }
         }
-
+        let themeName;
+        if (themeSelectEl.classList.contains('d-none')) {
+            themeName = 'Занятия вне программы.';
+            themeSelectEl.value = '';
+        } else {
+            themeName = themeSelectEl.querySelector(`option[value="${themeSelectEl.value}"]`).textContent.slice(
+                3, themeSelectEl.textContent.length
+            )
+        }
         const result = await postSendReport(
             choosedEdUnitDay[0]['Id'],
             choosedEdUnitDay[0]['Days'][choosedEdUnitDay[1]]['Date'],
             themeSelectEl.value,
-            themeSelectEl.querySelector(`option[value="${themeSelectEl.value}"]`).textContent.slice(
-                3, themeSelectEl.textContent.length
-            ),
+            themeName,
             studentsComments,
             lessonCompletionPercentage.value,
             choosedEdUnitDay[0]['Type'],
@@ -145,18 +152,22 @@ try {
         choosedEdUnitDay = [unit, day_index]
         lessonPreviewEl.appendChild(createEdUnitEl(unit, day_index));
         const response = await getThemesByDiscipline(unit.Discipline);
-        // add select title
-        themeSelectEl.innerHTML = '';
-        const themeBaseOptionEl = document.createElement('option');
-        themeBaseOptionEl.textContent = 'Выберите тему урока';
-        themeBaseOptionEl.value = 0;
-        themeSelectEl.appendChild(themeBaseOptionEl);
-        // add themes options
-        for (let i = 0; i < response.themes.length; i++) {
-            const themeOptionEl = document.createElement('option');
-            themeOptionEl.textContent = `${i + 1}. ` + response.themes[i][0];
-            themeOptionEl.value = i + 1;
-            themeSelectEl.appendChild(themeOptionEl);
+        if (response.themes) {
+            // add select title
+            themeSelectEl.innerHTML = '';
+            const themeBaseOptionEl = document.createElement('option');
+            themeBaseOptionEl.textContent = 'Выберите тему урока';
+            themeBaseOptionEl.value = 0;
+            themeSelectEl.appendChild(themeBaseOptionEl);
+            // add themes options
+            for (let i = 0; i < response.themes.length; i++) {
+                const themeOptionEl = document.createElement('option');
+                themeOptionEl.textContent = `${i + 1}. ` + response.themes[i][0];
+                themeOptionEl.value = i + 1;
+                themeSelectEl.appendChild(themeOptionEl);
+            }
+        } else {
+            themeSelectEl.classList.add('d-none')
         }
         lessonSetInfoContainer.classList.remove('d-none');
         setLoading(false);

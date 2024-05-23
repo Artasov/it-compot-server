@@ -42,7 +42,7 @@ async def send_lesson_report(request):
     lesson_completion_percentage = request.POST.get('lesson_completion_percentage')
     students_comments = request.POST.get('students_comments')
     type_ed_unit = request.POST.get('type')
-    if not all((ed_unit_id, day_date, theme_number, theme_name, lesson_completion_percentage)):
+    if not all((ed_unit_id, day_date, theme_name, lesson_completion_percentage)):
         return JsonResponse({'success': False, 'error': 'Неверные данные для отправки отчета.'}, 400)
 
     try:
@@ -58,7 +58,7 @@ async def send_lesson_report(request):
                 ed_unit_id=ed_unit_id,
                 student_client_id=student_comment['ClientId'],
                 date=day_date,
-                description=f'* {theme_number}. {theme_name}\n'
+                description=f'* {theme_number}{". " if theme_number else ""}{theme_name}\n'
                             f'* Завершено на: {lesson_completion_percentage}%\n'
                             f'* {student_comment["Description"]}'
             )
