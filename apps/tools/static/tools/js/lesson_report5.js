@@ -223,7 +223,6 @@ try {
 
 
     function createEdUnitEl(unit, day_index) {
-        console.log(unit)
         const unitEl = document.createElement('div');
         unitEl.setAttribute('id', unit.Id);
         unitEl.className = 'fcss bg-opacity-25 bg-secondary p-2 rounded-2 position-relative';
@@ -233,8 +232,8 @@ try {
         unitEl.appendChild(nameEl);
 
         const timeEl = document.createElement('p');
-        if (unit.ScheduleItems && unit.ScheduleItems.length !== 0) {
-            timeEl.textContent = `${unit.Days[day_index].Date} ${unit.ScheduleItems[0].BeginTime}`;
+        if (unit.Students[0]) {
+            timeEl.textContent = `${unit.Days[day_index].Date} ${unit.Students[0].BeginTime}`;
         } else {
             timeEl.textContent = 'Время не указано';
         }
@@ -262,22 +261,22 @@ try {
                             if (!sDay.Description ||
                                 (
                                     sDay.Description.toLowerCase().includes('перенос') &&
-                                    !sDay.Description.toLowerCase().includes('*'))
+                                    !sDay.Description.toLowerCase().includes('*')
+                                )
                             ) {
                                 commentExists = false;
                                 break;
                             }
-                            console.log(sDay.Description.toLowerCase())
                         }
                     }
                 }
-                // Проверяем студентов на 'пропуск' в комментарии
-                // const students = unit.Students
-                // for (const student of students) {
-                //
-                // }
                 if (!commentExists) {
                     const unitEl = createEdUnitEl(unit, i)
+
+                    if (unit.Type === 'Individual') {
+                        console.log(unit)
+                    }
+
                     unitEl.addEventListener('click', () => {
                         chooseEdUnitDay(unit, i);
                     })
