@@ -232,11 +232,7 @@ try {
         unitEl.appendChild(nameEl);
 
         const timeEl = document.createElement('p');
-        if (unit.Students[0]) {
-            timeEl.textContent = `${unit.Days[day_index].Date} ${unit.Students[0].BeginTime}`;
-        } else {
-            timeEl.textContent = 'Время не указано';
-        }
+        timeEl.textContent = `${unit.Days[day_index].Date} ${unit.Students[0].BeginTime}`;
         unitEl.appendChild(timeEl);
 
         return unitEl;
