@@ -13,8 +13,10 @@ function setError(error_text) {
 }
 
 try {
-    function isDateInRange(dateStr, startDate, endDate) {
+    function isDateInRange(dateStr, startDateStr, endDateStr) {
         const date = new Date(dateStr);
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
         return date >= startDate && date <= endDate;
     }
 
@@ -232,7 +234,17 @@ try {
         unitEl.appendChild(nameEl);
 
         const timeEl = document.createElement('p');
-        timeEl.textContent = `${unit.Days[day_index].Date} ${unit.Students[0].BeginTime}`;
+        if (unit.Type === 'Individual') {
+            timeEl.textContent = `${unit.Days[day_index].Date} ${unit.Students[0].BeginTime}`;
+        } else {
+            for (const scheduleItem of unit.ScheduleItems) {
+                if(isDateInRange(unit.Days[day_index].Date), scheduleItem.BeginDate, scheduleItem.EndDate){
+                    timeEl.textContent = `${unit.Days[day_index].Date} ${scheduleItem.BeginTime}`;
+                    break;
+                }
+            }
+        }
+
         unitEl.appendChild(timeEl);
 
         return unitEl;
@@ -269,7 +281,7 @@ try {
                 if (!commentExists) {
                     const unitEl = createEdUnitEl(unit, i)
 
-                    if (unit.Type === 'Individual') {
+                    if (unit.Type !== 'Individual') {
                         console.log(unit)
                     }
 
@@ -285,5 +297,6 @@ try {
     }
     chooseUnitContainer.classList.remove('d-none');
 } catch (e) {
+    console.error(e)
     setError(e)
 }
