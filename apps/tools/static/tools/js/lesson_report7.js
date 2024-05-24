@@ -36,7 +36,6 @@ try {
 
     async function getThemesByDiscipline(discipline) {
         try {
-            console.log(discipline)
             return await Client.sendGet(
                 Client.getProtocolAndDomain() +
                 '/api/v1/tools/get_course_themes_view/',
@@ -52,7 +51,6 @@ try {
 
     async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, students_comments, lessonCompletionPercentage, type) {
         try {
-            console.log(students_comments)
             return await Client.sendPost(
                 Client.getProtocolAndDomain() +
                 '/api/v1/tools/send_lesson_report/',
@@ -99,10 +97,6 @@ try {
 
     async function sendReport(e) {
         e.preventDefault();
-        lessonSetInfoContainer.classList.add('d-none');
-        setLoading(true);
-
-        btnBackToChooseUnit.classList.add('d-none');
 
         if (!themeSelectEl.classList.contains('d-none') && themeSelectEl.value === '0') {
             setError('Вы не выбрали тему для занятия.')
@@ -112,6 +106,12 @@ try {
             setError('Урок пройден менее чем на 1%.')
             return;
         }
+
+        lessonSetInfoContainer.classList.add('d-none');
+        setError('');
+        setLoading(true);
+        btnBackToChooseUnit.classList.add('d-none');
+
         let studentsComments = [];
         for (const student of choosedEdUnitDay[0]['Students']) {
             for (const sDay of student['Days']) {
@@ -120,6 +120,7 @@ try {
                     studentsComments.push({
                         ClientId: student['StudentClientId'],
                         StudentName: student['StudentName'],
+                        Pass: sDay.Pass,
                         Description: (description.toLowerCase().includes('перенос') ? false : description) || additionalInfoTextEl.value
                     });
                 }
@@ -281,9 +282,9 @@ try {
                 if (!commentExists) {
                     const unitEl = createEdUnitEl(unit, i)
 
-                    if (unit.Type !== 'Individual') {
-                        console.log(unit)
-                    }
+                    // if (unit.Type !== 'Individual') {
+                    //     console.log(unit)
+                    // }
 
                     unitEl.addEventListener('click', () => {
                         chooseEdUnitDay(unit, i);

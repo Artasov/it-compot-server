@@ -31,7 +31,7 @@ from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCo
 
 log = logging.getLogger('base')
 
-JsonResponse
+
 @acontroller('Отправка отчета по занятию.', auth=True)
 @asemaphore_handler
 async def send_lesson_report(request):
@@ -58,6 +58,7 @@ async def send_lesson_report(request):
                 ed_unit_id=ed_unit_id,
                 student_client_id=student_comment['ClientId'],
                 date=day_date,
+                passed=student_comment['Pass'],
                 description=f'* {theme_number}{". " if theme_number else ""}{theme_name}\n'
                             f'* Завершено на: {lesson_completion_percentage}%\n'
                             f'* {student_comment["Description"]}'

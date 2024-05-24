@@ -17,32 +17,29 @@ class SetCommentError(BaseException):
 class CustomHHApiV2Manager(HolliHopApiV2Manager):
 
     async def set_comment_for_student_ed_unit(
-            self, ed_unit_id: int, student_client_id: int, date: str, description: str
+            self, ed_unit_id: int, student_client_id: int, date: str, passed: bool, description: str
     ) -> None:
         """
         date: Строка формата YYYY-MM-DD
         """
-        await self.setStudentPasses(**{
-            'like_array': [
-                {
-                    'Date': date,
-                    'EdUnitId': ed_unit_id,
-                    'StudentClientId': student_client_id,
-                    'Pass': True
-                }
-            ]
-        })
-        result = await self.setStudentPasses(**{
-            'like_array': [
-                {
-                    'Date': date,
-                    'EdUnitId': ed_unit_id,
-                    'StudentClientId': student_client_id,
-                    'Description': description,
-                    'Pass': False
-                }
-            ]
-        })
+        first_pass = not passed
+        second_pass = passed
+
+        await self.setStudentPasses(like_array=[{
+            'Date': date,
+            'EdUnitId': ed_unit_id,
+            'StudentClientId': student_client_id,
+            'Pass': first_pass
+        }])
+
+        result = await self.setStudentPasses(like_array=[{
+            'Date': date,
+            'EdUnitId': ed_unit_id,
+            'StudentClientId': student_client_id,
+            'Description': description,
+            'Pass': second_pass
+        }])
+
         if not result.get('success'):
             raise SetCommentError('Ошибка при добавлении комментария')
 
@@ -142,7 +139,8 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
     async def get_teacher_by_email(self, email):
         teachers = await self.get_active_teachers()
         for teacher in teachers:
-            if teacher['EMail'] == email:
+            print(teacher['EMail'])
+            if teacher['EMail'].lower() == email.lower():
                 return teacher
 
     async def get_full_teacher_name_by_email(self, email):
