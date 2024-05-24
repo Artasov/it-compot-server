@@ -31,7 +31,7 @@ from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCo
 
 log = logging.getLogger('base')
 
-
+JsonResponse
 @acontroller('Отправка отчета по занятию.', auth=True)
 @asemaphore_handler
 async def send_lesson_report(request):

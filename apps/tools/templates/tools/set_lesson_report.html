@@ -16,7 +16,10 @@
          data-bs-theme="dark"
          style="max-width: 400px;">
         <div class="row disable-tap-and-selection ">
-            <h1 class="text-dark-emphasis fs-2 text-center">Комментарий к уроку</h1>
+            <div class="frcc gap-1">
+                <h1 class="text-dark-emphasis fs-2 text-center m-0">Комментарий к уроку</h1>
+                <button id="btn-back-to-choose-unit" class="bg-opacity-25 bg-secondary px-1 rounded-2 d-none">Назад</button>
+            </div>
             <form class="px-3 py-1 text-center" method="post" action="{% url 'stupid_auth' %}">
                 {% csrf_token %}
                 <span class="error-text text-danger fw-bold text-center"></span>
@@ -35,8 +38,8 @@
 
                 <div class="lesson_set_info_container d-none">
                     <p class="mb-2">Заполните информацию о занятии</p>
-                    <div id="lesson-preview" class="mb-2"></div>
-                    <select class="lesson_theme_select form-select form-select-sm mb-2"
+                    <div id="lesson-preview" class="mb-2 fc gap-1"></div>
+                    <select class="lesson_theme_select form-select form-select-sm mb-2 mt-5"
                             aria-label=".form-select-lg" name="lesson_theme_select">
                         <option selected>Выберите тему урока</option>
                         <option value="1">Один</option>

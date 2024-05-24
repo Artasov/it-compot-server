@@ -79,6 +79,9 @@ try {
     const lessonPreviewEl = document.getElementById('lesson-preview');
 
     const btnReportSubmit = document.getElementById('btn-report-submit');
+    const btnBackToChooseUnit = document.getElementById('btn-back-to-choose-unit');
+    btnBackToChooseUnit.addEventListener('click', backToChooseUnit);
+
     const themeSelectEl = document.querySelector('.lesson_theme_select');
     const additionalInfoTextEl = document.querySelector('textarea[name="additional_info_text"]');
     btnReportSubmit.addEventListener('click', sendReport);
@@ -91,10 +94,13 @@ try {
 
     let choosedEdUnitDay = [];
 
+
     async function sendReport(e) {
         e.preventDefault();
         lessonSetInfoContainer.classList.add('d-none');
         setLoading(true);
+
+        btnBackToChooseUnit.classList.add('d-none');
 
         if (!themeSelectEl.classList.contains('d-none') && themeSelectEl.value === '0') {
             setError('Вы не выбрали тему для занятия.')
@@ -137,20 +143,61 @@ try {
         )
         console.log(result)
         if (result.success) {
-            successTextEl.innerHTML = 'Комментарий к уроку успешно отправлен!'
+            successTextEl.innerHTML = 'Комментарий к уроку успешно отправлен!';
+            document.getElementById(choosedEdUnitDay[0]['Id']).remove();
         } else {
             setError(result.error)
             lessonSetInfoContainer.classList.remove('d-none');
         }
+        btnBackToChooseUnit.classList.remove('d-none');
         setLoading(false);
     }
 
+    function backToChooseUnit() {
+        lessonSetInfoContainer.classList.add('d-none');
+        chooseUnitContainer.classList.remove('d-none');
+        btnBackToChooseUnit.classList.add('d-none');
+        lessonPreviewEl.innerHTML = '';
+        successTextEl.innerHTML = '';
+        setError('');
+    }
 
     async function chooseEdUnitDay(unit, day_index) {
         setLoading(true);
         chooseUnitContainer.classList.add('d-none');
-        choosedEdUnitDay = [unit, day_index]
+        choosedEdUnitDay = [unit, day_index];
         lessonPreviewEl.appendChild(createEdUnitEl(unit, day_index));
+        if (unit.Type !== 'Individual') {
+            const studentsSpanEl = document.createElement('p');
+            studentsSpanEl.innerHTML = 'Ученики';
+            studentsSpanEl.className = 'text-left';
+            lessonPreviewEl.appendChild(studentsSpanEl);
+            for (const student of unit.Students) {
+                const studentEl = document.createElement('div');
+                studentEl.className = 'frsc bg-opacity-25 bg-secondary p-2 rounded-2';
+                studentEl.innerHTML = student.StudentName;
+                lessonPreviewEl.appendChild(studentEl);
+            }
+        }
+        if (day_index !== 0) {
+            const day = unit.Days[day_index - 1];
+            const student = unit.Students[0]; // Берем первого студента на похуй
+            const sDays = student.Days;
+            for (const sDay of sDays) {
+                if (sDay.Date === day['Date']) {
+                    if (sDay.Description) {
+                        const previewsThemeSpanEl = document.createElement('p');
+                        previewsThemeSpanEl.innerHTML = 'Предыдущая тема';
+                        previewsThemeSpanEl.className = 'text-left';
+                        lessonPreviewEl.appendChild(previewsThemeSpanEl)
+                        const previewsThemeEl = document.createElement('div');
+                        previewsThemeEl.innerHTML = sDay.Description.replace(/\*/g, '<br>*').replace('<br>', '');
+                        previewsThemeEl.className = 'frsc bg-opacity-25 bg-secondary p-2 rounded-2 text-left';
+                        lessonPreviewEl.appendChild(previewsThemeEl)
+                    }
+                }
+            }
+        }
         const response = await getThemesByDiscipline(unit.Discipline);
         if (response.themes) {
             // add select title
@@ -171,12 +218,14 @@ try {
         }
         lessonSetInfoContainer.classList.remove('d-none');
         setLoading(false);
+        btnBackToChooseUnit.classList.remove('d-none');
     }
 
 
     function createEdUnitEl(unit, day_index) {
         console.log(unit)
         const unitEl = document.createElement('div');
+        unitEl.setAttribute('id', unit.Id);
         unitEl.className = 'fcss bg-opacity-25 bg-secondary p-2 rounded-2 position-relative';
 
         const nameEl = document.createElement('span');
