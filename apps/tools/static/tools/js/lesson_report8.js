@@ -147,7 +147,7 @@ try {
         console.log(result)
         if (result.success) {
             successTextEl.innerHTML = 'Комментарий к уроку успешно отправлен!';
-            document.getElementById(choosedEdUnitDay[0]['Id']).remove();
+            document.getElementById(`${choosedEdUnitDay[0]['Id']}-${choosedEdUnitDay[1]}`).remove();
         } else {
             setError(result.error)
             lessonSetInfoContainer.classList.remove('d-none');
@@ -226,8 +226,9 @@ try {
 
 
     function createEdUnitEl(unit, day_index) {
+        console.log(unit)
         const unitEl = document.createElement('div');
-        unitEl.setAttribute('id', unit.Id);
+        unitEl.setAttribute('id', `${unit.Id}-${day_index}`);
         unitEl.className = 'fcss bg-opacity-25 bg-secondary p-2 rounded-2 position-relative';
 
         const nameEl = document.createElement('span');
