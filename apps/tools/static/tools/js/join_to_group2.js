@@ -166,6 +166,7 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
     const endMinutes = datetimeEnd.getMinutes().toString().padStart(2, '0');
 
     if (join_type === 'summer') {
+        console.log(unit)
         const second_day = unit.Days[1];
         const datetimeStart2 = adjustDateHours(
             createDateFromString(`${second_day.Date} ${schedule.BeginTime}`),
@@ -272,6 +273,10 @@ function showGroupsWithTZ(TZ) {
     const hueRotateValues = [0, 55, 280, 343]; // Значения для hue-rotate
     for (let i = 0; i < loadedGroups.length; i++) {
         const hueRotate = hueRotateValues[i % hueRotateValues.length]; // Циклическое применение значений
+        // Пропуск если лето и всего 1 день найден
+        if (join_type === 'summer' && loadedGroups[i].Days.length < 2){
+            continue;
+        }
         const groupEl = createUnitEl(loadedGroups[i], TZ, `hue-rotate(${hueRotate}deg)`);
         groupEl.addEventListener('click', () => {
             const studentId = Client.getParamsFromCurrentURL()['student_id'];
