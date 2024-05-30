@@ -20,7 +20,7 @@ from apps.tools.serializers import (
     SendNothingFitSerializer,
     BuildLinkForJoinToFormingGroupSerializer, AddHhPaymentByAmoSerializer,
 )
-from apps.tools.services.lesson_report import send_gs_lesson_report
+from apps.tools.services.lesson_report.funcs import send_gs_lesson_report
 from apps.tools.services.other import get_course_themes
 from apps.tools.services.signup_group.funcs import (
     is_student_in_group_on_discipline,
@@ -68,6 +68,7 @@ async def send_lesson_report(request):
                 type_ed_unit=type_ed_unit,
                 ed_unit_id=ed_unit_id,
                 student_name=student_comment['StudentName'],
+                student_amo_id=student_comment['StudentAmoId'],
                 student_client_id=student_comment['ClientId'],
                 date=day_date,
                 description=f'* {theme_number}. {theme_name}\n'

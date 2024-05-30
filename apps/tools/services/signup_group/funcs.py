@@ -37,24 +37,24 @@ async def is_unit_suits_for_join(unit: dict, search_levels: list, age: int, disc
     HHM = CustomHHApiV2Manager()
     # Получаем студентов группы
     edUnitsStudent = await HHM.get_ed_unit_students_by_unit_id([unit['Id']])
-    students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
-                    unitS['EdUnitId'] == unit['Id']]
-    students_ids_set = set(students_ids)
+    students_client_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
+                           unitS['EdUnitId'] == unit['Id']]
+    students_client_ids_set = set(students_client_ids)
     unique_student_ids = set()
     for unitS in edUnitsStudent:
         unique_student_ids.add(int(unitS['StudentClientId']))
     # Преобразуем set в tuple для запроса
-    student_ids_tuple = tuple(set(unique_student_ids))
+    student_client_ids_tuple = tuple(set(unique_student_ids))
     # Получаем информацию по всем студентам одним запросом
-    all_students_info = await HHM.get_students_by_ids(student_ids_tuple)
+    all_students_info = await HHM.get_students_by_client_ids(student_client_ids_tuple)
     # Преобразуем результат в словарь для удобства доступа
     students_info_dict = {student['ClientId']: student for student in all_students_info}
 
     # Если в группе еще пусто
-    if not students_ids_set:
+    if not students_client_ids_set:
         return True
     # Используем предварительно полученную информацию о студентах
-    students = [students_info_dict[student_id] for student_id in students_ids_set if
+    students = [students_info_dict[student_id] for student_id in students_client_ids_set if
                 student_id in students_info_dict]
 
     for student in students:
@@ -150,11 +150,17 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
     student = await HHManager.get_student_by_amo_id(student_amo_id=student_id)
 
     # 1 ГРУППА
-    forming_unit = (await HHManager.getEdUnits(id=group_id))[0]
+    forming_unit = (await HHManager.getEdUnits(
+        id=group_id,
+        queryDays=True,
+        maxTake=1
+    ))[0]
     if not is_unit_vacant_for_join(unit=forming_unit):
         raise UnitAlreadyFullException
 
-    start_forming_unit_date = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginDate'], '%Y-%m-%d')
+    start_forming_unit_date_lesson1 = datetime.strptime(forming_unit['Days'][0]['Date'], '%Y-%m-%d')
+    start_forming_unit_date_lesson2 = datetime.strptime(forming_unit['Days'][1]['Date'], '%Y-%m-%d') if len(
+        forming_unit['Days']) > 1 else None
     start_forming_group_time = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginTime'], '%H:%M')
 
     # pprint(forming_unit)
@@ -181,9 +187,16 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
     if result1.get('success'):
         # Отправляем отчет в амо тригер чтобы проставились данные в сделку.
         datatime_start_moscow = datetime.combine(
-            start_forming_unit_date.date(),
+            start_forming_unit_date_lesson1.date(),
             start_forming_group_time.time()
         )
+        if start_forming_unit_date_lesson2 is not None:
+            datatime_start2_moscow = datetime.combine(
+                start_forming_unit_date_lesson2.date(),
+                start_forming_group_time.time()
+            )
+        else:
+            datatime_start2_moscow = None
         report_result = await send_report_join_to_forming_group(
             student_id=student_id,
             tel_number=student['Agents'][0]['Mobile'],
@@ -195,6 +208,10 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             teacher_name=forming_unit['ScheduleItems'][0]['Teacher'],
             datetime_start_moscow=int(datatime_start_moscow.timestamp()),  # Дата и время старта ВМ
             datetime_start_client_tz=int((datatime_start_moscow + timedelta(hours=client_tz - 3)).timestamp()),
+            datetime_start2_moscow=int(
+                datatime_start2_moscow.timestamp()) if datatime_start2_moscow is not None else None,
+            datetime_start2_client_tz=int((datatime_start_moscow + timedelta(
+                hours=client_tz - 3)).timestamp()) if datatime_start2_moscow is not None else None,
             date_end=int(start_forming_unit_date2.timestamp()) if start_forming_unit_date2 else 0,  # Дата окончания ВМ
         )
         if not report_result:
@@ -336,6 +353,8 @@ async def send_report_join_to_forming_group(
         teacher_name: str,
         datetime_start_moscow: int,
         datetime_start_client_tz: int,
+        datetime_start2_moscow: int,
+        datetime_start2_client_tz: int,
         date_end: int,
 ) -> bool:
     """
@@ -348,6 +367,8 @@ async def send_report_join_to_forming_group(
     @param teacher_name: Его имя
     @param datetime_start_moscow: timestamp Дата и время старта вводного модуля по москве
     @param datetime_start_client_tz: timestamp Дата и время старта вводного модуля по TZ клиента
+    @param datetime_start_moscow: timestamp Дата и время старта вводного модуля второго урока на лето по москве
+    @param datetime_start_client_tz: timestamp Дата и время старта вводного модуля второго урока на лето по TZ клиента
     @param date_end: Дата окончания вводного модуля
     @return:
     """
@@ -364,6 +385,8 @@ async def send_report_join_to_forming_group(
                     'teacher_name': teacher_name,
                     'datetime_start_moscow': datetime_start_moscow,
                     'datetime_start_client_tz': datetime_start_client_tz,
+                    'datetime_start2_moscow': datetime_start2_moscow,
+                    'datetime_start2_client_tz': datetime_start2_client_tz,
                     'date_end': date_end,
                 },
         ) as response:

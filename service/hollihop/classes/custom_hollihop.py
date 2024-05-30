@@ -44,7 +44,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             raise SetCommentError('Ошибка при добавлении комментария')
 
     async def get_ed_unit_students_by_unit_id(self, ids: list[int, ...] | tuple[int, ...]):
-        tasks = [self.getEdUnitStudent(edUnitId=id) for id in ids]
+        tasks = [self.get_ed_unit_student(edUnitId=id) for id in ids]
         results = await asyncio.gather(*tasks)
         return [item for sublist in results if sublist for item in sublist]
 
@@ -139,7 +139,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
     async def get_teacher_by_email(self, email):
         teachers = await self.get_active_teachers()
         for teacher in teachers:
-            print(teacher['EMail'])
             if teacher['EMail'].lower() == email.lower():
                 return teacher
 
@@ -278,7 +277,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # Преобразуем set в tuple для запроса
         student_ids_tuple = tuple(set(unique_student_ids))
         # Получаем информацию по всем студентам одним запросом
-        all_students_info = await self.get_students_by_ids(student_ids_tuple)
+        all_students_info = await self.get_students_by_client_ids(student_ids_tuple)
 
         # print(f'{all_students_info[:2]=}')
         # print(f'{student_ids_tuple=}')

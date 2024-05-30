@@ -117,9 +117,16 @@ try {
             for (const sDay of student['Days']) {
                 if (sDay['Date'] === choosedEdUnitDay[0]['Days'][choosedEdUnitDay[1]]['Date']) {
                     const description = sDay.Description ? sDay.Description : '';
+                    let studentAmoId = null;
+                    for (const extraField of student.StudentExtraFields){
+                        if (extraField.Name === 'id ученика'){
+                            studentAmoId = extraField.Value;
+                        }
+                    }
                     studentsComments.push({
                         ClientId: student['StudentClientId'],
                         StudentName: student['StudentName'],
+                        StudentAmoId: studentAmoId,
                         Pass: sDay.Pass,
                         Description: (description.toLowerCase().includes('перенос') ? false : description) || additionalInfoTextEl.value
                     });

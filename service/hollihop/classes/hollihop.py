@@ -25,23 +25,22 @@ class HolliHopApiV2Manager:
             return result
 
     async def fetch_all(self, url, params, maxTake=10000, batchSize=1000):
-        # async with aiohttp.ClientSession(trust_env=True, connector=TCPConnector(limit_per_host=5, ssl=False)) as session:
         async with aiohttp.ClientSession() as session:
             tasks = []
             for skip in range(0, maxTake, batchSize):
                 batch_params = params.copy()
                 batch_params['skip'] = skip
-                batch_params['take'] = min(1000, maxTake - skip)
+                batch_params['take'] = min(batchSize, maxTake - skip)
                 batch_url = f"{url}?{urlencode(batch_params, safe='/', encoding='utf-8')}"
                 tasks.append(self.fetch(session, batch_url))
 
             results = await asyncio.gather(*tasks)
             return results
 
-    async def api_call_pagination(self, endpoint, **params):
+    async def api_call_pagination(self, endpoint, maxTake=10000, batchSize=1000, **kwargs):
         url = f"https://{self.domain}/Api/V2/{endpoint}"
-        params['authkey'] = self.authkey
-        return await self.fetch_all(url, params)
+        kwargs['authkey'] = self.authkey
+        return await self.fetch_all(url, kwargs, maxTake=maxTake, batchSize=batchSize)
 
     async def api_call(self, endpoint, **params):
         url = f"https://{self.domain}/Api/V2/{endpoint}"
@@ -141,10 +140,76 @@ class HolliHopApiV2Manager:
         disciplines = await self.api_call('GetLevels', **kwargs)
         return disciplines.get('Levels', [])
 
-    async def getStudents(self, **kwargs):
-        students = await self.api_call('GetStudents', **kwargs)
-        students = students.get('Students', [])
-        return students if students else []
+    async def getEdUnitStudents(self, maxTake=10000, batchSize=1000, **kwargs):
+        ed_unit_students = await self.api_call_pagination(
+            'GetEdUnitStudents', maxTake=maxTake, batchSize=batchSize, **kwargs
+        )
+        result_list = []
+        for result in ed_unit_students:
+            values_list = result['EdUnitStudents']
+            for value in values_list:
+                result_list.append(value)
+        return result_list
+        # RETURNED
+        # [
+        #     {
+        #         'BeginDate': '2022-10-01',
+        #         'BeginTime': '09:00',
+        #         'EdUnitCorporative': False,
+        #         'EdUnitDiscipline': 'Информатика Junior (Scratch + компьютерная грамотность)',
+        #         'EdUnitId': 1227,
+        #         'EdUnitLearningType': 'Вводный модуль курса (russian language)',
+        #         'EdUnitLevel': 'Medium',
+        #         'EdUnitName': 'JUNIOR-ВASE-M',
+        #         'EdUnitOfficeOrCompanyId': 1,
+        #         'EdUnitOfficeOrCompanyName': 'Занятия (Zoom2)',
+        #         'EdUnitType': 'Group',
+        #         'EndDate': '2022-10-10',
+        #         'EndTime': '10:30',
+        #         'Status': 'Normal',
+        #         'StudentAgents': [
+        #             {
+        #                 'EMail': 'oksana.soldatova.1988@mail.ru',
+        #                 'FirstName': 'Солдатов',
+        #                 'IsCustomer': True,
+        #                 'LastName': 'Николаевич',
+        #                 'MiddleName': 'Кирилл',
+        #                 'Mobile': '+79279754223',
+        #                 'UseEMailBySystem': True,
+        #                 'UseMobileBySystem': True,
+        #                 'WhoIs': 'Родитель'
+        #             }
+        #         ],
+        #         'StudentClientId': 166,
+        #         'StudentExtraFields': [
+        #             {
+        #                 'Name': 'id ученика',
+        #                 'Value': '20355449'
+        #             },
+        #             {
+        #                 'Name': 'Особые примечания по ученику/лиду',
+        #                 'Value': 'Особые примечания'
+        #             }
+        #         ],
+        #         'StudentMobile': '+79046661630',
+        #         'StudentName': 'Кирилл Николаевич Солдатов',
+        #         'StudyMinutes': 180.0,
+        #         'StudyUnits': '4 а.ч.',
+        #         'Weekdays': 1
+        #     },
+        #     {...},
+        #     {...},
+        # ]
+
+    async def getStudents(self, maxTake, batchSize=1000, **kwargs):
+        students = await self.api_call_pagination(
+            'GetStudents', maxTake=maxTake, batchSize=batchSize, **kwargs)
+        result_list = []
+        for result in students:
+            values_list = result['Students']
+            for value in values_list:
+                result_list.append(value)
+        return result_list
         # {'AddressDate': '2022-10-01',
         #  'Agents': [{'EMail': '1@2.ru',
         #              'FirstName': 'Мама',
@@ -202,22 +267,22 @@ class HolliHopApiV2Manager:
         #  'UseEMailBySystem': True,
         #  'UseMobileBySystem': True}
 
-    async def get_students_by_ids(self, ids: tuple | list):
+    async def get_students_by_client_ids(self, ids: tuple | list):
         async with aiohttp.ClientSession() as session:
-            tasks = [self.get_student_by_id(session, student_id) for student_id in ids]
+            tasks = [self.get_student_by_client_id(session, client_id) for client_id in ids]
             students = await asyncio.gather(*tasks)
         return [student[0] for student in students if student]
 
-    async def get_student_by_id(self, session, student_id):
-        student_data = await self.getStudents(clientId=str(student_id), session=session)
+    async def get_student_by_client_id(self, session, client_id):
+        student_data = await self.getStudents(clientId=client_id, maxTake=1, session=session)
         return student_data
 
-    async def getEdUnitStudent(self, **kwargs):
+    async def get_ed_unit_student(self, **kwargs):
         student_units = await self.api_call('GetEdUnitStudents', **kwargs)
         return student_units.get('EdUnitStudents', [])
 
-    async def getEdUnits(self, **kwargs):
-        edUnits = await self.api_call_pagination('GetEdUnits', **kwargs)
+    async def getEdUnits(self, maxTake=10000, batchSize=1000, **kwargs):
+        edUnits = await self.api_call_pagination('GetEdUnits', maxTake=maxTake, batchSize=batchSize, **kwargs)
         result_list = []
         for result in edUnits:
 
@@ -307,69 +372,11 @@ class HolliHopApiV2Manager:
         #     }
         # ]
 
-    async def getEdUnitStudents(self, **kwargs):
-        ed_unit_students = await self.api_call_pagination('GetEdUnitStudents', **kwargs)
-        result_list = []
-        for result in ed_unit_students:
-            values_list = result['EdUnitStudents']
-            for value in values_list:
-                result_list.append(value)
-        return result_list
-        # RETURNED
-        # [
-        #     {
-        #         'BeginDate': '2022-10-01',
-        #         'BeginTime': '09:00',
-        #         'EdUnitCorporative': False,
-        #         'EdUnitDiscipline': 'Информатика Junior (Scratch + компьютерная грамотность)',
-        #         'EdUnitId': 1227,
-        #         'EdUnitLearningType': 'Вводный модуль курса (russian language)',
-        #         'EdUnitLevel': 'Medium',
-        #         'EdUnitName': 'JUNIOR-ВASE-M',
-        #         'EdUnitOfficeOrCompanyId': 1,
-        #         'EdUnitOfficeOrCompanyName': 'Занятия (Zoom2)',
-        #         'EdUnitType': 'Group',
-        #         'EndDate': '2022-10-10',
-        #         'EndTime': '10:30',
-        #         'Status': 'Normal',
-        #         'StudentAgents': [
-        #             {
-        #                 'EMail': 'oksana.soldatova.1988@mail.ru',
-        #                 'FirstName': 'Солдатов',
-        #                 'IsCustomer': True,
-        #                 'LastName': 'Николаевич',
-        #                 'MiddleName': 'Кирилл',
-        #                 'Mobile': '+79279754223',
-        #                 'UseEMailBySystem': True,
-        #                 'UseMobileBySystem': True,
-        #                 'WhoIs': 'Родитель'
-        #             }
-        #         ],
-        #         'StudentClientId': 166,
-        #         'StudentExtraFields': [
-        #             {
-        #                 'Name': 'id ученика',
-        #                 'Value': '20355449'
-        #             },
-        #             {
-        #                 'Name': 'Особые примечания по ученику/лиду',
-        #                 'Value': 'Особые примечания'
-        #             }
-        #         ],
-        #         'StudentMobile': '+79046661630',
-        #         'StudentName': 'Кирилл Николаевич Солдатов',
-        #         'StudyMinutes': 180.0,
-        #         'StudyUnits': '4 а.ч.',
-        #         'Weekdays': 1
-        #     },
-        #     {...},
-        #     {...},
-        # ]
-
     async def get_student_by_amo_id(self, student_amo_id: int):
         students = await self.getStudents(
             extraFieldName='id ученика',
-            extraFieldValue=student_amo_id
+            extraFieldValue=student_amo_id,
+            maxTake=1
         )
         if not students:
             raise StudentByAmoIdNotFound(student_amo_id)
@@ -388,3 +395,10 @@ class HolliHopApiV2Manager:
 
         response = await self.api_post_call('AddPayment', **kwargs)
         return response
+
+    @staticmethod
+    def get_student_or_student_unit_extra_field_value(obj: dict, extra_field_name: str):
+        extra_fields = obj.get('StudentExtraFields', []) + obj.get('ExtraFields', [])
+        for field in extra_fields:
+            if field['Name'] == extra_field_name:
+                return field['Value']

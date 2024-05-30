@@ -45,3 +45,9 @@ async def teacher_set_lesson_report(request) -> HttpResponse:
     return render(request, 'tools/set_lesson_report.html', {
 
     })
+
+
+@acontroller('get_lasts_themes_for_unit_student')
+async def get_lasts_themes_for_unit_student(request):
+    from apps.tools.services.lesson_report.funcs import get_lasts_themes_for_unit_student
+    await get_lasts_themes_for_unit_student()
