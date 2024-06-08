@@ -93,8 +93,7 @@ try {
     }
 
     let choosedEdUnitDay = [];
-
-
+    
     async function sendReport(e) {
         e.preventDefault();
 

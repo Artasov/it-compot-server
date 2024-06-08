@@ -38,3 +38,13 @@ ENTRYPOINT ["sh", "/srv/entrypoint.dev.sh"]
 #############
 FROM base as prod
 ENTRYPOINT ["sh", "/srv/entrypoint.prod.sh"]
+
+#############
+# CELERY #
+#############
+FROM base as celery
+
+RUN adduser -D celeryuser
+USER celeryuser
+
+ENTRYPOINT ["sh", "/srv/entrypoint_celery.sh"]
