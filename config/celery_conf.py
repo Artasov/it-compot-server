@@ -18,7 +18,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     # Задача выполняется каждые 15 секунд
     'some-task-every-15s': {
-        'task': 'Core.tasks.test_tasks.test_periodic_task',
+        'task': 'apps.Core.tasks.test_tasks.test_periodic_task',
         'schedule': timedelta(seconds=15),
         'args': ('value1',),
     },
