@@ -1,5 +1,6 @@
 import Client from "../../../../static/Core/js/classes/Client.js";
 
+
 const errorModal = new bootstrap.Modal(document.getElementById('errorModal'), {
     keyboard: true
 });

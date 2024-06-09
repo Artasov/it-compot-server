@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import django
 from celery import Celery
+from celery.schedules import crontab
 
 app = Celery('config')
 
@@ -11,16 +12,32 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.broker_connection_retry_on_startup = True
-
-app.conf.CELERY_IMPORTS = ('apps.Core.tasks.test_tasks',)
+app.conf.update(
+    task_always_eager=False,
+    task_serializer='json',
+    result_serializer='json',
+    accept_content=['json'],
+    worker_concurrency=5,
+    worker_prefetch_multiplier=1,
+    task_acks_late=True,
+    worker_max_tasks_per_child=50,
+    broker_transport_options={'max_retries': 3, 'interval_start': 0, 'interval_step': 0.5, 'interval_max': 2},
+)
+app.conf.CELERY_IMPORTS = (
+    'apps.Core.tasks.test_tasks',
+    'apps.tools.tasks.tasks',
+)
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    # Задача выполняется каждые 15 секунд
-    'some-task-every-15s': {
-        'task': 'apps.Core.tasks.test_tasks.test_periodic_task',
-        'schedule': timedelta(seconds=15),
-        'args': ('value1',),
+    # 'some-task-every-15s': {
+    #     'task': 'apps.Core.tasks.test_tasks.test_periodic_task',
+    #     'schedule': timedelta(seconds=15),
+    #     'args': ('value1',),
+    # },
+    'upload_lasts_themes_task-every-5-minutes': {
+        'task': 'apps.tools.tasks.tasks.upload_lasts_themes_task',
+        'schedule': crontab(minute='*/5'),
     },
 }
 # # Задача выполняется каждые 30 минут

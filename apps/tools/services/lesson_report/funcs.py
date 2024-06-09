@@ -79,7 +79,7 @@ def get_latest_unit_student(unit_students):
     return list(grouped.values())
 
 
-async def get_lasts_themes_for_unit_student():
+async def upload_lasts_themes_for_unit_student():
     HHManager = CustomHHApiV2Manager()
     now = datetime.now()
     unit_students = await HHManager.getEdUnitStudents(
@@ -171,4 +171,5 @@ async def get_lasts_themes_for_unit_student():
         wrap_strategy='WRAP'
     )
     doc.format_range(0, 0, settings.GSDOCID_UPLOAD_BY_LAST_THEMES[1], format_options_header, 1, )
+    print('SUCCESSFULLY Uploaded last themes to google sheet')
 
