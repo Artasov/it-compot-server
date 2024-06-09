@@ -3,6 +3,7 @@ version: '3.8'
 services:
 
   nginx:
+    container_name: nginx
     image: nginx:alpine
     ports:
       - "80:80"
@@ -19,6 +20,7 @@ services:
       - net
 
   postgres:
+    container_name: postgres
     hostname: postgres
     image: postgres:alpine
     restart: always
@@ -59,6 +61,7 @@ services:
       - net
 
   web:
+    container_name: web
     hostname: web
     build:
       context: .
@@ -80,7 +83,9 @@ services:
       - MINIO_USE_HTTPS=${MINIO_USE_HTTPS}
       - GSDOCID_TEACHERS_SALARY=${GSDOCID_TEACHERS_SALARY}
       - GSDOCID_LOG_JOIN_FORMING_GROUPS=${GSDOCID_LOG_JOIN_FORMING_GROUPS}
-      - GSCREDS_FILE_NAME=${GSCREDS_FILE_NAME}
+      - GSDOCID_UPLOAD_BY_LESSON=${GSDOCID_UPLOAD_BY_LESSON}
+      - GSDOCID_UPLOAD_BY_LAST_THEMES=${GSDOCID_UPLOAD_BY_LAST_THEMES}
+      - GSDOCID_COURSES_RESUME=${GSDOCID_COURSES_RESUME}
       - TZ=${TZ}
       - SECRET_KEY=${SECRET_KEY}
       - SITE_ID=${SITE_ID}
@@ -146,9 +151,13 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_EXTERNAL_ENDPOINT_USE_HTTPS=${MINIO_EXTERNAL_ENDPOINT_USE_HTTPS}
       - MINIO_USE_HTTPS=${MINIO_USE_HTTPS}
+
       - GSDOCID_TEACHERS_SALARY=${GSDOCID_TEACHERS_SALARY}
       - GSDOCID_LOG_JOIN_FORMING_GROUPS=${GSDOCID_LOG_JOIN_FORMING_GROUPS}
-      - GSCREDS_FILE_NAME=${GSCREDS_FILE_NAME}
+      - GSDOCID_UPLOAD_BY_LESSON=${GSDOCID_UPLOAD_BY_LESSON}
+      - GSDOCID_UPLOAD_BY_LAST_THEMES=${GSDOCID_UPLOAD_BY_LAST_THEMES}
+      - GSDOCID_COURSES_RESUME=${GSDOCID_COURSES_RESUME}
+
       - TZ=${TZ}
       - SECRET_KEY=${SECRET_KEY}
       - SITE_ID=${SITE_ID}
@@ -169,6 +178,7 @@ services:
       - net
 
   minio:
+    container_name: minio
     hostname: minio
     image: minio/minio
     restart: always

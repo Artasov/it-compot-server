@@ -35,9 +35,9 @@ app.conf.beat_schedule = {
     #     'schedule': timedelta(seconds=15),
     #     'args': ('value1',),
     # },
-    'upload_lasts_themes_task-every-5-minutes': {
+    'upload_lasts_themes_task-every-2-minutes': {
         'task': 'apps.tools.tasks.tasks.upload_lasts_themes_task',
-        'schedule': crontab(minute='*/5'),
+        'schedule': timedelta(minutes=2),
     },
 }
 # # Задача выполняется каждые 30 минут
