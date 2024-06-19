@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime
+from pprint import pprint
 from urllib.parse import urlencode
 
 import aiohttp as aiohttp
@@ -130,7 +131,9 @@ class HolliHopApiV2Manager:
         )
         result_list = []
         for result in ed_unit_students:
-            values_list = result['EdUnitStudents']
+            values_list = result.get('EdUnitStudents', None)
+            if values_list is None:
+                pprint(ed_unit_students)
             for value in values_list:
                 result_list.append(value)
         return result_list

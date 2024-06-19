@@ -177,6 +177,10 @@ async def forming_groups_for_join(request) -> Response:
             return Response({'success': False, 'error': 'Возраст не определен.'}, 409)
 
         last_comment: LessonComment = parse_lesson_comment(HHM.get_last_day_desc(last_ed_unit_s))
+        if not last_comment:
+            return Response({'success': False,
+                             'error': 'Не найден последний комментарий ученика по данной дисциплине, либо формат комментария неверный.'},
+                            404)
         module_for_join = get_module_for_autumn_by_lesson_number(
             last_comment['number'] if last_comment['finish_percent'] > 50 else (
                 last_comment["number"] - 1 if last_comment['number'] > 1 else last_comment['number']), discipline)
