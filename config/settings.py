@@ -5,10 +5,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from service.pickler import Pickler
+
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DATA_DIR = BASE_DIR / 'data'
-
+BASE_TEMP_DIR = BASE_DIR / 'temp'
 # Environment helpers
 env = os.environ.get
 
@@ -121,13 +123,16 @@ GSDOCID_LOG_JOIN_FORMING_GROUPS = env('GSDOCID_LOG_JOIN_FORMING_GROUPS', '__NONE
 GSDOCID_TEACHERS_SALARY = env('GSDOCID_TEACHERS_SALARY', '__NONE__')
 GSDOCID_UPLOAD_BY_LESSON = env('GSDOCID_UPLOAD_BY_LESSON', '__NONE__')
 GSDOCID_UPLOAD_BY_LAST_THEMES = (env('GSDOCID_UPLOAD_BY_LAST_THEMES', '__NONE__'), 'Lasts Themes')
+GSDOCID_UPLOAD_AVERAGE_PRICE_PER_LESSON_STUDENT = (
+    env('GSDOCID_UPLOAD_AVERAGE_PRICE_PER_LESSON_STUDENT', '__NONE__'),
+    'Средняя цена за урок'
+)
 TABLE_TEACHERS_SALARY = (GSDOCID_TEACHERS_SALARY, '957421404')
 
 # Courses
 GSDOCID_COURSES_RESUME = env('GSDOCID_COURSES_RESUME', '__NONE__')
 
-
-ALLOWED_DAYS_FOR_LESSON_REPORT = 30
+ALLOWED_DAYS_FOR_LESSON_REPORT = 60
 
 LOGIN_URL = '/login/'
 
@@ -339,6 +344,7 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 log = logging.getLogger('base')
 
+
 log.info('#####################################')
 log.info('########## Server Settings ##########')
 log.info('#####################################')
@@ -359,4 +365,3 @@ log.info(f'{MEDIA_ROOT=}')
 log.info('#####################################')
 log.info('#####################################')
 log.info('#####################################')
-

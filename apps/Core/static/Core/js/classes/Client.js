@@ -21,69 +21,35 @@ class Client {
         return result;
     }
 
-    static sendPost(url, params) {
-        return new Promise((resolve, reject) => {
-            const formData = new FormData();
-            for (const key in params) {
-                // Если параметр является массивом, сериализуем его в JSON
-                if (Array.isArray(params[key])) {
-                    formData.append(key, JSON.stringify(params[key]));
-                } else {
-                    formData.append(key, params[key]);
-                }
+    static async sendPost(url, params) {
+        const formData = new FormData();
+        for (const key in params) {
+            if (Array.isArray(params[key])) {
+                formData.append(key, JSON.stringify(params[key]));
+            } else {
+                formData.append(key, params[key]);
             }
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', url, true);
-            xhr.setRequestHeader('X-CSRFToken', this.getCookie('csrftoken'));
-
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        resolve(response);
-                    } catch (e) {
-                        reject(e);
-                    }
-                } else {
-                    reject(xhr.responseText);
-                }
-            };
-
-            xhr.onerror = () => {
-                reject('Request failed');
-            };
-
-            xhr.send(formData);
+        }
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': this.getCookie('csrftoken')
+            },
+            body: formData
         });
+        response.data = await response.json();
+        return response
     }
 
-    static sendGet(url, params) {
-        return new Promise((resolve, reject) => {
-            const queryString = Object.keys(params).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key])).join('&');
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', `${url}?${queryString}`, true);
-
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        resolve(response);
-                    } catch (e) {
-                        reject(e);
-                    }
-                } else {
-                    reject(xhr.responseText);
-                }
-            };
-
-            xhr.onerror = () => {
-                reject('Request failed');
-            };
-
-            xhr.send();
+    static async sendGet(url, params) {
+        const queryString = Object.keys(params).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key])).join('&');
+        const response = await fetch(`${url}?${queryString}`, {
+            method: 'GET'
         });
+        response.data = await response.json();
+        return response
     }
+
 
 }
 

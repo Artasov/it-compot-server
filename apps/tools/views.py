@@ -42,7 +42,4 @@ async def teacher_salary(request) -> HttpResponse:
 
 @acontroller('Отчет за урок по email & unipass педагога', auth=True)
 async def teacher_set_lesson_report(request) -> HttpResponse:
-    return render(request, 'tools/set_lesson_report.html', {
-
-    })
-
+    return render(request, 'tools/set_lesson_report.html')

@@ -10,7 +10,7 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'tools/css/join_to_group.css' %}">
     <link rel="stylesheet" href="{% static 'tools/css/atom_load.css' %}">
-    <script defer type="module" src="{% static 'tools/js/join_to_group2.js' %}"></script>
+    <script defer type="module" src="{% static 'tools/js/join_to_group3.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -22,6 +22,26 @@
         .opacity-this85 {
             opacity: 85%;
         }
+
+        input {
+            outline: none !important;
+        }
+
+        input::placeholder {
+            color: #d0d0d0;
+        }
+
+        input::-moz-placeholder {
+            color: #d0d0d0;
+        }
+
+        input:-ms-input-placeholder {
+            color: #d0d0d0;
+        }
+
+        input::-ms-input-placeholder {
+            color: #d0d0d0;
+        }
     </style>
     <img class="moon" src="{% static 'tools/img/join_to_group/moon.svg' %}" alt="">
     <img class="earth" src="{% static 'tools/img/join_to_group/earth.svg' %}" alt="">
@@ -31,17 +51,31 @@
         <div id="group_join_content" class="fccc gap-2 text-white disable-tap-and-selection py-3 px-4 mx-auto">
             <div class="ts-33 group_loading_status_container text-center fc">
                 <h1 class="fs-01 mb-0 mt-3 text-nowrap">Запись в группу</h1>
-                <span class="fs-2 opacity-this85">Ищем группы для вас</span>
-                <span class="text-white-80 fs-6">( Это может занять минутку )</span>
-                <div class="frcc mt-3">
-                    <div class="p-1">
-                        <div class="atom">
-                            <div class="electron"></div>
-                            <div class="electron-alpha"></div>
-                            <div class="electron-omega"></div>
+                <div class="find-groups-for-u-text fc">
+                    <span class="fs-2 opacity-this85">Ищем группы для вас</span>
+                    <span class="text-white-80 fs-6">( Это может занять минутку )</span>
+                    <div class="loading-atom frcc mt-3">
+                        <div class="p-1">
+                            <div class="atom">
+                                <div class="electron"></div>
+                                <div class="electron-alpha"></div>
+                                <div class="electron-omega"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="input-student-info-container d-none fccc gap-2 w-100">
+                <span>Заполните информацию ниже</span>
+                <input style="height: 50px!important;" class=" border-0 schedule_item text-white mw-400px w-100"
+                       type="text" value="" name="student_full_name" placeholder="ФИО Ученика">
+                <input style="height: 50px!important;" class=" border-0 schedule_item text-white mw-350px w-100"
+                       type="email" value="" name="email" placeholder="Email как ...">
+                <input style="height: 50px!important;" class=" border-0 schedule_item text-white mw-300px w-100"
+                       type="tel" name="tel" value="" placeholder="Номер телефона ...">
+                <button type="button" class="schedule_item-button frcc gap-2 my-2 px-3 py-2" id="btnSubmitFindStudent">
+                    Подтвердить
+                </button>
             </div>
             <div id="tz-info"
                  class="d-none frcc flex-wrap gap-1 gap-sm-3 ts-33 px-5

@@ -1,9 +1,10 @@
 from django.urls import path
 
 from apps.tools.api import (
+    upload_average_price_per_lesson_student,
     get_is_student_in_group_on_discipline,
     build_link_for_join_to_forming_group,
-    get_forming_groups_for_join,
+    forming_groups_for_join,
     student_to_forming_group,
     send_nothing_fit,
     add_hh_payment_by_amo_view,
@@ -18,7 +19,7 @@ urlpatterns = [
     path('get_course_themes_view/', get_course_themes_view,
          name='get_course_themes_view'),
     path('get_forming_groups_for_join/',
-         get_forming_groups_for_join,
+         forming_groups_for_join,
          name='get_forming_groups_for_join'),
     path('get_teacher_lesson_for_report/',
          get_teacher_lesson_for_report,
@@ -38,4 +39,7 @@ urlpatterns = [
     path('add_hh_payment_by_amo/',
          add_hh_payment_by_amo_view,
          name='add_hh_payment_by_amo'),
+    path('upload_average_price_per_lesson_student/',
+         upload_average_price_per_lesson_student,
+         name='upload_average_price_per_lesson_student'),
 ]

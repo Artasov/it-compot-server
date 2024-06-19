@@ -1,53 +1,74 @@
 hh_disciplines = (
-    'Информатика Junior (Scratch компьютерная грамотность)',
-    'Scratch математика',
-    'Город программистов Джуниор',
-    'Город программистов',
-    'Python GameDev (Разработка 2D-игр 1 ступень)',
-    'Python GameDev (Разработка 2D и 3D-игр 2 ступень)',
-    'Программирование Python (начальный уровень)',
-    'Программирование Python не игры',
-    'Web-программирование (1 ступень frontend)',
-    'Web-программирование (2 ступень backend)',
-    'Web-дизайн',
-    'Графический дизайн Junior',
-    'Графический дизайн',
-    'Медиа вне программы',
-    'Школа блогеров',
-    '3D-моделирование (Blender)',
-    '3D-моделирование 2 год',
-    'Программирование вне программы',
-    'Внутренние мероприятия',
-    'Хакатон',
-    'Марафон IT-профессий',
-    '(ОУ) Scratch программирование',
-    '(ОУ) Python программирование',
-    '(ОУ) Школа блогеров / дизайн',
-    '(ОУ) Веб-программирование',
-    '(ОУ) 3D-моделирование',
-    '(ОУ) Дизайн',
-    '(ОУ) Школа блогера',
-    '(ОУ) Информатика Junior',
-    '(ОУ) Программирование (разработка сайтов или игр)',
-    '(ОУ) Web-дизайн',
-    '(ОУ) вне программы',
-    'Клуб',
-    'Программирование Roblox',
-    'Архив не могу удалить (',
-    '(архив, не могу удалить)',
-    '(ОУ) Марафон профессий (удалить)',
-    'Разработка чат-ботов',
-    '(0)Разработка приложений на Пайтон',
-    'Разработка мобильных приложений на Python для Android',
-    'Мастер анимации - создаем мультфильмы',
-    'Разработка мобильных приложений для Android в App Inventor',
-    'Первые шаги в программировании и английском.  джуниор',
-    'Первые шаги в 3д-моделировании.  Создай свой мир майнкрафта',
-    'Видеомонтаж на компьютере - прокачка навыков',
-    'Академия Заработка',
-    'Урок диагностика',
-    'Нейросети'
+    'Информатика Junior (Scratch компьютерная грамотность)',  # 0
+    'Scratch математика',  # 1
+    'Город программистов Джуниор',  # 2
+    'Город программистов',  # 3
+    'Python GameDev (Разработка 2D-игр 1 ступень)',  # 4
+    'Python GameDev (Разработка 2D и 3D-игр 2 ступень)',  # 5
+    'Программирование Python (начальный уровень)',  # 6
+    'Программирование Python не игры',  # 7
+    'Web-программирование (1 ступень frontend)',  # 8
+    'Web-программирование (2 ступень backend)',  # 9
+    'Web-дизайн',  # 10
+    'Графический дизайн Junior',  # 11
+    'Графический дизайн',  # 12
+    'Медиа вне программы',  # 13
+    'Школа блогеров',  # 14
+    '3D-моделирование (Blender)',  # 15
+    '3D-моделирование 2 год',  # 16
+    'Программирование вне программы',  # 17
+    'Внутренние мероприятия',  # 18
+    'Хакатон',  # 19
+    'Марафон IT-профессий',  #
+    '(ОУ) Scratch программирование',  #
+    '(ОУ) Python программирование',  #
+    '(ОУ) Школа блогеров / дизайн',  #
+    '(ОУ) Веб-программирование',  #
+    '(ОУ) 3D-моделирование',  #
+    '(ОУ) Дизайн',  #
+    '(ОУ) Школа блогера',  #
+    '(ОУ) Информатика Junior',  #
+    '(ОУ) Программирование (разработка сайтов или игр)',  #
+    '(ОУ) Web-дизайн',  #
+    '(ОУ) вне программы',  #
+    'Клуб',  #
+    'Программирование Roblox',  #
+    'Архив не могу удалить (',  #
+    '(архив, не могу удалить)',  #
+    '(ОУ) Марафон профессий (удалить)',  #
+    'Разработка чат-ботов',  #
+    '(0)Разработка приложений на Пайтон',  #
+    'Разработка мобильных приложений на Python для Android',  #
+    'Мастер анимации - создаем мультфильмы',  #
+    'Разработка мобильных приложений для Android в App Inventor',  #
+    'Первые шаги в программировании и английском.  джуниор',  #
+    'Первые шаги в 3д-моделировании.  Создай свой мир майнкрафта',  #
+    'Видеомонтаж на компьютере - прокачка навыков',  #
+    'Академия Заработка',  #
+    'Урок диагностика',  #
+    'Нейросети'  #
 )
+
+transfers = (
+    (hh_disciplines[1], hh_disciplines[2]),
+    (hh_disciplines[2], hh_disciplines[3]),
+    (hh_disciplines[4], hh_disciplines[5]),
+    (hh_disciplines[5], hh_disciplines[7]),
+    (hh_disciplines[8], hh_disciplines[9]),
+    (hh_disciplines[15], hh_disciplines[16]),
+    (hh_disciplines[12], hh_disciplines[10]),
+)
+
+
+def get_next_discipline(age: int, discipline: str, level: str = None) -> str | None:
+    if (level == hh_levels[2] or level == hh_levels[3] or level == hh_levels[4]) and \
+            age >= 10 and discipline == hh_disciplines[1]:
+        return hh_disciplines[3]
+    for transfer in transfers:
+        if transfer[0] == discipline:
+            return transfer[1]
+
+
 hh_levels = (
     'Easy',
     'Easy-medium',
@@ -55,6 +76,79 @@ hh_levels = (
     'Medium-hard',
     'Hard',
 )
+base_ages = {
+    f'{hh_disciplines[1]} {hh_levels[0]}': 8,
+    f'{hh_disciplines[1]} {hh_levels[1]}': 9,
+    f'{hh_disciplines[1]} {hh_levels[2]}': 10,
+    f'{hh_disciplines[1]} {hh_levels[3]}': 11,
+    f'{hh_disciplines[1]} {hh_levels[4]}': 12,
+
+    f'{hh_disciplines[2]} {hh_levels[0]}': 8,
+    f'{hh_disciplines[2]} {hh_levels[1]}': 9,
+    f'{hh_disciplines[2]} {hh_levels[2]}': 10,
+    f'{hh_disciplines[2]} {hh_levels[3]}': 11,
+    f'{hh_disciplines[2]} {hh_levels[4]}': 12,
+
+    f'{hh_disciplines[3]} {hh_levels[0]}': 9,
+    f'{hh_disciplines[3]} {hh_levels[1]}': 9,
+    f'{hh_disciplines[3]} {hh_levels[2]}': 10,
+    f'{hh_disciplines[3]} {hh_levels[3]}': 11,
+    f'{hh_disciplines[3]} {hh_levels[4]}': 12,
+
+    f'{hh_disciplines[4]} {hh_levels[0]}': 10,
+    f'{hh_disciplines[4]} {hh_levels[1]}': 11,
+    f'{hh_disciplines[4]} {hh_levels[2]}': 12,
+    f'{hh_disciplines[4]} {hh_levels[3]}': 13,
+    f'{hh_disciplines[4]} {hh_levels[4]}': 14,
+
+    f'{hh_disciplines[5]} {hh_levels[0]}': 11,
+    f'{hh_disciplines[5]} {hh_levels[1]}': 12,
+    f'{hh_disciplines[5]} {hh_levels[2]}': 13,
+    f'{hh_disciplines[5]} {hh_levels[3]}': 14,
+    f'{hh_disciplines[5]} {hh_levels[4]}': 15,
+
+    f'{hh_disciplines[7]} {hh_levels[0]}': 12,
+    f'{hh_disciplines[7]} {hh_levels[1]}': 13,
+    f'{hh_disciplines[7]} {hh_levels[2]}': 14,
+    f'{hh_disciplines[7]} {hh_levels[3]}': 15,
+    f'{hh_disciplines[7]} {hh_levels[4]}': 16,
+
+    f'{hh_disciplines[8]} {hh_levels[0]}': 12,
+    f'{hh_disciplines[8]} {hh_levels[1]}': 13,
+    f'{hh_disciplines[8]} {hh_levels[2]}': 14,
+    f'{hh_disciplines[8]} {hh_levels[3]}': 15,
+    f'{hh_disciplines[8]} {hh_levels[4]}': 16,
+
+    f'{hh_disciplines[9]} {hh_levels[0]}': 13,
+    f'{hh_disciplines[9]} {hh_levels[1]}': 14,
+    f'{hh_disciplines[9]} {hh_levels[2]}': 15,
+    f'{hh_disciplines[9]} {hh_levels[3]}': 16,
+    f'{hh_disciplines[9]} {hh_levels[4]}': 17,
+
+    f'{hh_disciplines[10]} {hh_levels[0]}': 9,
+    f'{hh_disciplines[10]} {hh_levels[1]}': 10,
+    f'{hh_disciplines[10]} {hh_levels[2]}': 11,
+    f'{hh_disciplines[10]} {hh_levels[3]}': 12,
+    f'{hh_disciplines[10]} {hh_levels[4]}': 13,
+
+    f'{hh_disciplines[12]} {hh_levels[0]}': 9,
+    f'{hh_disciplines[12]} {hh_levels[1]}': 10,
+    f'{hh_disciplines[12]} {hh_levels[2]}': 11,
+    f'{hh_disciplines[12]} {hh_levels[3]}': 12,
+    f'{hh_disciplines[12]} {hh_levels[4]}': 13,
+
+    f'{hh_disciplines[15]} {hh_levels[0]}': 9,
+    f'{hh_disciplines[15]} {hh_levels[1]}': 10,
+    f'{hh_disciplines[15]} {hh_levels[2]}': 11,
+    f'{hh_disciplines[15]} {hh_levels[3]}': 12,
+    f'{hh_disciplines[15]} {hh_levels[4]}': 13,
+
+    f'{hh_disciplines[16]} {hh_levels[0]}': 10,
+    f'{hh_disciplines[16]} {hh_levels[1]}': 11,
+    f'{hh_disciplines[16]} {hh_levels[2]}': 12,
+    f'{hh_disciplines[16]} {hh_levels[3]}': 13,
+    f'{hh_disciplines[16]} {hh_levels[4]}': 14,
+}
 amo_disciplines = (
     'Python (игры) 1 ступень',
     'Python (игры) 2 ступень',

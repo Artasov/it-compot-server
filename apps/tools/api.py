@@ -1,6 +1,8 @@
+import asyncio
 import json
 import logging
 from datetime import datetime, timedelta
+from pprint import pprint
 from urllib.parse import quote
 
 from adrf.decorators import api_view
@@ -9,6 +11,7 @@ from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT
 
 from apps.Core.services.base import asemaphore_handler, acontroller
 from apps.link_shorter.services.common import create_short_link
@@ -20,14 +23,17 @@ from apps.tools.serializers import (
     SendNothingFitSerializer,
     BuildLinkForJoinToFormingGroupSerializer, AddHhPaymentByAmoSerializer,
 )
-from apps.tools.services.lesson_report.funcs import send_gs_lesson_report
+from apps.tools.services.lesson_report.funcs import send_gs_lesson_report, parse_lesson_comment, LessonComment, \
+    get_module_for_autumn_by_lesson_number, get_module_by_lesson_number
 from apps.tools.services.other import get_course_themes
 from apps.tools.services.signup_group.funcs import (
-    is_student_in_group_on_discipline,
-    add_student_to_forming_group, send_nothing_fit_units_to_amo
+    add_student_to_forming_group, send_nothing_fit_units_to_amo, get_forming_groups_for_join
 )
-from service.common.common import calculate_age
+from service.common.common import calculate_age, get_number
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
+from service.hollihop.consts import base_ages, get_next_discipline
+from service.pickler import Pickler, PicklerNotFoundDumpFile
+from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
 
 log = logging.getLogger('base')
 
@@ -44,7 +50,6 @@ async def send_lesson_report(request):
     type_ed_unit = request.POST.get('type')
     if not all((ed_unit_id, day_date, theme_name, lesson_completion_percentage)):
         return JsonResponse({'success': False, 'error': 'Неверные данные для отправки отчета.'}, 400)
-
     try:
         students_comments = json.loads(students_comments)
     except json.JSONDecodeError:
@@ -127,20 +132,74 @@ async def get_teacher_lesson_for_report(request) -> JsonResponse:
 @acontroller('Получение групп для авто-записи')
 @api_view(('GET',))
 @asemaphore_handler
-async def get_forming_groups_for_join(request) -> Response:
+async def forming_groups_for_join(request) -> Response:
+    # В age можно передавать timestamp даты рождения или сразу возраст
     serializer = FormingGroupParamsSerializer(data=request.GET)
     if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    from apps.tools.services.signup_group.funcs import get_forming_groups_for_join
-    # В age можно передавать timestamp даты рождения или сразу возраст
-    age_or_tsmp_birth = serializer.validated_data['age']
-    return Response(await get_forming_groups_for_join(
-        level=serializer.validated_data['level'],
-        discipline=serializer.validated_data['discipline'],
-        age=calculate_age(
-            datetime.fromtimestamp(age_or_tsmp_birth).strftime('%Y-%m-%d')
-        ) if age_or_tsmp_birth > 100 else age_or_tsmp_birth,
-    ), status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+    data = serializer.validated_data
+
+    # Получаем параметры если они есть
+    if all((data.get('age'), data.get('level'), data.get('discipline'))):
+        discipline = data['discipline']
+        age = calculate_age(
+            datetime.fromtimestamp(data['age']).strftime('%Y-%m-%d')
+        ) if data['age'] > 100 else data['age']
+        level = data['level']
+        return Response(await get_forming_groups_for_join(
+            level=level,
+            discipline=discipline,
+            age=age,
+            learningTypes='Вводный модуль курса (russian language)',
+        ), status=HTTP_200_OK)
+
+    # Узнаем параметры по данным ученика если они есть
+    elif any((data.get('student_full_name'), data.get('email'), data.get('tel'))) and data.get('discipline'):
+        discipline = data['discipline']
+        HHM = CustomHHApiV2Manager()
+
+        student = await HHM.get_student_by_fio_or_email_or_tel(
+            data.get('student_full_name'), data.get('email'), data.get('tel')
+        )
+        if not student:
+            return Response({'success': False, 'error': 'Не найдено ученика по указанным данным.'}, 404)
+        if await HHM.is_student_in_group_on_discipline(
+                student_amo_id=HHM.get_student_or_student_unit_extra_field_value(student, 'id ученика'),
+                discipline=discipline):
+            return Response({'success': False, 'error': 'Ученик уже есть в группе по данной дисциплине.'}, 409)
+
+        last_ed_unit_s = await HHM.get_latest_ed_unit_s_for_student_on_discipline(student['ClientId'], discipline)
+        if not last_ed_unit_s:
+            return Response({'success': False, 'error': 'Не найдена предыдущая группа по данной дисциплине.'}, 404)
+        level = last_ed_unit_s['EdUnitLevel']
+        age = calculate_age(student['Birthday']) if student.get('Birthday') else base_ages.get(f'{discipline} {level}')
+        if not age:
+            return Response({'success': False, 'error': 'Возраст не определен.'}, 409)
+
+        last_comment: LessonComment = parse_lesson_comment(HHM.get_last_day_desc(last_ed_unit_s))
+        module_for_join = get_module_for_autumn_by_lesson_number(
+            last_comment['number'] if last_comment['finish_percent'] > 50 else (
+                last_comment["number"] - 1 if last_comment['number'] > 1 else last_comment['number']), discipline)
+        if module_for_join == 'Переход':
+            module_for_join = get_module_by_lesson_number(
+                lesson_number=1,
+                discipline=get_next_discipline(
+                    age=age, discipline=discipline, level=level
+                ))
+        ed_units = await get_forming_groups_for_join(
+            level=level,
+            discipline=discipline,
+            age=age,
+            learningTypes='Занятия в микро-группах (russian language)',
+            join_type='from_now',
+            extraFieldName='Стартовый модуль',
+            extraFieldValue=module_for_join,
+        )
+        ed_units['student_id'] = HHM.get_student_or_student_unit_extra_field_value(student, 'id ученика')
+        return Response(ed_units, status=HTTP_200_OK)
+
+    else:
+        return Response({'success': False, 'error': 'Неверное количество или значения параметров GET запроса.'}, 400)
 
 
 @acontroller('Добавление ученика на вводный модуль')
@@ -149,7 +208,7 @@ async def get_forming_groups_for_join(request) -> Response:
 async def student_to_forming_group(request) -> Response:
     serializer = StudentToGroupSerializer(data=request.POST)
     if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
     try:
         await add_student_to_forming_group(
             student_id=serializer.validated_data.get('student_id'),
@@ -161,7 +220,7 @@ async def student_to_forming_group(request) -> Response:
         return Response(data={
             'success': False,
             'error': 'Обновите страницу.'
-        }, status=status.HTTP_409_CONFLICT)
+        }, status=HTTP_409_CONFLICT)
 
     return Response(data={'success': True}, status=status.HTTP_200_OK)
 
@@ -173,8 +232,9 @@ async def get_is_student_in_group_on_discipline(request) -> Response:
     serializer = StudentAlreadyStudyingOnDisciplineSerializer(data=request.GET)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response(await is_student_in_group_on_discipline(
-        student_id=serializer.validated_data.get('student_id'),
+    HHM = CustomHHApiV2Manager()
+    return Response(await HHM.is_student_in_group_on_discipline(
+        student_amo_id=serializer.validated_data.get('student_id'),
         discipline=serializer.validated_data.get('discipline')
     ), status=status.HTTP_200_OK)
 
@@ -246,3 +306,166 @@ async def add_hh_payment_by_amo_view(request) -> Response:
     )
 
     return Response(data=result, status=status.HTTP_200_OK)
+
+
+@acontroller('Выгрузка средней цены урока для каждого ученика')
+@api_view(('GET',))
+async def upload_average_price_per_lesson_student(request) -> Response:
+    pickler = Pickler(settings.BASE_TEMP_DIR)
+    HHM = CustomHHApiV2Manager()
+    try:
+        ed_units_s = pickler.cache('upload_average_price_per_lesson/ed_units_s')
+    except PicklerNotFoundDumpFile:
+        ed_units_s = await HHM.getEdUnitStudents(maxTake=6000, queryDays=True, dateFrom='2024-05-01',
+                                                 dateTo='2024-07-01')
+        pickler.cache('upload_average_price_per_lesson/ed_units_s', ed_units_s)
+
+    # pprint(ed_units_s)
+    ed_units_s = HHM.filter_ed_units_with_any_days_later_than_date(ed_units_s,
+                                                                   datetime.strptime('2024-05-01', '%Y-%m-%d'))
+    ed_units_s = HHM.filter_latest_ed_unit_s_for_student_on_disciplines(ed_units_s)
+    print('len(ed_units_s)')
+    print(len(ed_units_s))
+
+    try:
+        students = pickler.cache('upload_average_price_per_lesson/students')
+    except PicklerNotFoundDumpFile:
+        students = []
+
+        async def fetch_student(sunit):
+            retry_attempts = 30
+            for attempt in range(retry_attempts):
+                try:
+                    student_ = (await HHM.getStudents(maxTake=1, clientId=sunit['StudentClientId']))[0]
+                    return {
+                        'Id': student_['Id'],
+                        'id ученика': HHM.get_student_or_student_unit_extra_field_value(student_, 'id ученика'),
+                        'ClientId': student_['ClientId'],
+                        'StudentName': sunit['StudentName']
+                    }
+                except Exception:
+                    if attempt < retry_attempts - 1:
+                        await asyncio.sleep(attempt * retry_attempts)  # Ждем 1 секунду перед повторной попыткой
+                    else:
+                        raise
+
+        batch_size = 500
+
+        for i in range(0, len(ed_units_s), batch_size):
+            batch = ed_units_s[i:i + batch_size]
+            students_batch = await asyncio.gather(*(fetch_student(sunit) for sunit in batch))
+            students.extend(students_batch)
+            print(f"Processed batch {i // batch_size + 1}")
+            if i + batch_size < len(ed_units_s):
+                await asyncio.sleep(31)
+        students = pickler.cache('upload_average_price_per_lesson/students', students)
+    print(len(students))
+
+    try:
+        result = pickler.cache('upload_average_price_per_lesson/result')
+    except PicklerNotFoundDumpFile:
+        result = []
+        batch_size = 500
+        total_students = len(students)
+        for i in range(0, total_students, batch_size):
+            batch_students = students[i:i + batch_size]
+            for student in batch_students:
+                print(f"Processing student {i + batch_students.index(student) + 1} out of {total_students}")
+                i_and_o = None
+                retries = 15
+                for attempt in range(retries):
+                    try:
+                        i_and_o = await HHM.getIncomesAndOutgoes(clientId=student['ClientId'])
+                        break
+                    except Exception as e:
+                        if attempt < retries - 1:
+                            await asyncio.sleep(240)
+                        else:
+                            raise e
+
+                if i_and_o:
+                    student_items = i_and_o['Study']['Items']
+                    ed_unit_prices = {}
+                    for item in student_items:
+                        if not item.get('EdUnitName'):
+                            continue
+                        if item['Type'] != 'Study':
+                            continue
+
+                        ed_unit_id = item['EdUnitId']
+
+                        exist_unit = False
+                        for ed_units_s_ in ed_units_s:
+                            if (ed_units_s_['EdUnitId'] == ed_unit_id
+                                    and ed_units_s_['StudentClientId'] == student['ClientId']):
+                                exist_unit = True
+                        if not exist_unit:
+                            print('Пропуск')
+                            continue
+
+                        value_str = item['Value']
+                        try:
+                            if 'руб.' in value_str:
+                                value = float(get_number(value_str))
+                            elif 'тг.' in value_str:
+                                value = float(get_number(value_str)) * 0.1989
+                            elif '$' in value_str:
+                                value = float(get_number(value_str)) * 88.99
+                            elif '€' in value_str:
+                                value = float(get_number(value_str)) * 95.64
+                            elif '£' in value_str:  # британский фунт
+                                value = float(get_number(value_str)) * 113.24
+                            elif '?' in value_str:
+                                continue
+                            else:
+                                print(value_str)
+                                raise TypeError('ВАЛЮТА НЕ РАСПОЗНАНА')
+                        except TypeError as e:
+                            raise e
+                        except Exception as e:
+                            print(value_str)
+                            raise e
+
+                        if ed_unit_id not in ed_unit_prices:
+                            ed_unit_prices[ed_unit_id] = {'total_value': 0, 'total_items': 0,
+                                                          'ed_unit_name': item['EdUnitName']}
+
+                        ed_unit_prices[ed_unit_id]['total_value'] += value
+                        ed_unit_prices[ed_unit_id]['total_items'] += 1
+                        if int(student['Id']) == 24932:
+                            pprint(i_and_o)
+                            pprint(ed_unit_prices)
+                            raise Exception('СМОТРИ')
+
+                    for ed_unit_id, data in ed_unit_prices.items():
+                        avg_price = round(data['total_value'] / data['total_items'], 2) if data[
+                                                                                               'total_items'] > 0 else 0
+                        result.append((
+                            student['StudentName'],
+                            student['Id'],
+                            student['id ученика'],
+                            data['ed_unit_name'],
+                            ed_unit_id,
+                            avg_price
+                        ))
+
+            if i + batch_size < total_students:
+                print('Sleeping for 31 seconds')
+                await asyncio.sleep(31)
+        result = pickler.cache('upload_average_price_per_lesson/result', result)
+
+    GSDocument(settings.GSDOCID_UPLOAD_AVERAGE_PRICE_PER_LESSON_STUDENT[0]).update_sheet_with_format_header(
+        sheet_name=settings.GSDOCID_UPLOAD_AVERAGE_PRICE_PER_LESSON_STUDENT[1],
+        header=(
+            'StudentName',
+            'StudentId',
+            'StudentAmoId',
+            'EdUnitName',
+            'EdUnitId',
+            'Average lesson price (RUB)',
+        ),
+        values=result,
+        format_header=GSFormatOptionVariant.BASE_HEADER
+    )
+
+    return Response(data={'result': result}, status=HTTP_200_OK)

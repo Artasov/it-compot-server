@@ -44,6 +44,18 @@ class GSSheet:
         self.id = id
 
 
+class GSFormatOptionVariant:
+    BASE_HEADER = GSFormatOptions(
+        background_color={'red': 0.3, 'green': 0.5, 'blue': 1},
+        text_color={'red': 1.0, 'green': 1.0, 'blue': 1.0},
+        font_size=16,
+        bold=True,
+        vertical_alignment='MIDDLE',
+        horizontal_alignment='CENTER',
+        wrap_strategy='WRAP'
+    )
+
+
 class GSDocument:
     """В одном документе может быть несколько таблиц"""
 
@@ -65,6 +77,36 @@ class GSDocument:
 
         service = build('sheets', 'v4', http=authed_http)
         return service
+
+    @staticmethod
+    def col_num_to_letter(n: int) -> str:
+        """
+        Преобразует номер столбца в буквенное обозначение (например, 1 -> 'A', 27 -> 'AA').
+
+        @param n: Номер столбца (начиная с 1).
+        @return: Буквенное обозначение столбца.
+        """
+        string = ""
+        while n > 0:
+            n, remainder = divmod(n - 1, 26)
+            string = chr(65 + remainder) + string
+        return string
+
+    def get_cell(self, row: int, col: int, sheet_name: str) -> str | None:
+        """
+        Получает значение ячейки из указанного листа Google Sheets.
+
+        @param row: Номер строки (начиная с 1).
+        @param col: Номер столбца (начиная с 1).
+        @param sheet_name: Название листа, из которого нужно извлечь данные.
+        @return: Значение ячейки.
+        """
+        col_letter = self.col_num_to_letter(col)
+        cell_range = f"{col_letter}{row}:{col_letter}{row}"
+        data = self.get_sheet_as_list(sheet_name, cell_range)
+
+        if data and len(data) > 0 and len(data[0]) > 0:
+            return data[0][0]
 
     def get_sheet_as_list(self, sheet_name: str, range: str = None) -> list[list[str]]:
         """
@@ -285,8 +327,7 @@ class GSDocument:
         titles = [sheet.get('properties', {}).get('title', '') for sheet in sheets]
         return titles
 
-    def update_sheet(self, sheet_name, values):
-        # Вставляем данные в таблицу
+    def update_sheet(self, sheet_name: str, values: list[list | tuple] | tuple[list | tuple]):
         body = {'values': values}
         request = self.service.spreadsheets().values().update(
             spreadsheetId=self.doc_id,
@@ -296,6 +337,22 @@ class GSDocument:
         )
         response = request.execute()
         return response
+
+    def update_sheet_with_format_header(
+            self,
+            sheet_name: str,
+            header: list | tuple,
+            values: list[list | tuple] | tuple[list | tuple],
+            format_header: GSFormatOptions):
+        values.insert(0, header)
+        self.clear_sheet(sheet_name=sheet_name)
+        self.update_sheet(sheet_name=sheet_name, values=values)
+        self.format_range(
+            start_row=0, start_col=0,
+            sheet_name=sheet_name,
+            format_options=format_header,
+            end_row=1
+        )
 
     def update_sheet_with_df(self, sheet_name, df):
         # Передаем DataFrame в Google Sheets без изменений

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 import aiohttp
 from django.conf import settings
+from django.template.defaultfilters import pprint
 
 from apps.tools.exceptions.common import UnitAlreadyFullException
 from apps.tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
@@ -82,11 +83,17 @@ async def is_unit_suits_for_join(unit: dict, search_levels: list, age: int, disc
     return True
 
 
-async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> dict:
+async def get_forming_groups_for_join(level: str,
+                                      discipline: str,
+                                      age: int,
+                                      join_type: str = None,
+                                      **kwargs
+                                      ) -> dict:
     """
     @param level: Уровень ученика из списка amo_disciplines в consts.py
     @param discipline: Одно из направлений из списка в amo_levels consts.py
     @param age: Количество полных лет будущего ученика
+    @param join_type: Стиль временной фильтрации
     @return: Словарь вида
     {
         'groups': Список с найденными группами по параметрам по api HolliHop,
@@ -94,27 +101,42 @@ async def get_forming_groups_for_join(level: str, discipline: str, age: int) -> 
     }
 
     """
+    print('!!!')
     HHManager = CustomHHApiV2Manager()
     ed_units = await HHManager.get_available_future_starting_ed_units(
         types='Group,MiniGroup',
-        learningTypes='Вводный модуль курса (russian language)',
         statuses='Forming',
         level=level,
         queryDays=True,
         discipline=discipline,
-        age=age
+        age=age,
+        **kwargs
     )
-    # Проверяем дату для верной фильтрации
+
+    print('ed_units!!!')
+    print(len(ed_units))
     now = datetime.now()
     # now = datetime(now.year, 5, 26)
-    if datetime(now.year, 5, 26) <= now <= datetime(now.year, 8, 30):  # Если лето
+    if not join_type:
+        if datetime(now.year, 5, 26) <= now <= datetime(now.year, 8, 29):  # Если лето
+            join_type = 'summer'
+        elif datetime(now.year, 8, 30) <= now <= datetime(now.year, 11, 30):  # Если осень
+            join_type = 'autumn'
+        else:  # академический год
+            join_type = 'academic_year'
+
+    if join_type == 'summer':
         ed_units = HHManager.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=datetime(now.year, 6, 3))
-        join_type = 'summer'
-    else:  # Если не лето
+    elif join_type == 'autumn':
+        ed_units = HHManager.filter_ed_units_with_days_later_than_date(
+            units=ed_units, date=datetime(now.year, 8, 30))
+    elif join_type == 'from_now':
+        ed_units = HHManager.filter_ed_units_with_days_later_than_date(
+            units=ed_units, date=now)
+    elif join_type == 'academic_year':
         ed_units = HHManager.filter_ed_units_with_days_earlier_than_date(
             units=ed_units, date=datetime(now.year, 6, 2))
-        join_type = 'academic_year'
 
     ed_units = sort_groups_by_datetime(ed_units)
     units_result = []
@@ -161,6 +183,9 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
     start_forming_unit_date_lesson1 = datetime.strptime(forming_unit['Days'][0]['Date'], '%Y-%m-%d')
     start_forming_unit_date_lesson2 = datetime.strptime(forming_unit['Days'][1]['Date'], '%Y-%m-%d') if len(
         forming_unit['Days']) > 1 else None
+    pprint(forming_unit)
+    print(start_forming_unit_date_lesson1)
+    print(start_forming_unit_date_lesson2)
     start_forming_group_time = datetime.strptime(forming_unit['ScheduleItems'][0]['BeginTime'], '%H:%M')
 
     # pprint(forming_unit)
@@ -208,9 +233,14 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             teacher_name=forming_unit['ScheduleItems'][0]['Teacher'],
             datetime_start_moscow=int(datatime_start_moscow.timestamp()),  # Дата и время старта ВМ
             datetime_start_client_tz=int((datatime_start_moscow + timedelta(hours=client_tz - 3)).timestamp()),
-            datetime_start2_moscow=int(
+            datetime_first_summer_lesson_moscow=int(
+                datatime_start_moscow.timestamp()) if datatime_start_moscow is not None else None,
+            datetime_first_summer_lesson_client_tz=int(
+                (datatime_start_moscow + timedelta(
+                    hours=client_tz - 3)).timestamp()) if datatime_start_moscow is not None else None,
+            datetime_second_summer_lesson_moscow=int(
                 datatime_start2_moscow.timestamp()) if datatime_start2_moscow is not None else None,
-            datetime_start2_client_tz=int((datatime_start_moscow + timedelta(
+            datetime_second_summer_lesson_client_tz=int((datatime_start2_moscow + timedelta(
                 hours=client_tz - 3)).timestamp()) if datatime_start2_moscow is not None else None,
             date_end=int(start_forming_unit_date2.timestamp()) if start_forming_unit_date2 else 0,  # Дата окончания ВМ
         )
@@ -232,7 +262,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
     # 2 ГРУППА
     result2 = False
     course_unit_id = False
-    if join_type == 'academic_year':
+    if join_type == 'academic_year' or join_type == 'from_now':
         if forming_unit.get('ExtraFields'):
             slot_code = next((field['Value'] for field in forming_unit['ExtraFields'] if field['Name'] == 'код-слот'),
                              None)
@@ -344,6 +374,10 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
         )
 
 
+def calc_base_age_by_level(level):
+    pass
+
+
 async def send_report_join_to_forming_group(
         student_id: int,
         tel_number: str,
@@ -353,8 +387,10 @@ async def send_report_join_to_forming_group(
         teacher_name: str,
         datetime_start_moscow: int,
         datetime_start_client_tz: int,
-        datetime_start2_moscow: int,
-        datetime_start2_client_tz: int,
+        datetime_first_summer_lesson_moscow: int,
+        datetime_first_summer_lesson_client_tz: int,
+        datetime_second_summer_lesson_moscow: int,
+        datetime_second_summer_lesson_client_tz: int,
         date_end: int,
 ) -> bool:
     """
@@ -367,11 +403,17 @@ async def send_report_join_to_forming_group(
     @param teacher_name: Его имя
     @param datetime_start_moscow: timestamp Дата и время старта вводного модуля по москве
     @param datetime_start_client_tz: timestamp Дата и время старта вводного модуля по TZ клиента
-    @param datetime_start_moscow: timestamp Дата и время старта вводного модуля второго урока на лето по москве
-    @param datetime_start_client_tz: timestamp Дата и время старта вводного модуля второго урока на лето по TZ клиента
+    @param datetime_first_summer_lesson_moscow: timestamp Дата и время старта вводного модуля первого урока на лето по москве
+    @param datetime_first_summer_lesson_client_tz: timestamp Дата и время старта вводного модуля первого урока на лето по TZ клиента
+    @param datetime_second_summer_lesson_moscow: timestamp Дата и время старта вводного модуля второго урока на лето по москве
+    @param datetime_second_summer_lesson_client_tz: timestamp Дата и время старта вводного модуля второго урока на лето по TZ клиента
     @param date_end: Дата окончания вводного модуля
     @return:
     """
+    print(datetime_first_summer_lesson_moscow)
+    print(datetime_first_summer_lesson_client_tz)
+    print(datetime_second_summer_lesson_moscow)
+    print(datetime_second_summer_lesson_client_tz)
     async with aiohttp.ClientSession() as session:
         async with session.post(
                 url=settings.AMOLINK_REPORT_JOIN_TO_INTRODUCTION_GROUPS,
@@ -385,8 +427,10 @@ async def send_report_join_to_forming_group(
                     'teacher_name': teacher_name,
                     'datetime_start_moscow': datetime_start_moscow,
                     'datetime_start_client_tz': datetime_start_client_tz,
-                    'datetime_start2_moscow': datetime_start2_moscow,
-                    'datetime_start2_client_tz': datetime_start2_client_tz,
+                    'datetime_first_summer_lesson_moscow': datetime_first_summer_lesson_moscow,
+                    'datetime_first_summer_lesson_client_tz': datetime_first_summer_lesson_client_tz,
+                    'datetime_second_summer_lesson_moscow': datetime_second_summer_lesson_moscow,
+                    'datetime_second_summer_lesson_client_tz': datetime_second_summer_lesson_client_tz,
                     'date_end': date_end,
                 },
         ) as response:
@@ -434,23 +478,3 @@ async def send_nothing_fit_units_to_amo(student_id, msg, func: int = 0) -> bool:
             else:
                 log.error(f'Error: {response.status}. Ошибка отправки сообщения клиента в amo.')
                 return False
-
-
-async def is_student_in_group_on_discipline(student_id, discipline) -> bool:
-    """
-    Проверяет через HolliHop api учится ли уже ученик по данной дисциплине.
-    Есть ли такие EdUnitStudent discipline=discipline со стартом в будущем.
-    @param student_id: Сквозной id ученика amo hh
-    @param discipline: Одно из направлений из списка в amo_levels consts.py
-    @return: bool
-    """
-    HHManager = CustomHHApiV2Manager()
-    student = await HHManager.get_student_by_amo_id(student_amo_id=student_id)
-    result = await HHManager.getEdUnitStudents(
-        edUnitTypes='Group,MiniGroup',
-        studentClientId=student['ClientId'],
-        edUnitDisciplines=discipline,
-        dataFrom=datetime.now().strftime('%Y-%m-%d')
-    )
-    result = [unit for unit in result if await HHManager.is_ed_unit_student_end_date_in_future(unit)]
-    return bool(result)

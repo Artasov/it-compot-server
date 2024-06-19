@@ -1,4 +1,5 @@
 import csv
+import re
 from datetime import datetime
 from io import StringIO
 
@@ -11,6 +12,17 @@ def calculate_age(birthdate_str: str) -> int:
     if (today.month, today.day) < (birthdate.month, birthdate.day):
         age -= 1
     return age
+
+
+def get_number(value):
+    pattern = re.compile(r'[0-9.,]+')
+    matches = pattern.findall(value.replace('\xa0', ''))
+    number_string = ''.join(matches).replace(',', '.')
+    if number_string.count('.') > 1:
+        parts = number_string.split('.')
+        number_string = parts[0] + '.' + ''.join(parts[1:])
+
+    return number_string
 
 
 def create_virtual_csv(data) -> StringIO:

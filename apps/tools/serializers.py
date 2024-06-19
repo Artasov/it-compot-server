@@ -6,9 +6,13 @@ from service.hollihop.consts import amo_hh_levels_map, amo_hh_disciplines_map
 
 
 class FormingGroupParamsSerializer(AsyncSerializer):
-    level = serializers.CharField(max_length=200)
+    student_full_name = serializers.CharField(max_length=400, required=False)
+    email = serializers.EmailField(required=False)
+    tel = serializers.CharField(max_length=14, required=False)
+    level = serializers.CharField(max_length=200, required=False)
     discipline = serializers.CharField(max_length=400)
-    age = serializers.IntegerField()
+    age = serializers.IntegerField(required=False)
+
 
 
 class StudentToGroupSerializer(AsyncSerializer):

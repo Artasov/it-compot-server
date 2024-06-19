@@ -22,11 +22,12 @@ try {
 
     async function getEdUnitsForReport() {
         try {
-            return await Client.sendGet(
+            const response = await Client.sendGet(
                 Client.getProtocolAndDomain() +
                 '/api/v1/tools/get_teacher_lesson_for_report/',
                 []
             );
+            return response.data;
         } catch (error) {
             // raiseErrorModal(`Ошибка получения групп, свяжитесь с менеджером.`);
             console.log(error)
@@ -36,11 +37,13 @@ try {
 
     async function getThemesByDiscipline(discipline) {
         try {
-            return await Client.sendGet(
+            const response = await Client.sendGet(
                 Client.getProtocolAndDomain() +
                 '/api/v1/tools/get_course_themes_view/',
                 {discipline: discipline}
             );
+            console.log(response)
+            return response.data;
         } catch (error) {
             // raiseErrorModal(`Ошибка получения тем по дисциплине.`);
             console.log(error)
@@ -51,7 +54,7 @@ try {
 
     async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, students_comments, lessonCompletionPercentage, type) {
         try {
-            return await Client.sendPost(
+            const response = await Client.sendPost(
                 Client.getProtocolAndDomain() +
                 '/api/v1/tools/send_lesson_report/',
                 {
@@ -64,6 +67,7 @@ try {
                     type: type,
                 }
             );
+            return response.data;
         } catch (error) {
             setError('Ошибка отправки отчета')
             console.log(error)
@@ -93,7 +97,7 @@ try {
     }
 
     let choosedEdUnitDay = [];
-    
+
     async function sendReport(e) {
         e.preventDefault();
 
@@ -117,8 +121,8 @@ try {
                 if (sDay['Date'] === choosedEdUnitDay[0]['Days'][choosedEdUnitDay[1]]['Date']) {
                     const description = sDay.Description ? sDay.Description : '';
                     let studentAmoId = null;
-                    for (const extraField of student.StudentExtraFields){
-                        if (extraField.Name === 'id ученика'){
+                    for (const extraField of student.StudentExtraFields) {
+                        if (extraField.Name === 'id ученика') {
                             studentAmoId = extraField.Value;
                         }
                     }
@@ -246,7 +250,7 @@ try {
             timeEl.textContent = `${unit.Days[day_index].Date} ${unit.Students[0].BeginTime}`;
         } else {
             for (const scheduleItem of unit.ScheduleItems) {
-                if(isDateInRange(unit.Days[day_index].Date), scheduleItem.BeginDate, scheduleItem.EndDate){
+                if (isDateInRange(unit.Days[day_index].Date), scheduleItem.BeginDate, scheduleItem.EndDate) {
                     timeEl.textContent = `${unit.Days[day_index].Date} ${scheduleItem.BeginTime}`;
                     break;
                 }
@@ -261,6 +265,7 @@ try {
 
     setLoading(true);
     const response = await getEdUnitsForReport()
+
     const units = response.units
 
     setLoading(false);

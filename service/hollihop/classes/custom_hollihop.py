@@ -1,8 +1,11 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from pprint import pprint
 
-from apps.tools.exceptions.common import PaymentException
+import aiohttp
+
+from apps.tools.exceptions.common import PaymentException, StudentByAmoIdNotFound
 from service.common.common import calculate_age
 from service.hollihop.classes.hollihop import HolliHopApiV2Manager
 from service.hollihop.consts import amo_hh_currencies, amo_hh_pay_methods
@@ -43,10 +46,50 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         if not result.get('success'):
             raise SetCommentError('Ошибка при добавлении комментария')
 
-    async def get_ed_unit_students_by_unit_id(self, ids: list[int, ...] | tuple[int, ...]):
-        tasks = [self.get_ed_unit_student(edUnitId=id) for id in ids]
+    @staticmethod
+    def get_student_or_student_unit_extra_field_value(obj: dict, extra_field_name: str):
+        extra_fields = obj.get('StudentExtraFields', []) + obj.get('ExtraFields', [])
+        for field in extra_fields:
+            if field['Name'] == extra_field_name:
+                return field['Value']
+
+    async def add_user_extra_field(self, student: dict, field_name: str, field_value: str):
+        current_fields = student.get('ExtraFields', [])
+        # Преобразуем текущие поля в формат, требуемый для API
+        fields_for_api = [{'name': field['Name'], 'value': field['Value']} for field in current_fields]
+
+        # Проверяем, существует ли уже поле с таким именем
+        field_index = next((i for i, field in enumerate(fields_for_api) if field['name'] == field_name), None)
+
+        if field_index is not None:
+            # Если поле уже существует, обновляем его значение
+            fields_for_api[field_index]['value'] = field_value
+        else:
+            # Если поля нет, добавляем его в формате, требуемом API
+            fields_for_api.append({'name': field_name, 'value': field_value})
+
+        # Отправляем обновленные поля
+        response = await self.editUserExtraFields(
+            studentClientId=student['ClientId'],
+            fields=fields_for_api
+        )
+
+        return response
+
+    async def get_ed_unit_students_by_unit_id(self, ids: list[int] | tuple[int]):
+        tasks = [self.getEdUnitStudents(edUnitId=id, maxTake=100) for id in ids]
         results = await asyncio.gather(*tasks)
         return [item for sublist in results if sublist for item in sublist]
+
+    async def get_student_by_amo_id(self, student_amo_id: int):
+        students = await self.getStudents(
+            extraFieldName='id ученика',
+            extraFieldValue=student_amo_id,
+            maxTake=1
+        )
+        if not students:
+            raise StudentByAmoIdNotFound(student_amo_id)
+        return students[0]
 
     async def get_active_teachers(self):
         teachers = await self.getTeachers(take=10000)
@@ -151,7 +194,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         """Фильтрует массив учебных единиц у которых все дни(занятия) позже даты(date) включительно"""
         return [
             unit for unit in units
-            if all(datetime.strptime(day['Date'], '%Y-%m-%d') >= date for day in unit['Days'])
+            if 'Days' in unit and all(datetime.strptime(day['Date'], '%Y-%m-%d') >= date for day in unit['Days'])
         ]
 
     @staticmethod
@@ -159,7 +202,27 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         """Фильтрует массив учебных единиц у которых все дни(занятия) раньше даты(date) включительно"""
         return [
             unit for unit in units
-            if all(datetime.strptime(day['Date'], '%Y-%m-%d') <= date for day in unit['Days'])
+            if 'Days' in unit and all(datetime.strptime(day['Date'], '%Y-%m-%d') <= date for day in unit['Days'])
+        ]
+
+    @staticmethod
+    def filter_ed_units_with_any_days_later_than_date(units: list, date: datetime) -> list[dict]:
+        """Фильтрует массив учебных единиц у которых есть хотя бы один день(занятие) позже даты(date) включительно"""
+        return [
+            unit for unit in units
+            if 'Days' in unit and any(
+                not day.get('Pass', False) and datetime.strptime(day['Date'], '%Y-%m-%d') >= date for day in
+                unit['Days'])
+        ]
+
+    @staticmethod
+    def filter_ed_units_with_any_days_earlier_than_date(units: list, date: datetime) -> list[dict]:
+        """Фильтрует массив учебных единиц у которых есть хотя бы один день(занятие) раньше даты(date) включительно"""
+        return [
+            unit for unit in units
+            if 'Days' in unit and any(
+                not day.get('Pass', False) and datetime.strptime(day['Date'], '%Y-%m-%d') <= date for day in
+                unit['Days'])
         ]
 
     async def get_ed_units_with_day_in_daterange(
@@ -201,6 +264,16 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         ed_unit['Days'] = filtered_days
         return ed_unit
 
+    async def get_student_by_client_id(self, session, client_id):
+        student_data = await self.getStudents(clientId=client_id, maxTake=1, session=session)
+        return student_data
+
+    async def get_students_by_client_ids(self, ids: tuple | list):
+        async with aiohttp.ClientSession() as session:
+            tasks = [self.get_student_by_client_id(session, client_id) for client_id in ids]
+            students = await asyncio.gather(*tasks)
+        return [student[0] for student in students if student]
+
     async def get_available_future_starting_ed_units(self, **kwargs) -> list:
         level = kwargs.pop('level', None)
         age = kwargs.pop('age', None)
@@ -234,10 +307,9 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
 
         edUnitsFromToday = await self.getEdUnits(
             # id=18111,
-            queryTeacherPrices='true',
             disciplines=discipline,
-            # queryDays='true',
             dateFrom=now.strftime("%Y-%m-%d"),
+            dateTo=(now + timedelta(days=60)).strftime("%Y-%m-%d"),
             maxTake=10000,
             batchSize=1000,
             **kwargs
@@ -286,6 +358,8 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # print(f'{students_info_dict.keys()=}')
         # Проверяем каждую группу
         resultUnits = []
+        pprint('edUnitsFromNowAvailableForJoin')
+        pprint(len(edUnitsFromNowAvailableForJoin))
         for unit in edUnitsFromNowAvailableForJoin:
             allow = True
             students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
@@ -331,6 +405,9 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             if allow:
                 resultUnits.append(unit)
                 log.info(f'EdUnit {unit["Id"]}: Подходит')
+
+        pprint('resultUnits')
+        pprint(len(resultUnits))
         return resultUnits
 
     async def add_hh_payment_by_amo(self, student_amo_id: int, amo_currency: str,
@@ -361,3 +438,107 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             return response
         else:
             raise PaymentException('Не добавился платеж клиента.')
+
+    async def get_student_by_fio_or_email_or_tel(self, fio: str, email: str, tel: str) -> dict | None:
+        if fio:
+            students_by_fio = await self.getStudents(term=fio, maxTake=1000)
+            if students_by_fio and len(students_by_fio) == 1:
+                return students_by_fio[0]
+        if email:
+            students_by_email = await self.getStudents(term=email, maxTake=1000)
+            if students_by_email and len(students_by_email) == 1:
+                return students_by_email[0]
+        if tel:
+            students_by_tel = await self.getStudents(term=tel, maxTake=1000)
+            if students_by_tel and len(students_by_tel) == 1:
+                return students_by_tel[0]
+
+    async def get_latest_ed_unit_s_for_student_on_discipline(self, client_id, discipline) -> dict | None:
+        ed_units_s = await self.getEdUnitStudents(
+            studentClientId=client_id, edUnitDisciplines=discipline, maxTake=1000, queryDays=True,
+            dateFrom='2015-05-01', dateTo=datetime.now().strftime('%Y-%m-%d')
+        )
+        if not ed_units_s:
+            return None
+        if len(ed_units_s) == 1:
+            return ed_units_s[0]
+        latest_unit = None
+        latest_date = None
+        for unit in ed_units_s:
+            for day in unit['Days']:
+                if not day.get('Pass', False):
+                    day_date = datetime.strptime(day['Date'], '%Y-%m-%d')
+                    if latest_date is None or day_date > latest_date:
+                        latest_date = day_date
+                        latest_unit = unit
+        return latest_unit
+
+    @staticmethod
+    def filter_latest_ed_unit_s_for_student_on_disciplines(ed_units_s):
+        filtered_units = {}
+        for unit in ed_units_s:
+            if not unit.get('Days'): continue
+            client_id = unit['StudentClientId']
+            discipline = unit['EdUnitDiscipline']
+            unit_key = (client_id, discipline)
+
+            for day in unit['Days']:
+                if not day.get('Pass', False):
+                    day_date = datetime.strptime(day['Date'], '%Y-%m-%d')
+
+                    if unit_key not in filtered_units:
+                        filtered_units[unit_key] = (unit, day_date)
+                    else:
+                        _, latest_date = filtered_units[unit_key]
+                        if day_date > latest_date:
+                            filtered_units[unit_key] = (unit, day_date)
+
+        return [unit for unit, _ in filtered_units.values()]
+
+    @staticmethod
+    def get_last_day_desc(ed_unit_s):
+        last_day = None
+
+        # Проходим по всем дням
+        for day in ed_unit_s.get('Days', []):
+            if day.get('Pass'):
+                continue
+            day_date = datetime.strptime(day.get('Date'), '%Y-%m-%d')
+            if last_day is None or day_date > last_day['Date']:
+                last_day = day
+                last_day['Date'] = day_date
+
+        if last_day:
+            return last_day.get('Description')
+        return None
+
+    @staticmethod
+    def filter_ed_units_by_extra_field(ed_units: list | tuple, extra_field_name: str, extra_field_value) -> list:
+        filtered_units = []
+
+        for unit in ed_units:
+            for extra_field in unit.get('ExtraFields', []):
+                if extra_field.get('Name') == extra_field_name and extra_field.get('Value') == extra_field_value:
+                    filtered_units.append(unit)
+                    break
+
+        return filtered_units
+
+    async def is_student_in_group_on_discipline(self, student_amo_id, discipline) -> bool:
+        """
+        Проверяет через HolliHop api учится ли уже ученик по данной дисциплине.
+        Есть ли такие EdUnitStudent discipline=discipline со стартом в будущем.
+        @param student_amo_id: Сквозной id ученика amo hh
+        @param discipline: Одно из направлений из списка в amo_levels consts.py
+        @return: bool
+        """
+        student = await self.get_student_by_amo_id(student_amo_id=student_amo_id)
+        result = await self.getEdUnitStudents(
+            edUnitTypes='Group,MiniGroup',
+            studentClientId=student['ClientId'],
+            edUnitDisciplines=discipline,
+            dataFrom=datetime.now().strftime('%Y-%m-%d'),
+            maxTake=1000
+        )
+        result = [unit for unit in result if await self.is_ed_unit_student_end_date_in_future(unit)]
+        return bool(result)

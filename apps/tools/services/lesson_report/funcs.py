@@ -1,10 +1,43 @@
+import re
 from datetime import datetime, timedelta
 from pprint import pprint
+from typing import TypedDict
 
 from django.conf import settings
 
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptions
+
+
+class LessonComment(TypedDict):
+    number: int
+    theme: str
+    finish_percent: int
+    add_info: str
+
+
+def parse_lesson_comment(comment: str) -> LessonComment | None:
+    pattern = re.compile(r'\*\s*(\d+)\.\s*\).*? (.*?)\s*\*\s*Завершено на:\s*(\d+)%\s*\*\s*(.*)', re.DOTALL)
+    match = pattern.search(comment)
+
+    if not match: return None
+
+    number = int(match.group(1))
+    theme = match.group(2).strip()
+    finish_percent = int(match.group(3))
+    add_info = match.group(4).strip()
+
+    return LessonComment(number=number, theme=theme, finish_percent=finish_percent, add_info=add_info)
+
+
+def get_module_by_lesson_number(lesson_number: int, discipline) -> str:
+    doc = GSDocument(settings.GSDOCID_COURSES_RESUME)
+    return doc.get_cell(lesson_number + 2, 4, discipline)
+
+
+def get_module_for_autumn_by_lesson_number(lesson_number: int, discipline) -> str:
+    doc = GSDocument(settings.GSDOCID_COURSES_RESUME)
+    return doc.get_cell(lesson_number + 2, 5, discipline)
 
 
 async def send_gs_lesson_report(
@@ -172,4 +205,3 @@ async def upload_lasts_themes_for_unit_student():
     )
     doc.format_range(0, 0, settings.GSDOCID_UPLOAD_BY_LAST_THEMES[1], format_options_header, 1, )
     print('SUCCESSFULLY Uploaded last themes to google sheet')
-

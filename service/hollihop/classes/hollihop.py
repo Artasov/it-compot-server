@@ -6,8 +6,6 @@ from urllib.parse import urlencode
 import aiohttp as aiohttp
 from django.conf import settings
 
-from apps.tools.exceptions.common import StudentByAmoIdNotFound
-
 log = logging.getLogger('base')
 
 
@@ -32,6 +30,7 @@ class HolliHopApiV2Manager:
                 batch_params['skip'] = skip
                 batch_params['take'] = min(batchSize, maxTake - skip)
                 batch_url = f"{url}?{urlencode(batch_params, safe='/', encoding='utf-8')}"
+                # print(batch_url)
                 tasks.append(self.fetch(session, batch_url))
 
             results = await asyncio.gather(*tasks)
@@ -85,6 +84,14 @@ class HolliHopApiV2Manager:
         response = await self.api_post_call('AddEdUnitStudent', **kwargs)
         return response
 
+    async def getIncomesAndOutgoes(self, **kwargs):
+        required_params = ['clientId']
+        if not all(param in kwargs for param in required_params):
+            raise ValueError(f"Missing required parameter: {', '.join(required_params)}")
+
+        response = await self.api_call('GetIncomesAndOutgoes', **kwargs)
+        return response
+
     async def editUserExtraFields(self, **kwargs):
         if 'leadId' not in kwargs and 'studentClientId' not in kwargs:
             raise ValueError("At least one of 'leadId' or 'studentClientId' must be provided")
@@ -94,29 +101,6 @@ class HolliHopApiV2Manager:
         if not all(isinstance(field, dict) and 'name' in field and 'value' in field for field in kwargs['fields']):
             raise ValueError("Each item in 'fields' must be a dict with 'name' and 'value' keys")
         response = await self.api_post_call('EditUserExtraFields', **kwargs)
-        return response
-
-    async def add_user_extra_field(self, student: dict, field_name: str, field_value: str):
-        current_fields = student.get('ExtraFields', [])
-        # Преобразуем текущие поля в формат, требуемый для API
-        fields_for_api = [{'name': field['Name'], 'value': field['Value']} for field in current_fields]
-
-        # Проверяем, существует ли уже поле с таким именем
-        field_index = next((i for i, field in enumerate(fields_for_api) if field['name'] == field_name), None)
-
-        if field_index is not None:
-            # Если поле уже существует, обновляем его значение
-            fields_for_api[field_index]['value'] = field_value
-        else:
-            # Если поля нет, добавляем его в формате, требуемом API
-            fields_for_api.append({'name': field_name, 'value': field_value})
-
-        # Отправляем обновленные поля
-        response = await self.editUserExtraFields(
-            studentClientId=student['ClientId'],
-            fields=fields_for_api
-        )
-
         return response
 
     async def setStudentAuthInfo(self, **kwargs):
@@ -267,20 +251,6 @@ class HolliHopApiV2Manager:
         #  'UseEMailBySystem': True,
         #  'UseMobileBySystem': True}
 
-    async def get_students_by_client_ids(self, ids: tuple | list):
-        async with aiohttp.ClientSession() as session:
-            tasks = [self.get_student_by_client_id(session, client_id) for client_id in ids]
-            students = await asyncio.gather(*tasks)
-        return [student[0] for student in students if student]
-
-    async def get_student_by_client_id(self, session, client_id):
-        student_data = await self.getStudents(clientId=client_id, maxTake=1, session=session)
-        return student_data
-
-    async def get_ed_unit_student(self, **kwargs):
-        student_units = await self.api_call('GetEdUnitStudents', **kwargs)
-        return student_units.get('EdUnitStudents', [])
-
     async def getEdUnits(self, maxTake=10000, batchSize=1000, **kwargs):
         edUnits = await self.api_call_pagination('GetEdUnits', maxTake=maxTake, batchSize=batchSize, **kwargs)
         result_list = []
@@ -372,16 +342,6 @@ class HolliHopApiV2Manager:
         #     }
         # ]
 
-    async def get_student_by_amo_id(self, student_amo_id: int):
-        students = await self.getStudents(
-            extraFieldName='id ученика',
-            extraFieldValue=student_amo_id,
-            maxTake=1
-        )
-        if not students:
-            raise StudentByAmoIdNotFound(student_amo_id)
-        return students[0]
-
     async def addPayment(self, **kwargs):
         required_params = ['clientId', 'officeOrCompanyId', 'value']  # 'supplies', только для типа Supplies
         if not all(param in kwargs for param in required_params):
@@ -395,10 +355,3 @@ class HolliHopApiV2Manager:
 
         response = await self.api_post_call('AddPayment', **kwargs)
         return response
-
-    @staticmethod
-    def get_student_or_student_unit_extra_field_value(obj: dict, extra_field_name: str):
-        extra_fields = obj.get('StudentExtraFields', []) + obj.get('ExtraFields', [])
-        for field in extra_fields:
-            if field['Name'] == extra_field_name:
-                return field['Value']

@@ -21,18 +21,20 @@ const summerInfoModal = new bootstrap.Modal(document.getElementById('summerInfo'
     keyboard: false
 });
 
+const queryParams = Client.getParamsFromCurrentURL()
+
 function hideAllModals() {
     successModal.hide();
     confirmationModal.hide();
     nothingFitModal.hide();
 }
 
-async function getAvailableFormingGroups() {
+async function getAvailableFormingGroups(params) {
     try {
         return await Client.sendGet(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/get_forming_groups_for_join/',
-            Client.getParamsFromCurrentURL()
+            params
         );
     } catch (error) {
         raiseErrorModal(`Ошибка получения групп, свяжитесь с менеджером.`);
@@ -43,7 +45,9 @@ async function getAvailableFormingGroups() {
 function raiseErrorModal(error) {
     hideAllModals();
     document.querySelector('.error-modal-text-content').textContent = error;
-    document.querySelector('#group_join_content').classList.add('d-none');
+    if (queryParams.length > 1) {
+        document.querySelector('#group_join_content').classList.add('d-none');
+    }
     errorModal.show();
 }
 
@@ -74,7 +78,7 @@ function raiseSuccessModal(title, subtitle, contentElement) {
 
 async function postJoinStudentToGroup(student_id, group_id, TZ, join_type) {
     try {
-        return await Client.sendPost(
+        const res = await Client.sendPost(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/student_to_forming_group/',
             {
@@ -84,6 +88,8 @@ async function postJoinStudentToGroup(student_id, group_id, TZ, join_type) {
                 join_type: join_type
             }
         );
+        console.log(res)
+        return res
     } catch (error) {
         raiseErrorModal(`Ошибка добавления ученика в группу, свяжитесь с менеджером.`);
         return null;
@@ -111,7 +117,7 @@ function joinStudentToGroup(student_id, group, TZ) {
         confirmationModal.hide();
         document.getElementById('confirmationModal').classList.remove('show');
 
-        if (response.success) {
+        if (response.data.success) {
             const groupPreview = createUnitEl(group, TZ);
             groupPreview.classList.remove('bg-primary');
             groupPreview.classList.add('frcc');
@@ -247,6 +253,8 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
 
 async function send_nothing_fit(student_id, msg) {
     try {
+        console.log(Client.getProtocolAndDomain() +
+            '/api/v1/tools/send_nothing_fit/')
         return await Client.sendPost(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/send_nothing_fit/',
@@ -266,6 +274,10 @@ let join_type = undefined;
 let loadedGroups = undefined;
 const resultContainerEl = document.querySelector('.result_container');
 const groupLoadingStatusContainerEl = document.querySelector('.group_loading_status_container');
+const findGroupsForUText = document.querySelector('.find-groups-for-u-text');
+const inputStudentInfoContainer = document.querySelector('.input-student-info-container');
+
+let studentId = Client.getParamsFromCurrentURL()['student_id'];
 
 function showGroupsWithTZ(TZ) {
     // TZ - цифра (данные в группах указаны по умолчанию в +3)
@@ -275,12 +287,11 @@ function showGroupsWithTZ(TZ) {
     for (let i = 0; i < loadedGroups.length; i++) {
         const hueRotate = hueRotateValues[i % hueRotateValues.length]; // Циклическое применение значений
         // Пропуск если лето и всего 1 день найден
-        if (join_type === 'summer' && loadedGroups[i].Days.length < 2){
+        if (join_type === 'summer' && loadedGroups[i].Days.length < 2) {
             continue;
         }
         const groupEl = createUnitEl(loadedGroups[i], TZ, `hue-rotate(${hueRotate}deg)`);
         groupEl.addEventListener('click', () => {
-            const studentId = Client.getParamsFromCurrentURL()['student_id'];
             confirmationModal.show();
 
             const modalBodyEl = document.querySelector('.confirmation-modal-body');
@@ -307,78 +318,148 @@ function showGroupsWithTZ(TZ) {
     successEl.innerHTML = 'Добро пожаловать<br>в компьютерную школу будущего!<br>' +
         '<p id="help-text" class="text-center fs-5 fw-bold my-2 opacity-this85">Выберите удобную для вас группу</p>';
     groupLoadingStatusContainerEl.appendChild(successEl);
+    inputStudentInfoContainer.classList.add('d-none');
 }
 
 
 async function main() {
     // Если параметров в запросе достаточно
-    if (Object.keys(Client.getParamsFromCurrentURL()).length !== 4) {
-        raiseErrorModal(`Неверное количество параметров.`);
-        return;
-    }
-    // Связываем форму ничего не подошло и отправку запроса об этом
-    const formNothingFit = document.getElementById('form-nothing_fit');
-    formNothingFit.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const submitButton = document.getElementById('btn-nothing-fit-submit');
-        const msg = document.getElementById('nothing_fit_user_textarea').value;
+    if (Object.keys(queryParams).length === 4) {
+        // Связываем форму ничего не подошло и отправку запроса об этом
+        const formNothingFit = document.getElementById('form-nothing_fit');
+        formNothingFit.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const submitButton = document.getElementById('btn-nothing-fit-submit');
+            const msg = document.getElementById('nothing_fit_user_textarea').value;
 
-        submitButton.disabled = true;
-
-        send_nothing_fit(Client.getParamsFromCurrentURL()['student_id'], msg)
-            .then(data => {
-                console.log(data)
-                if (data) {
-                    raiseSuccessModal(
-                        'Отлично, мы получили ваше сообщение, с вами свяжется менеджер 😉',
-                        null, null
-                    )
-                }
-            })
-    })
-    // Проверяем, может быть ученик уже учится по этой дисциплине
-    const alreadyStudying = await getIsStudentOnDiscipline()
-    if (alreadyStudying) {
-        raiseErrorModal(`Ученик уже есть в группе по данной дисциплине, свяжитесь с менеджером.`);
-        return;
-    } else if (alreadyStudying === null) return;
-
-    // Подгружаем группы
-    getAvailableFormingGroups().then(result => {
-        join_type = result.join_type
-        const groups = result.groups
-        if (groups.length === 0) {
-            document.getElementById('nothing_fit_user_textarea').setAttribute(
-                'placeholder',
-                'К сожалению система не смогла подобрать группу. ' +
-                'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂')
-            nothingFitModal.show();
-            groupLoadingStatusContainerEl.innerHTML = '';
-            return;
-
-        }
-        loadedGroups = groups
-        const btnsChooseTz = document.getElementsByClassName('btn-choose-tz');
-        for (const btnTz of btnsChooseTz) {
-            btnTz.addEventListener('click', () => {
-                chooseTZModal.hide();
-                if (join_type === 'summer') {
-                    summerInfoModal.show();
-                }
-                document.getElementById('tz-info').classList.remove('d-none');
-                const tzByMoscow = parseInt(btnTz.value) - 3;
-                document.getElementById('tz-span').innerHTML = tzByMoscow < 0 ? `${tzByMoscow}` : `+${tzByMoscow}`;
-                showGroupsWithTZ(parseInt(btnTz.value));
-            })
-        }
-        const btnChangeTz = document.getElementById('btn-change-tz');
-        btnChangeTz.addEventListener('click', () => {
-            resultContainerEl.innerHTML = '';
-            chooseTZModal.show();
+            submitButton.disabled = true;
+            send_nothing_fit(studentId, msg)
+                .then(response => {
+                    console.log(response)
+                    if (response.ok) {
+                        raiseSuccessModal(
+                            'Отлично, мы получили ваше сообщение, с вами свяжется менеджер 😉',
+                            null, null
+                        )
+                    }
+                })
         })
-        chooseTZModal.show();
-    });
+        // Проверяем, может быть ученик уже учится по этой дисциплине
+        const response = await getIsStudentOnDiscipline()
+        console.log(response)
+        const alreadyStudying = response.data
+        if (alreadyStudying) {
+            raiseErrorModal(`Ученик уже есть в группе по данной дисциплине, свяжитесь с менеджером.`);
+            return;
+        } else if (alreadyStudying === null) return;
 
+        // Подгружаем группы
+        getAvailableFormingGroups(Client.getParamsFromCurrentURL()).then(response => {
+            const data = response.data
+            join_type = data.join_type
+            const groups = data.groups
+            if (groups.length === 0) {
+                document.getElementById('nothing_fit_user_textarea').setAttribute(
+                    'placeholder',
+                    'К сожалению система не смогла подобрать группу. ' +
+                    'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂')
+                nothingFitModal.show();
+                groupLoadingStatusContainerEl.innerHTML = '';
+                return;
+
+            }
+            loadedGroups = groups
+            const btnsChooseTz = document.getElementsByClassName('btn-choose-tz');
+            for (const btnTz of btnsChooseTz) {
+                btnTz.addEventListener('click', () => {
+                    chooseTZModal.hide();
+                    if (join_type === 'summer') {
+                        summerInfoModal.show();
+                    }
+                    document.getElementById('tz-info').classList.remove('d-none');
+                    const tzByMoscow = parseInt(btnTz.value) - 3;
+                    document.getElementById('tz-span').innerHTML = tzByMoscow < 0 ? `${tzByMoscow}` : `+${tzByMoscow}`;
+                    showGroupsWithTZ(parseInt(btnTz.value));
+                })
+            }
+            const btnChangeTz = document.getElementById('btn-change-tz');
+            btnChangeTz.addEventListener('click', () => {
+                resultContainerEl.innerHTML = '';
+                chooseTZModal.show();
+            })
+            chooseTZModal.show();
+        });
+    } else if (Object.keys(queryParams).length === 1 && queryParams['discipline']) {
+        findGroupsForUText.classList.add('d-none');
+        inputStudentInfoContainer.classList.remove('d-none');
+        const studentFullNameInput = document.querySelector('input[name="student_full_name"]');
+        const emailInput = document.querySelector('input[name="email"]');
+        const telInput = document.querySelector('input[name="tel"]');
+        telInput.addEventListener('input', () => {
+            let value = telInput.value;
+            value = value.replace(/[^0-9+]/g, '');
+            if (value.startsWith('+')) value = '+' + value.slice(1).replace(/\+/g, '');
+            else value = value.replace(/\+/g, '');
+            telInput.value = value;
+        });
+        const btnSubmitFindStudent = document.querySelector('#btnSubmitFindStudent');
+        btnSubmitFindStudent.addEventListener('click', () => {
+            const params = {};
+
+            if (studentFullNameInput.value) {
+                params.student_full_name = studentFullNameInput.value;
+            }
+            if (emailInput.value) {
+                params.email = emailInput.value;
+            }
+            if (telInput.value) {
+                params.tel = telInput.value;
+            }
+            params.discipline = queryParams['discipline'];
+            getAvailableFormingGroups(params).then(response => {
+                if (response.status === 200) {
+                    const units = response.data.groups;
+                    studentId = response.data.student_id;
+                    console.log(units);
+                    for (const unit of units) {
+                        if (!units.length) {
+                            document.getElementById('nothing_fit_user_textarea').setAttribute(
+                                'placeholder',
+                                'К сожалению система не смогла подобрать группу. ' +
+                                'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂')
+                            nothingFitModal.show();
+                            groupLoadingStatusContainerEl.innerHTML = '';
+                            return;
+                        }
+                        loadedGroups = units
+                        const btnsChooseTz = document.getElementsByClassName('btn-choose-tz');
+                        for (const btnTz of btnsChooseTz) {
+                            btnTz.addEventListener('click', () => {
+                                chooseTZModal.hide();
+                                if (join_type === 'summer' || join_type === 'from_now') {
+                                    summerInfoModal.show();
+                                }
+                                document.getElementById('tz-info').classList.remove('d-none');
+                                const tzByMoscow = parseInt(btnTz.value) - 3;
+                                document.getElementById('tz-span').innerHTML = tzByMoscow < 0 ? `${tzByMoscow}` : `+${tzByMoscow}`;
+                                showGroupsWithTZ(parseInt(btnTz.value));
+                            })
+                        }
+                        const btnChangeTz = document.getElementById('btn-change-tz');
+                        btnChangeTz.addEventListener('click', () => {
+                            resultContainerEl.innerHTML = '';
+                            chooseTZModal.show();
+                        })
+                        chooseTZModal.show();
+                    }
+                } else {
+                    raiseErrorModal(response.data.error);
+                }
+            });
+        })
+    } else {
+        raiseErrorModal(`Неверное количество параметров.`);
+    }
 }
 
 await main();
