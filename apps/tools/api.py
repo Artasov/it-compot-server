@@ -97,10 +97,10 @@ async def get_course_themes_view(request):
     })
 
 
-# adrf неверно использует аутентификацию и пользователь всегда анонимный
 @acontroller('Получение учебных единиц для отчета по уроку', auth=True)
 @asemaphore_handler
-async def get_teacher_lesson_for_report(request) -> JsonResponse:
+@api_view(('GET', 'POST'))
+async def get_teacher_lesson_for_report(request) -> Response:
     HHManager = CustomHHApiV2Manager()
     now = datetime.now()
     email = request.user.email
@@ -122,11 +122,12 @@ async def get_teacher_lesson_for_report(request) -> JsonResponse:
         unit_students = await HHManager.getEdUnitStudents(
             edUnitId=filtered_units[i]['Id'],
             queryDays=True,
+            maxTake=100,
             dateFrom=(now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT)).strftime('%Y-%m-%d'),
             dateTo=now.strftime('%Y-%m-%d'),
         )
         filtered_units[i]['Students'] = unit_students
-    return JsonResponse({'units': filtered_units})
+    return Response({'units': filtered_units}, 200)
 
 
 @acontroller('Получение групп для авто-записи')

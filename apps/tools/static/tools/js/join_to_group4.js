@@ -419,6 +419,9 @@ async function main() {
             getAvailableFormingGroups(params).then(response => {
                 if (response.status === 200) {
                     const units = response.data.groups;
+                    if (units && units.length === 0) {
+                        raiseErrorModal('Не найдено подходящих групп.')
+                    }
                     studentId = response.data.student_id;
                     console.log(units);
                     for (const unit of units) {

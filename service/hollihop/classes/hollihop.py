@@ -18,12 +18,20 @@ class HolliHopApiV2Manager:
         self.authkey = authkey
 
     @staticmethod
-    async def fetch(session, url):
-        async with session.get(url) as response:
-            result = await response.json()
-            return result
+    async def fetch(session, url, semaphore=None):
+        if semaphore is not None:
+            async with semaphore:
+                async with session.get(url) as response:
+                    result = await response.json()
+                    return result
+        else:
+            async with session.get(url) as response:
+                result = await response.json()
+                return result
 
     async def fetch_all(self, url, params, maxTake=10000, batchSize=1000):
+        moment_request_limit = 5
+        semaphore = asyncio.Semaphore(moment_request_limit)
         async with aiohttp.ClientSession() as session:
             tasks = []
             for skip in range(0, maxTake, batchSize):
@@ -31,10 +39,13 @@ class HolliHopApiV2Manager:
                 batch_params['skip'] = skip
                 batch_params['take'] = min(batchSize, maxTake - skip)
                 batch_url = f"{url}?{urlencode(batch_params, safe='/', encoding='utf-8')}"
-                # print(batch_url)
-                tasks.append(self.fetch(session, batch_url))
+                tasks.append(self.fetch(session, batch_url, semaphore))
 
-            results = await asyncio.gather(*tasks)
+            results = []
+            for i in range(0, len(tasks), moment_request_limit):
+                batch_results = await asyncio.gather(*tasks[i:i + moment_request_limit])
+                results.extend(batch_results)
+
             return results
 
     async def api_call_pagination(self, endpoint, maxTake=10000, batchSize=1000, **kwargs):
