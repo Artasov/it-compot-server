@@ -10,7 +10,7 @@ from apps.tools.api import (
     add_hh_payment_by_amo_view,
     get_teacher_lesson_for_report,
     get_course_themes_view,
-    send_lesson_report,
+    send_lesson_report, upload_days_with_wrong_comment,
 )
 
 urlpatterns = [
@@ -42,4 +42,7 @@ urlpatterns = [
     path('upload_average_price_per_lesson_student/',
          upload_average_price_per_lesson_student,
          name='upload_average_price_per_lesson_student'),
+    path('upload_days_with_wrong_comment/',
+         upload_days_with_wrong_comment,
+         name='upload_days_with_wrong_comment'),
 ]

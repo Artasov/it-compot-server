@@ -305,42 +305,46 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # DIS = await self.getDisciplines()
         # pprint(DIS)
 
-        edUnitsFromToday = await self.getEdUnits(
+        edUnits = await self.getEdUnits(
             # id=18111,
             disciplines=discipline,
-            dateFrom=now.strftime("%Y-%m-%d"),
+            dateFrom=(now - timedelta(days=60)).strftime("%Y-%m-%d"),
             dateTo=(now + timedelta(days=60)).strftime("%Y-%m-%d"),
             maxTake=10000,
             batchSize=1000,
             **kwargs
         )
-        # print(f'EdUnits count: {len(edUnitsFromToday)}')
-        # print([int(unit['Id']) for unit in edUnitsFromToday])
         # Фильтруем по вместимости
-        edUnitsFromTodayAvailableForJoin = [
-            unit for unit in edUnitsFromToday if
+        edUnitsAvailableForJoin = [
+            unit for unit in edUnits if
             int(unit.get('Vacancies')) > 0
         ]
+        edUnitsAvailableForJoinFromToday = self.filter_ed_units_with_days_later_than_date(
+            edUnitsAvailableForJoin, now)
+
+        # print(f'edUnitsAvailableForJoinFromToday count: {len(edUnitsAvailableForJoinFromToday)}')
+        # print([int(unit['Id']) for unit in edUnitsAvailableForJoinFromToday])
+        # pprint(edUnitsAvailableForJoinFromToday)
         # Фильтруем по времени позже чем сейчас
         # для каждого преподавателя побывавшего в группе
         edUnitsFromNowAvailableForJoin = [
-            unit for unit in edUnitsFromTodayAvailableForJoin
+            unit for unit in edUnitsAvailableForJoinFromToday
             if await self.is_ed_unit_start_in_date_range_for_all_teachers(
                 unit,
                 now,
                 now + timedelta(weeks=3))
         ]
-        log.info(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
-        log.info([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
+        # log.info(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
+        # log.info([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
         # print(f'EdUnits count: {len(edUnitsFromNowAvailableForJoin)}')
         # print([int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin])
 
         edUnitsStudent = await self.get_ed_unit_students_by_unit_id(
             [int(unit['Id']) for unit in edUnitsFromNowAvailableForJoin]
         )
-        log.info(f'Count edUnitsStudent: {len(edUnitsStudent)}')
-        log.info([(int(unitS['EdUnitId']), int(unitS['StudentClientId']))
-                  for unitS in edUnitsStudent])
+        # log.info(f'Count edUnitsStudent: {len(edUnitsStudent)}')
+        # log.info([(int(unitS['EdUnitId']), int(unitS['StudentClientId']))
+        #           for unitS in edUnitsStudent])
         # Проверяем подходит ли нам какая-либо группа
         # Сначала получаем уникальные ID всех студентов из всех групп
         unique_student_ids = set()
@@ -358,8 +362,9 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # print(f'{students_info_dict.keys()=}')
         # Проверяем каждую группу
         resultUnits = []
-        pprint('edUnitsFromNowAvailableForJoin')
-        pprint(len(edUnitsFromNowAvailableForJoin))
+        # pprint('edUnitsFromNowAvailableForJoin')
+        # pprint(len(edUnitsFromNowAvailableForJoin))
+        # pprint(edUnitsFromNowAvailableForJoin)
         for unit in edUnitsFromNowAvailableForJoin:
             allow = True
             students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
@@ -369,7 +374,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             # Если в группе еще пусто
             if not students_ids_set:
                 resultUnits.append(unit)
-                log.info(f'EdUnit {unit["Id"]}: Подходит Пустая')
+                # print(f'EdUnit {unit["Id"]}: Подходит Пустая')
                 continue
             # Используем предварительно полученную информацию о студентах
             students = [students_info_dict[student_id] for student_id in students_ids_set if
@@ -385,7 +390,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                         # print(student_age)
                         if abs(student_age - age) > 2:
                             allow = False
-                            log.info(f'EdUnit {unit["Id"]}: Не подходит по возрасту')
+                            # print(f'EdUnit {unit["Id"]}: Не подходит по возрасту')
                             break
                     except KeyError:
                         # print('Нет дня рождения')
@@ -404,10 +409,10 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                         continue
             if allow:
                 resultUnits.append(unit)
-                log.info(f'EdUnit {unit["Id"]}: Подходит')
+                # print(f'EdUnit {unit["Id"]}: Подходит')
 
-        pprint('resultUnits')
-        pprint(len(resultUnits))
+        # pprint('resultUnits')
+        # pprint(len(resultUnits))
         return resultUnits
 
     async def add_hh_payment_by_amo(self, student_amo_id: int, amo_currency: str,
@@ -503,7 +508,10 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         for day in ed_unit_s.get('Days', []):
             if day.get('Pass'):
                 continue
-            day_date = datetime.strptime(day.get('Date'), '%Y-%m-%d')
+            date = day.get('Date')
+            if isinstance(date, datetime):
+                date = date.strftime('%Y-%m-%d')
+            day_date = datetime.strptime(date, '%Y-%m-%d')
             if last_day is None or day_date > last_day['Date']:
                 last_day = day
                 last_day['Date'] = day_date

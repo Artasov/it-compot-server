@@ -7,9 +7,11 @@ from urllib.parse import quote
 
 from adrf.decorators import api_view
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT
 
@@ -29,10 +31,11 @@ from apps.tools.services.other import get_course_themes
 from apps.tools.services.signup_group.funcs import (
     add_student_to_forming_group, send_nothing_fit_units_to_amo, get_forming_groups_for_join
 )
-from service.common.common import calculate_age, get_number
+from service.common.common import calculate_age, get_number, now_date
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
 from service.hollihop.consts import base_ages, get_next_discipline
 from service.pickler import Pickler, PicklerNotFoundDumpFile
+from service.piedis import Piedis, PiedisCacheNotFound
 from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
 
 log = logging.getLogger('base')
@@ -40,23 +43,29 @@ log = logging.getLogger('base')
 
 @acontroller('Отправка отчета по занятию.', auth=True)
 @asemaphore_handler
+@api_view(('POST',))
 async def send_lesson_report(request):
-    ed_unit_id = request.POST.get('ed_unit_id')
-    day_date = request.POST.get('day_date')
-    theme_number = request.POST.get('theme_number')
-    theme_name = request.POST.get('theme_name')
-    lesson_completion_percentage = request.POST.get('lesson_completion_percentage')
-    students_comments = request.POST.get('students_comments')
-    type_ed_unit = request.POST.get('type')
+    ed_unit_id = request.data.get('ed_unit_id')
+    day_date = request.data.get('day_date')
+    theme_number = request.data.get('theme_number')
+    theme_name = request.data.get('theme_name')
+    lesson_completion_percentage = request.data.get('lesson_completion_percentage')
+    students_comments = request.data.get('students_comments')
+    type_ed_unit = request.data.get('type')
     if not all((ed_unit_id, day_date, theme_name, lesson_completion_percentage)):
-        return JsonResponse({'success': False, 'error': 'Неверные данные для отправки отчета.'}, 400)
+        return Response({'success': False, 'error': 'Неверные данные для отправки отчета.'}, 400)
     try:
         students_comments = json.loads(students_comments)
     except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'error': 'Неверный формат данных студентов.'}, 400)
+        return Response({'success': False, 'error': 'Неверный формат данных студентов.'}, 400)
 
     HHManager = CustomHHApiV2Manager()
-    teacher_name = await HHManager.get_full_teacher_name_by_email(request.user.email)
+    try:
+        teacher_name = Piedis.cache(f'{request.user.username}_full_teacher_name')
+    except PiedisCacheNotFound:
+        teacher_name = await HHManager.get_full_teacher_name_by_email(request.user.email)
+        Piedis.cache(f'{request.user.username}_full_teacher_name', teacher_name, 24 * 60 * 60 * 4)
+
     for student_comment in students_comments:
         try:
             await HHManager.set_comment_for_student_ed_unit(
@@ -81,52 +90,59 @@ async def send_lesson_report(request):
                             f'* {student_comment["Description"]}'
             )
         except SetCommentError:
-            return JsonResponse({
-                'success': False,
-                'error': 'Ошибка при добавлении комментария в HH'
-            }, 400)
-
-    return JsonResponse({'success': True})
+            return Response({'success': False, 'error': 'Ошибка при добавлении комментария в HH'}, 400)
+    Piedis.clean(f'{request.user.username}_{now_date()}_lessons')
+    return Response({'success': True}, 200)
 
 
 @acontroller('Получение тем курса по его названию', auth=True)
 @asemaphore_handler
+@api_view(('GET',))
 async def get_course_themes_view(request):
-    return JsonResponse({
-        'themes': await get_course_themes(request.GET['discipline'])
-    })
+    discipline = request.GET['discipline']
+    try:
+        themes = Piedis.cache(f'{discipline}_{now_date()}')
+    except PiedisCacheNotFound:
+        themes = await get_course_themes(discipline)
+        Piedis.cache(f'{discipline}_{now_date()}', themes)
+    return Response({'themes': themes}, 200)
 
 
 @acontroller('Получение учебных единиц для отчета по уроку', auth=True)
 @asemaphore_handler
 @api_view(('GET', 'POST'))
+@permission_classes((IsAuthenticated,))
 async def get_teacher_lesson_for_report(request) -> Response:
-    HHManager = CustomHHApiV2Manager()
-    now = datetime.now()
-    email = request.user.email
-    teacher = await HHManager.get_teacher_by_email(email=email)
-    units = await HHManager.get_ed_units_with_filtered_days_in_daterange(
-        start_date=now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT),
-        end_date=now,
-        types='Group,MiniGroup,Individual',
-        statuses='Forming',
-        teacherId=teacher['Id']
-    )
-    # Убираем школьные события
-    filtered_units = []
-    for unit in units:
-        if 'EVENTS' not in unit['Name']:
-            filtered_units.append(unit)
-    # Добавляем информацию по ученикам с днями для каждой учебной единицы
-    for i in range(0, len(filtered_units)):
-        unit_students = await HHManager.getEdUnitStudents(
-            edUnitId=filtered_units[i]['Id'],
-            queryDays=True,
-            maxTake=100,
-            dateFrom=(now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT)).strftime('%Y-%m-%d'),
-            dateTo=now.strftime('%Y-%m-%d'),
+    try:
+        filtered_units = Piedis.cache(f'{request.user.username}_{now_date()}_lessons')
+    except PiedisCacheNotFound:
+        email = request.user.email
+        HHManager = CustomHHApiV2Manager()
+        now = datetime.now()
+        teacher = await HHManager.get_teacher_by_email(email=email)
+        units = await HHManager.get_ed_units_with_filtered_days_in_daterange(
+            start_date=now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT),
+            end_date=now,
+            types='Group,MiniGroup,Individual',
+            statuses='Forming',
+            teacherId=teacher['Id']
         )
-        filtered_units[i]['Students'] = unit_students
+        # Убираем школьные события
+        filtered_units = []
+        for unit in units:
+            if 'EVENTS' not in unit['Name']:
+                filtered_units.append(unit)
+        # Добавляем информацию по ученикам с днями для каждой учебной единицы
+        for i in range(0, len(filtered_units)):
+            unit_students = await HHManager.getEdUnitStudents(
+                edUnitId=filtered_units[i]['Id'],
+                queryDays=True,
+                maxTake=100,
+                dateFrom=(now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT)).strftime('%Y-%m-%d'),
+                dateTo=now.strftime('%Y-%m-%d'),
+            )
+            filtered_units[i]['Students'] = unit_students
+        Piedis.cache(f'{request.user.username}_{now_date()}_lessons', filtered_units)
     return Response({'units': filtered_units}, 200)
 
 
@@ -176,12 +192,13 @@ async def forming_groups_for_join(request) -> Response:
         age = calculate_age(student['Birthday']) if student.get('Birthday') else base_ages.get(f'{discipline} {level}')
         if not age:
             return Response({'success': False, 'error': 'Возраст не определен.'}, 409)
-
         last_comment: LessonComment = parse_lesson_comment(HHM.get_last_day_desc(last_ed_unit_s))
         if not last_comment:
             return Response({'success': False,
                              'error': 'Не найден последний комментарий ученика по данной дисциплине, либо формат комментария неверный.'},
                             404)
+        if not last_comment['finish_percent']:
+            last_comment['finish_percent'] = 100
         module_for_join = get_module_for_autumn_by_lesson_number(
             last_comment['number'] if last_comment['finish_percent'] > 50 else (
                 last_comment["number"] - 1 if last_comment['number'] > 1 else last_comment['number']), discipline)
@@ -196,9 +213,9 @@ async def forming_groups_for_join(request) -> Response:
             discipline=discipline,
             age=age,
             learningTypes='Занятия в микро-группах (russian language)',
-            join_type='from_now',
             extraFieldName='Стартовый модуль',
             extraFieldValue=module_for_join,
+            join_type='from_now',
         )
         ed_units['student_id'] = HHM.get_student_or_student_unit_extra_field_value(student, 'id ученика')
         return Response(ed_units, status=HTTP_200_OK)
@@ -474,3 +491,104 @@ async def upload_average_price_per_lesson_student(request) -> Response:
     )
 
     return Response(data={'result': result}, status=HTTP_200_OK)
+
+
+async def upload_days_with_wrong_comment(request) -> Response:
+    pickler = Pickler(settings.BASE_TEMP_DIR)
+    HHM = CustomHHApiV2Manager()
+    try:
+        ed_units_s = pickler.cache('upload_days_with_wrong_comment/ed_units_s')
+    except PicklerNotFoundDumpFile:
+        ed_units_s = await HHM.getEdUnitStudents(maxTake=6000, queryDays=True, dateFrom='2024-05-01',
+                                                 dateTo='2024-07-01')
+        pickler.cache('upload_days_with_wrong_comment/ed_units_s', ed_units_s)
+
+    # pprint(ed_units_s)
+    ed_units_s = HHM.filter_ed_units_with_any_days_later_than_date(
+        ed_units_s, datetime.strptime('2024-05-01', '%Y-%m-%d')
+    )
+    ed_units_s = [HHM.filter_ed_unit_days_by_daterange(
+        ed_unit_s,
+        datetime.strptime('2024-05-01', '%Y-%m-%d'),
+        datetime.strptime('2024-06-02', '%Y-%m-%d')
+    ) for ed_unit_s in ed_units_s]
+
+    # pickler.cache(f'upload_days_with_wrong_comment/backups/ed_units_s.{datetime.now().strftime("%Y-%m-%d")}.{random.randint(10000, 100000)}')
+
+    wrong_days = []
+    latest_wrong_days = {}
+    for ed_unit_s in ed_units_s:
+        for day in ed_unit_s.get('Days', []):
+            if day.get('Pass') is False:
+                ed_unit_id = ed_unit_s['EdUnitId']
+                day_date = datetime.strptime(day['Date'], '%Y-%m-%d')
+                if ed_unit_id not in latest_wrong_days or day_date > latest_wrong_days[ed_unit_id]['DayDate']:
+                    if day.get('Description', '').count('*') != 3:
+                        latest_wrong_days[ed_unit_id] = {
+                            'StudentClientId': ed_unit_s['StudentClientId'],
+                            'EdUnitId': ed_unit_s['EdUnitId'],
+                            'Discipline': ed_unit_s['EdUnitDiscipline'],
+                            'DayDate': day_date,
+                            'Pass': day.get('Pass'),
+                            'WrongDescription': day.get('Description')
+                        }
+    # Преобразование дат обратно в строковый формат и создание итогового списка
+    wrong_days = [
+        {
+            'StudentClientId': value['StudentClientId'],
+            'EdUnitId': value['EdUnitId'],
+            'Discipline': value['Discipline'],
+            'DayDate': value['DayDate'].strftime('%Y-%m-%d'),
+            'Pass': value['Pass'],
+            'WrongDescription': value['WrongDescription']
+        }
+        for value in latest_wrong_days.values()
+    ]
+    pprint(wrong_days)
+    print('len(wrong_days)')
+    pprint(len(wrong_days))
+    # try:
+    #     await HHManager.set_comment_for_student_ed_unit(
+    #         ed_unit_id=ed_unit_id,
+    #         student_client_id=student_comment['ClientId'],
+    #         date=day_date,
+    #         passed=student_comment['Pass'],
+    #         description=f'* {theme_number}{". " if theme_number else ""}{theme_name}\n'
+    #                     f'* Завершено на: {lesson_completion_percentage}%\n'
+    #                     f'* {student_comment["Description"]}'
+    #     )
+    # except SetCommentError:
+    #     return JsonResponse({
+    #         'success': False,
+    #         'error': 'Ошибка при добавлении комментария в HH'
+    #     }, 400)
+    print('len(ed_units_s)')
+    print(len(ed_units_s))
+    result = []
+    for day in wrong_days:
+        result.append((
+            day['StudentClientId'],
+            day['EdUnitId'],
+            day['Discipline'],
+            day['DayDate'],
+            day['Pass'],
+            day['WrongDescription'],
+        ))
+    GSDocument(settings.GSDOCID_UPLOAD_BY_LESSON).update_sheet_with_format_header(
+        sheet_name='Wrong Comments',
+        header=(
+            'StudentClientId',
+            'EdUnitId',
+            'Discipline',
+            'DayDate',
+            'Pass',
+            'WrongDescription',
+        ),
+        values=result,
+        format_header=GSFormatOptionVariant.BASE_HEADER
+    )
+
+# len(wrong_days)
+# 13344
+# len(ed_units_s)
+# 5765

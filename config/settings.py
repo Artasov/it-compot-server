@@ -10,7 +10,7 @@ from service.pickler import Pickler
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DATA_DIR = BASE_DIR / 'data'
-BASE_TEMP_DIR = BASE_DIR / 'temp'
+BASE_TEMP_DIR = BASE_DIR / 'cache'
 # Environment helpers
 env = os.environ.get
 
@@ -31,8 +31,8 @@ DOMAIN_URL = f'http{"s" if HTTPS else ""}://{MAIN_DOMAIN}'
 
 # Database and cache
 REDIS_BASE_URL = 'redis://127.0.0.1:6379/'
-REDIS_URL = env('REDIS_URL', REDIS_BASE_URL + '0')
-REDIS_CACHE_URL = env('REDIS_CACHE_URL', REDIS_BASE_URL + '1')
+REDIS_URL = env('REDIS_URL', REDIS_BASE_URL + '0') if not DEV else 'redis://127.0.0.1:6379'
+REDIS_CACHE_URL = env('REDIS_CACHE_URL', REDIS_BASE_URL + '1') if not DEV else 'redis://127.0.0.1:6379'
 DJANGO_REDIS_LOGGER = 'RedisLogger'
 DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 # SESSION_ENGINE = 'redis_sessions.session'
@@ -343,7 +343,6 @@ WSGI_APPLICATION = None  # 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
 log = logging.getLogger('base')
-
 
 log.info('#####################################')
 log.info('########## Server Settings ##########')

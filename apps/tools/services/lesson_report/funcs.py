@@ -12,20 +12,24 @@ from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptio
 class LessonComment(TypedDict):
     number: int
     theme: str
-    finish_percent: int
+    finish_percent: int | None
     add_info: str
 
 
 def parse_lesson_comment(comment: str) -> LessonComment | None:
-    pattern = re.compile(r'\*\s*(\d+)\.\s*\).*? (.*?)\s*\*\s*Завершено на:\s*(\d+)%\s*\*\s*(.*)', re.DOTALL)
+    pattern = re.compile(
+        r'\*\s*(\d+)\.\s*\).*? (.*?)\s*(?:\*\s*Завершено на:\s*(\d+)%\s*\*\s*(.*))?\s*\*',
+        re.DOTALL
+    )
     match = pattern.search(comment)
 
-    if not match: return None
+    if not match:
+        return None
 
     number = int(match.group(1))
     theme = match.group(2).strip()
-    finish_percent = int(match.group(3))
-    add_info = match.group(4).strip()
+    finish_percent = int(match.group(3)) if match.group(3) else None
+    add_info = match.group(4).strip() if match.group(4) else ""
 
     return LessonComment(number=number, theme=theme, finish_percent=finish_percent, add_info=add_info)
 

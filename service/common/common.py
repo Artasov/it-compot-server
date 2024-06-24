@@ -4,6 +4,10 @@ from datetime import datetime
 from io import StringIO
 
 
+def now_date():
+    return datetime.now().strftime("%Y-%m-%d")
+
+
 def calculate_age(birthdate_str: str) -> int:
     birthdate = datetime.strptime(birthdate_str, '%Y-%m-%d')
     today = datetime.today()
