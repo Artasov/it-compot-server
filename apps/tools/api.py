@@ -102,7 +102,8 @@ async def get_course_themes_view(request):
     discipline = request.GET['discipline']
     try:
         themes = Piedis.cache(f'{discipline}_{now_date()}')
-    except PiedisCacheNotFound:
+    except PiedisCacheNotFound as e:
+        print(e)
         themes = await get_course_themes(discipline)
         Piedis.cache(f'{discipline}_{now_date()}', themes)
     return Response({'themes': themes}, 200)
@@ -115,7 +116,8 @@ async def get_course_themes_view(request):
 async def get_teacher_lesson_for_report(request) -> Response:
     try:
         filtered_units = Piedis.cache(f'{request.user.username}_{now_date()}_lessons')
-    except PiedisCacheNotFound:
+    except PiedisCacheNotFound as e:
+        print(e)
         email = request.user.email
         HHManager = CustomHHApiV2Manager()
         now = datetime.now()

@@ -41,7 +41,7 @@ def get_module_by_lesson_number(lesson_number: int, discipline) -> str:
 
 def get_module_for_autumn_by_lesson_number(lesson_number: int, discipline) -> str:
     doc = GSDocument(settings.GSDOCID_COURSES_RESUME)
-    return doc.get_cell(lesson_number + 2, 5, discipline)
+    return doc.get_cell(lesson_number + 2, 6, discipline)
 
 
 async def send_gs_lesson_report(

@@ -1,6 +1,5 @@
 import Client from "../../../../static/Core/js/classes/Client.js";
 
-
 const errorModal = new bootstrap.Modal(document.getElementById('errorModal'), {
     keyboard: true
 });
@@ -21,7 +20,7 @@ const summerInfoModal = new bootstrap.Modal(document.getElementById('summerInfo'
     keyboard: false
 });
 
-const queryParams = Client.getParamsFromCurrentURL()
+const queryParams = Client.getParamsFromCurrentURL();
 
 function hideAllModals() {
     successModal.hide();
@@ -45,7 +44,7 @@ async function getAvailableFormingGroups(params) {
 function raiseErrorModal(error) {
     hideAllModals();
     document.querySelector('.error-modal-text-content').textContent = error;
-    if (queryParams.length > 1) {
+    if (Object.keys(queryParams).length > 1) {
         document.querySelector('#group_join_content').classList.add('d-none');
     }
     errorModal.show();
@@ -65,8 +64,6 @@ function raiseSuccessModal(title, subtitle, contentElement) {
     if (contentElement !== null) {
         successModalBodyEl.innerHTML = '';
         successModalBodyEl.appendChild(contentElement);
-
-        document.querySelector('.success-modal-body').appendChild(contentElement)
     } else {
         successTitleEl.parentElement.classList.add('border-0');
         successModalBodyEl.classList.add('pt-0');
@@ -88,8 +85,7 @@ async function postJoinStudentToGroup(student_id, group_id, TZ, join_type) {
                 join_type: join_type
             }
         );
-        console.log(res)
-        return res
+        return res;
     } catch (error) {
         raiseErrorModal(`Ошибка добавления ученика в группу, свяжитесь с менеджером.`);
         return null;
@@ -102,8 +98,8 @@ async function getIsStudentOnDiscipline() {
             Client.getProtocolAndDomain() +
             '/api/v1/tools/get_is_student_in_group_on_discipline/',
             {
-                'discipline': Client.getParamsFromCurrentURL()['discipline'],
-                'student_id': Client.getParamsFromCurrentURL()['student_id'],
+                'discipline': queryParams['discipline'],
+                'student_id': queryParams['student_id']
             }
         );
     } catch (error) {
@@ -113,6 +109,7 @@ async function getIsStudentOnDiscipline() {
 }
 
 function joinStudentToGroup(student_id, group, TZ) {
+    console.log(group)
     postJoinStudentToGroup(student_id, group['Id'], TZ, join_type).then(response => {
         confirmationModal.hide();
         document.getElementById('confirmationModal').classList.remove('show');
@@ -125,18 +122,18 @@ function joinStudentToGroup(student_id, group, TZ) {
                 'Вы успешно записаны на занятие',
                 'Сделайте скриншот, чтобы не забыть 😉',
                 groupPreview
-            )
+            );
         } else {
-            raiseErrorModal('Похоже произошла ошибка, менеджер свяжется с вами в рабочее время.')
+            raiseErrorModal('Похоже произошла ошибка, менеджер свяжется с вами в рабочее время.');
         }
-    })
+    });
 }
 
 function createDateFromString(dateTimeString) {
-    const parts = dateTimeString.split(' ');
-    const dateParts = parts[0].split('-');
-    const timeParts = parts[1].split(':');
-    return new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1]);
+    const [date, time] = dateTimeString.split(' ');
+    const [year, month, day] = date.split('-');
+    const [hour, minute] = time.split(':');
+    return new Date(year, month - 1, day, hour, minute);
 }
 
 function adjustDateHours(date, hoursChange) {
@@ -165,15 +162,16 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
         createDateFromString(`${first_day.Date} ${schedule.EndTime}`),
         diff
     );
-    const day = datetimeStart.getDate().toString().padStart(2, '0');
-    const month = (datetimeStart.getMonth() + 1).toString().padStart(2, '0');
-    const startHours = datetimeStart.getHours().toString().padStart(2, '0');
-    const startMinutes = datetimeStart.getMinutes().toString().padStart(2, '0');
-    const endHours = datetimeEnd.getHours().toString().padStart(2, '0');
-    const endMinutes = datetimeEnd.getMinutes().toString().padStart(2, '0');
+
+    const formatDate = (date) => date.toString().padStart(2, '0');
+    const day = formatDate(datetimeStart.getDate());
+    const month = formatDate(datetimeStart.getMonth() + 1);
+    const startHours = formatDate(datetimeStart.getHours());
+    const startMinutes = formatDate(datetimeStart.getMinutes());
+    const endHours = formatDate(datetimeEnd.getHours());
+    const endMinutes = formatDate(datetimeEnd.getMinutes());
 
     if (join_type === 'summer') {
-        console.log(unit)
         const second_day = unit.Days[1];
         const datetimeStart2 = adjustDateHours(
             createDateFromString(`${second_day.Date} ${schedule.BeginTime}`),
@@ -183,12 +181,12 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
             createDateFromString(`${second_day.Date} ${schedule.EndTime}`),
             diff
         );
-        const day2 = datetimeStart2.getDate().toString().padStart(2, '0');
-        const month2 = (datetimeStart2.getMonth() + 1).toString().padStart(2, '0');
-        const startHours2 = datetimeStart2.getHours().toString().padStart(2, '0');
-        const startMinutes2 = datetimeStart2.getMinutes().toString().padStart(2, '0');
-        const endHours2 = datetimeEnd2.getHours().toString().padStart(2, '0');
-        const endMinutes2 = datetimeEnd2.getMinutes().toString().padStart(2, '0');
+        const day2 = formatDate(datetimeStart2.getDate());
+        const month2 = formatDate(datetimeStart2.getMonth() + 1);
+        const startHours2 = formatDate(datetimeStart2.getHours());
+        const startMinutes2 = formatDate(datetimeStart2.getMinutes());
+        const endHours2 = formatDate(datetimeEnd2.getHours());
+        const endMinutes2 = formatDate(datetimeEnd2.getMinutes());
 
         dateP.innerHTML = `
             <div class="fc w-100">
@@ -250,11 +248,8 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
     return li;
 }
 
-
 async function send_nothing_fit(student_id, msg) {
     try {
-        console.log(Client.getProtocolAndDomain() +
-            '/api/v1/tools/send_nothing_fit/')
         return await Client.sendPost(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/send_nothing_fit/',
@@ -269,24 +264,18 @@ async function send_nothing_fit(student_id, msg) {
     }
 }
 
-
 let join_type = undefined;
 let loadedGroups = undefined;
 const resultContainerEl = document.querySelector('.result_container');
 const groupLoadingStatusContainerEl = document.querySelector('.group_loading_status_container');
 const findGroupsForUText = document.querySelector('.find-groups-for-u-text');
 const inputStudentInfoContainer = document.querySelector('.input-student-info-container');
-
-let studentId = Client.getParamsFromCurrentURL()['student_id'];
+let studentId = queryParams['student_id'];
 
 function showGroupsWithTZ(TZ) {
-    // TZ - цифра (данные в группах указаны по умолчанию в +3)
-    // например -1 +1 +3 +2 и тому подобные цифры.
-    // Могут быть как отрицательные, так и положительные.
-    const hueRotateValues = [0, 55, 280, 343]; // Значения для hue-rotate
+    const hueRotateValues = [0, 55, 280, 343];
     for (let i = 0; i < loadedGroups.length; i++) {
-        const hueRotate = hueRotateValues[i % hueRotateValues.length]; // Циклическое применение значений
-        // Пропуск если лето и всего 1 день найден
+        const hueRotate = hueRotateValues[i % hueRotateValues.length];
         if (join_type === 'summer' && loadedGroups[i].Days.length < 2) {
             continue;
         }
@@ -300,11 +289,11 @@ function showGroupsWithTZ(TZ) {
             groupPreview.classList.add('pointer-events-none', 'fs-5');
             modalBodyEl.appendChild(groupPreview);
 
-
-            document.getElementById('confirmJoin').onclick = () => {
-                document.getElementById('confirmSpinner').classList.remove('d-none')
+            const confirmJoinBtn = document.getElementById('confirmJoin');
+            confirmJoinBtn.onclick = () => {
+                document.getElementById('confirmSpinner').classList.remove('d-none');
                 joinStudentToGroup(studentId, loadedGroups[i], TZ);
-                document.getElementById('confirmJoin').setAttribute('disabled', 'true');
+                confirmJoinBtn.setAttribute('disabled', 'true');
             };
         });
         resultContainerEl.appendChild(groupEl);
@@ -321,11 +310,30 @@ function showGroupsWithTZ(TZ) {
     inputStudentInfoContainer.classList.add('d-none');
 }
 
+function attachTZEventHandlers() {
+    const btnsChooseTz = document.getElementsByClassName('btn-choose-tz');
+    for (const btnTz of btnsChooseTz) {
+        btnTz.addEventListener('click', function handleClick() {
+            chooseTZModal.hide();
+            if (join_type === 'summer' || join_type === 'from_now') {
+                summerInfoModal.show();
+            }
+            document.getElementById('tz-info').classList.remove('d-none');
+            const tzByMoscow = parseInt(btnTz.value) - 3;
+            document.getElementById('tz-span').innerHTML = tzByMoscow < 0 ? `${tzByMoscow}` : `+${tzByMoscow}`;
+            showGroupsWithTZ(parseInt(btnTz.value));
+            btnTz.removeEventListener('click', handleClick); // Remove the event listener after it is used
+        });
+    }
+    const btnChangeTz = document.getElementById('btn-change-tz');
+    btnChangeTz.addEventListener('click', () => {
+        resultContainerEl.innerHTML = '';
+        chooseTZModal.show();
+    });
+}
 
 async function main() {
-    // Если параметров в запросе достаточно
     if (Object.keys(queryParams).length === 4) {
-        // Связываем форму ничего не подошло и отправку запроса об этом
         const formNothingFit = document.getElementById('form-nothing_fit');
         formNothingFit.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -335,58 +343,37 @@ async function main() {
             submitButton.disabled = true;
             send_nothing_fit(studentId, msg)
                 .then(response => {
-                    console.log(response)
                     if (response.ok) {
                         raiseSuccessModal(
                             'Отлично, мы получили ваше сообщение, с вами свяжется менеджер 😉',
                             null, null
-                        )
+                        );
                     }
-                })
-        })
-        // Проверяем, может быть ученик уже учится по этой дисциплине
-        const response = await getIsStudentOnDiscipline()
-        console.log(response)
-        const alreadyStudying = response.data
+                });
+        });
+
+        const response = await getIsStudentOnDiscipline();
+        const alreadyStudying = response.data;
         if (alreadyStudying) {
             raiseErrorModal(`Ученик уже есть в группе по данной дисциплине, свяжитесь с менеджером.`);
             return;
         } else if (alreadyStudying === null) return;
 
-        // Подгружаем группы
         getAvailableFormingGroups(Client.getParamsFromCurrentURL()).then(response => {
-            const data = response.data
-            join_type = data.join_type
-            const groups = data.groups
+            const data = response.data;
+            join_type = data.join_type;
+            const groups = data.groups;
             if (groups.length === 0) {
                 document.getElementById('nothing_fit_user_textarea').setAttribute(
                     'placeholder',
                     'К сожалению система не смогла подобрать группу. ' +
-                    'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂')
+                    'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂');
                 nothingFitModal.show();
                 groupLoadingStatusContainerEl.innerHTML = '';
                 return;
-
             }
-            loadedGroups = groups
-            const btnsChooseTz = document.getElementsByClassName('btn-choose-tz');
-            for (const btnTz of btnsChooseTz) {
-                btnTz.addEventListener('click', () => {
-                    chooseTZModal.hide();
-                    if (join_type === 'summer') {
-                        summerInfoModal.show();
-                    }
-                    document.getElementById('tz-info').classList.remove('d-none');
-                    const tzByMoscow = parseInt(btnTz.value) - 3;
-                    document.getElementById('tz-span').innerHTML = tzByMoscow < 0 ? `${tzByMoscow}` : `+${tzByMoscow}`;
-                    showGroupsWithTZ(parseInt(btnTz.value));
-                })
-            }
-            const btnChangeTz = document.getElementById('btn-change-tz');
-            btnChangeTz.addEventListener('click', () => {
-                resultContainerEl.innerHTML = '';
-                chooseTZModal.show();
-            })
+            loadedGroups = groups;
+            attachTZEventHandlers();
             chooseTZModal.show();
         });
     } else if (Object.keys(queryParams).length === 1 && queryParams['discipline']) {
@@ -419,52 +406,30 @@ async function main() {
             getAvailableFormingGroups(params).then(response => {
                 if (response.status === 200) {
                     const units = response.data.groups;
+                    loadedGroups = units;
                     if (units && units.length === 0) {
-                        raiseErrorModal('Не найдено подходящих групп.')
+                        raiseErrorModal('Не найдено подходящих групп.');
                     }
                     studentId = response.data.student_id;
-                    console.log(units);
-                    for (const unit of units) {
-                        if (!units.length) {
-                            document.getElementById('nothing_fit_user_textarea').setAttribute(
-                                'placeholder',
-                                'К сожалению система не смогла подобрать группу. ' +
-                                'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂')
-                            nothingFitModal.show();
-                            groupLoadingStatusContainerEl.innerHTML = '';
-                            return;
-                        }
-                        loadedGroups = units
-                        const btnsChooseTz = document.getElementsByClassName('btn-choose-tz');
-                        for (const btnTz of btnsChooseTz) {
-                            btnTz.addEventListener('click', () => {
-                                chooseTZModal.hide();
-                                if (join_type === 'summer' || join_type === 'from_now') {
-                                    summerInfoModal.show();
-                                }
-                                document.getElementById('tz-info').classList.remove('d-none');
-                                const tzByMoscow = parseInt(btnTz.value) - 3;
-                                document.getElementById('tz-span').innerHTML = tzByMoscow < 0 ? `${tzByMoscow}` : `+${tzByMoscow}`;
-                                showGroupsWithTZ(parseInt(btnTz.value));
-                            })
-                        }
-                        const btnChangeTz = document.getElementById('btn-change-tz');
-                        btnChangeTz.addEventListener('click', () => {
-                            resultContainerEl.innerHTML = '';
-                            chooseTZModal.show();
-                        })
-                        chooseTZModal.show();
+                    if (!units.length) {
+                        document.getElementById('nothing_fit_user_textarea').setAttribute(
+                            'placeholder',
+                            'К сожалению система не смогла подобрать группу. ' +
+                            'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂');
+                        nothingFitModal.show();
+                        groupLoadingStatusContainerEl.innerHTML = '';
+                        return;
                     }
+                    attachTZEventHandlers();
+                    chooseTZModal.show();
                 } else {
                     raiseErrorModal(response.data.error);
                 }
             });
-        })
+        });
     } else {
         raiseErrorModal(`Неверное количество параметров.`);
     }
 }
 
 await main();
-
-
