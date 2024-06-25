@@ -52,8 +52,10 @@ services:
     hostname: redis
     image: redis:alpine
     restart: always
+    environment:
+      - REDIS_MAXMEMORY=2gb
     volumes:
-      - ./data/redis/:/data
+#      - ./data/redis/:/data
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
