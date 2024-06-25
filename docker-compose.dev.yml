@@ -50,13 +50,15 @@ services:
     restart: always
     volumes:
       - ./data/redis/:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       timeout: 5s
       retries: 10
       start_period: 5s
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     networks:
       - net
 

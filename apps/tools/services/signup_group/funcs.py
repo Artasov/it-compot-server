@@ -229,7 +229,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                 (amo for amo, hh in amo_hh_disciplines_map if hh == forming_unit['Discipline']),
                 "Дисциплина не найдена"),
             zoom_url=forming_unit['ScheduleItems'][0].get('ClassroomLink') if forming_unit['ScheduleItems'][0].get(
-                'ClassroomLink') else forming_unit['ScheduleItems'][0].get('ClassroomName'),
+                'ClassroomLink') else 'NOT FOUND',
             teacher_id=forming_unit['ScheduleItems'][0]['TeacherId'],
             teacher_name=forming_unit['ScheduleItems'][0]['Teacher'],
             datetime_start_moscow=int(datatime_start_moscow.timestamp()),  # Дата и время старта ВМ
