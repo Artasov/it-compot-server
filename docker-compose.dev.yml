@@ -110,9 +110,6 @@ services:
     links:
       - redis
     environment:
-#      - REDIS_CACHE_URL=${REDIS_URL}
-#      - REDIS_URL=${REDIS_URL}
-
       - LOG_PREFIX=celery
     depends_on:
       redis:
