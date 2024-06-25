@@ -45,6 +45,10 @@ services:
 
   redis:
     container_name: redis
+    user: 1000:1001
+    # sudo adduser username
+    # id -u username
+    # id -g username
     hostname: redis
     image: redis:alpine
     restart: always
@@ -54,13 +58,17 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       timeout: 5s
       retries: 10
       start_period: 5s
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
     networks:
       - net
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
 
   web:
     container_name: web
