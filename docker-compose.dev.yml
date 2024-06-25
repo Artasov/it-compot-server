@@ -52,11 +52,9 @@ services:
     hostname: redis
     image: redis:alpine
     restart: always
-    environment:
-      - REDIS_MAXMEMORY=2gb
     volumes:
-      - ./data/redis/:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
+#      - ./data/redis/:/data
+#      - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
     healthcheck:
@@ -64,7 +62,7 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+#    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
     networks:
       - net
     cap_add:
