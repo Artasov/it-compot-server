@@ -52,7 +52,7 @@ services:
     hostname: redis
     image: redis:alpine
     restart: always
-    volumes:
+#    volumes:
 #      - ./data/redis/:/data
 #      - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
