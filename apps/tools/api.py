@@ -105,7 +105,7 @@ async def get_course_themes_view(request):
     except PiedisCacheNotFound as e:
         print(e)
         themes = await get_course_themes(discipline)
-        Piedis.cache(f'{discipline}_{now_date()}', themes)
+        Piedis.cache(f'{discipline}_{now_date()}', obj=themes)
     return Response({'themes': themes}, 200)
 
 
