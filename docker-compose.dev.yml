@@ -12,7 +12,7 @@ services:
       web:
         condition: service_healthy
     volumes:
-      #      - ./nginx.nossl.conf:/etc/nginx/conf.d/default.conf
+      # - ./nginx.nossl.conf:/etc/nginx/conf.d/default.conf
       - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf
       - ./ssl/ssl.crt:/etc/nginx/ssl/ssl.crt
       - ./ssl/ssl.key:/etc/nginx/ssl/ssl.key
@@ -37,7 +37,6 @@ services:
       - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost" ]
-      # interval: 30s
       timeout: 5s
       retries: 10
       start_period: 5s
