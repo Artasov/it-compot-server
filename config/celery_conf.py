@@ -25,6 +25,7 @@ app.conf.update(
 )
 app.conf.CELERY_IMPORTS = (
     'apps.Core.tasks.test_tasks',
+    'apps.Core.tasks.cache_tasks',
     'apps.tools.tasks.tasks',
 )
 app.autodiscover_tasks()
