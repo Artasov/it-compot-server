@@ -72,14 +72,11 @@ services:
     volumes:
       - ./data:/srv/data
       - ./logs:/srv/logs
-    #      - ../static:/static
-    #      - ../media:/media
     ports:
       - "8000:8000"
     restart: always
     healthcheck:
       test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8000/health_test/ || exit 1" ]
-      # interval: 30s
       timeout: 30s
       retries: 10
       start_period: 5s
