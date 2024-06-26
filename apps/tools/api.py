@@ -62,10 +62,10 @@ async def send_lesson_report(request):
 
     HHManager = CustomHHApiV2Manager()
     try:
-        teacher_name = Piedis.cache(f'{request.user.username}_full_teacher_name')
-    except PiedisCacheNotFound:
+        teacher_name = pickler.cache(f'{request.user.username}_full_teacher_name')
+    except PicklerNotFoundDumpFile:
         teacher_name = await HHManager.get_full_teacher_name_by_email(request.user.email)
-        Piedis.cache(f'{request.user.username}_full_teacher_name', teacher_name, 24 * 60 * 60 * 4)
+        pickler.cache(f'{request.user.username}_full_teacher_name', teacher_name, 24 * 60 * 60 * 4)
 
     for student_comment in students_comments:
         try:
@@ -92,7 +92,7 @@ async def send_lesson_report(request):
             )
         except SetCommentError:
             return Response({'success': False, 'error': 'Ошибка при добавлении комментария в HH'}, 400)
-    Piedis.clean(f'{request.user.username}_{now_date()}_lessons')
+    pickler.delete(f'{request.user.username}_lessons')
     return Response({'success': True}, 200)
 
 
@@ -115,10 +115,9 @@ async def get_course_themes_view(request):
 @api_view(('GET', 'POST'))
 @permission_classes((IsAuthenticated,))
 async def get_teacher_lesson_for_report(request) -> Response:
-    pickler = Pickler(settings.BASE_TEMP_DIR)
     HHM = CustomHHApiV2Manager()
     try:
-        filtered_units = pickler.cache(f'{request.user.username}_{now_date()}_lessons')
+        filtered_units = pickler.cache(f'{request.user.username}_lessons')
     except PicklerNotFoundDumpFile as e:
         print(e)
         email = request.user.email
@@ -147,7 +146,7 @@ async def get_teacher_lesson_for_report(request) -> Response:
                 dateTo=now.strftime('%Y-%m-%d'),
             )
             filtered_units[i]['Students'] = unit_students
-        pickler.cache(f'{request.user.username}_{now_date()}_lessons', filtered_units)
+        pickler.cache(f'{request.user.username}_lessons', filtered_units)
     return Response({'units': filtered_units}, 200)
 
 
