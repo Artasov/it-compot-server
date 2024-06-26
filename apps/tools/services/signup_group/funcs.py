@@ -101,9 +101,8 @@ async def get_forming_groups_for_join(level: str,
     }
 
     """
-    print('!!!')
-    HHManager = CustomHHApiV2Manager()
-    ed_units = await HHManager.get_available_future_starting_ed_units(
+    HHM = CustomHHApiV2Manager()
+    ed_units = await HHM.get_available_future_starting_ed_units(
         types='Group,MiniGroup',
         statuses='Forming',
         level=level,
@@ -113,8 +112,6 @@ async def get_forming_groups_for_join(level: str,
         **kwargs
     )
 
-    print('ed_units!!!')
-    print(len(ed_units))
     now = datetime.now()
     # now = datetime(now.year, 5, 26)
     if not join_type:
@@ -126,16 +123,19 @@ async def get_forming_groups_for_join(level: str,
             join_type = 'academic_year'
 
     if join_type == 'summer':
-        ed_units = HHManager.filter_ed_units_with_days_later_than_date(
+        ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=datetime(now.year, 6, 3))
+        ed_units = HHM.filter_ed_units_where_first_day_earlier_than_date(
+            units=ed_units, date=now + timedelta(days=7)
+        )
     elif join_type == 'autumn':
-        ed_units = HHManager.filter_ed_units_with_days_later_than_date(
+        ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=datetime(now.year, 8, 30))
     elif join_type == 'from_now':
-        ed_units = HHManager.filter_ed_units_with_days_later_than_date(
+        ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=now)
     elif join_type == 'academic_year':
-        ed_units = HHManager.filter_ed_units_with_days_earlier_than_date(
+        ed_units = HHM.filter_ed_units_with_days_earlier_than_date(
             units=ed_units, date=datetime(now.year, 6, 2))
 
     ed_units = sort_groups_by_datetime(ed_units)

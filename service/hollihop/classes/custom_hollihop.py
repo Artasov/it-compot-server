@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from pprint import pprint
 
 import aiohttp
 
@@ -223,6 +222,15 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             if 'Days' in unit and any(
                 not day.get('Pass', False) and datetime.strptime(day['Date'], '%Y-%m-%d') <= date for day in
                 unit['Days'])
+        ]
+
+    @staticmethod
+    def filter_ed_units_where_first_day_earlier_than_date(units: list, date: datetime) -> list[dict]:
+        """Фильтрует учебные единицы, где первый день раньше указанной даты (date) включительно"""
+        return [
+            unit for unit in units
+            if 'Days' in unit and sorted(unit['Days'], key=lambda day: datetime.strptime(day['Date'], '%Y-%m-%d'))[0][
+                'Date'] <= date.strftime('%Y-%m-%d')
         ]
 
     async def get_ed_units_with_day_in_daterange(
