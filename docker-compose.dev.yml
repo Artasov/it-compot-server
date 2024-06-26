@@ -79,8 +79,6 @@ services:
       target: prod
     environment:
       - LOG_PREFIX=server
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - ./data:/srv/data
       - ./logs:/srv/logs
@@ -122,8 +120,6 @@ services:
     links:
       - redis
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - LOG_PREFIX=celery
     depends_on:
       redis:
