@@ -168,11 +168,11 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': env('SQL_ENGINE'),
-            'NAME': env('SQL_DATABASE_NAME'),
-            'USER': env('SQL_USER'),
+            'NAME': env('POSTGRES_DB'),
+            'USER': env('POSTGRES_USER'),
             'PASSWORD': env('SQL_PASSWORD'),
             'HOST': env('SQL_HOST'),
-            'PORT': env('SQL_PORT'),
+            'PORT': env('POSTGRES_PORT'),
         }
     }
 
