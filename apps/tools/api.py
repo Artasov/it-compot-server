@@ -39,6 +39,7 @@ from service.piedis import Piedis, PiedisCacheNotFound
 from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
 
 log = logging.getLogger('base')
+pickler = Pickler(**settings.PICKLER_SETTINGS)
 
 
 @acontroller('Отправка отчета по занятию.', auth=True)
@@ -101,11 +102,11 @@ async def send_lesson_report(request):
 async def get_course_themes_view(request):
     discipline = request.GET['discipline']
     try:
-        themes = Piedis.cache(f'{discipline}_{now_date()}')
-    except PiedisCacheNotFound as e:
+        themes = pickler.cache(f'{discipline}_{now_date()}')
+    except PicklerNotFoundDumpFile as e:
         print(e)
         themes = await get_course_themes(discipline)
-        Piedis.cache(f'{discipline}_{now_date()}', obj=themes)
+        pickler.cache(f'{discipline}_{now_date()}', obj=themes)
     return Response({'themes': themes}, 200)
 
 
@@ -114,9 +115,11 @@ async def get_course_themes_view(request):
 @api_view(('GET', 'POST'))
 @permission_classes((IsAuthenticated,))
 async def get_teacher_lesson_for_report(request) -> Response:
+    pickler = Pickler(settings.BASE_TEMP_DIR)
+    HHM = CustomHHApiV2Manager()
     try:
-        filtered_units = Piedis.cache(f'{request.user.username}_{now_date()}_lessons')
-    except PiedisCacheNotFound as e:
+        filtered_units = pickler.cache(f'{request.user.username}_{now_date()}_lessons')
+    except PicklerNotFoundDumpFile as e:
         print(e)
         email = request.user.email
         HHManager = CustomHHApiV2Manager()
@@ -144,7 +147,7 @@ async def get_teacher_lesson_for_report(request) -> Response:
                 dateTo=now.strftime('%Y-%m-%d'),
             )
             filtered_units[i]['Students'] = unit_students
-        Piedis.cache(f'{request.user.username}_{now_date()}_lessons', filtered_units)
+        pickler.cache(f'{request.user.username}_{now_date()}_lessons', filtered_units)
     return Response({'units': filtered_units}, 200)
 
 

@@ -5,12 +5,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from service.pickler import Pickler
+from service.pickler import Pickler as PicklerCache
 
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DATA_DIR = BASE_DIR / 'data'
-BASE_TEMP_DIR = BASE_DIR / 'cache'
+BASE_TEMP_DIR = BASE_DATA_DIR / 'cache'
 # Environment helpers
 env = os.environ.get
 
@@ -144,6 +144,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
 
     'corsheaders',
     'rest_framework',
@@ -342,6 +343,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 WSGI_APPLICATION = None  # 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
+PICKLER_SETTINGS = {
+    'base_temp_dir': BASE_TEMP_DIR,
+    'separator': '--',
+    'delete_expired': True,
+}
 log = logging.getLogger('base')
 
 log.info('#####################################')
