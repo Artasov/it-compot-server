@@ -132,7 +132,7 @@ async def get_forming_groups_for_join(level: str,
     elif join_type == 'autumn':
         ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=datetime(now.year, 8, 30))
-    elif join_type == 'from_now':
+    elif join_type == 'autumn':
         ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=now)
     elif join_type == 'academic_year':
@@ -257,9 +257,10 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             datetime_second_summer_lesson_client_tz=int((datatime_start2_moscow + timedelta(
                 hours=client_tz - 3)).timestamp()) if datatime_start2_moscow is not None else None,
             date_end=int(start_forming_unit_date2.timestamp()) if start_forming_unit_date2 else 0,  # Дата окончания ВМ
+            join_type=join_type
         )
         if not report_result:
-            if join_type == 'from_now':
+            if join_type == 'autumn':
                 glog_autumn.error(
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
@@ -276,7 +277,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                                 f'{result1.get("success", False)}: '),
                     comment='Не смог отправить отчет в AMO'
                 )
-    if join_type == 'from_now':
+    if join_type == 'autumn':
         glog_autumn.success(
             student_amo_id=student_id,
             student_hh_id=student['Id'],
@@ -294,7 +295,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
     # 2 ГРУППА
     result2 = False
     course_unit_id = False
-    if join_type == 'academic_year' or join_type == 'from_now':
+    if join_type == 'academic_year' or join_type == 'autumn':
         if forming_unit.get('ExtraFields'):
             slot_code = next((field['Value'] for field in forming_unit['ExtraFields'] if field['Name'] == 'код-слот'),
                              None)
@@ -377,7 +378,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             password='2146648'
         )
         if not open_personal_profile_result.get('success'):
-            if join_type == 'from_now':
+            if join_type == 'autumn':
                 glog_autumn.error(
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
@@ -400,7 +401,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                         f'{next((field["Value"] for field in student["ExtraFields"] if field["Name"] == "id ученика"), None)}'
         )
         if not result_add_amo_link.get("success"):
-            if join_type == 'from_now':
+            if join_type == 'autumn':
                 glog_autumn.error(
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
@@ -414,7 +415,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                     groups_ids=groups_ids,
                     comment='Личный кабинет открыт, amo ссылка НЕ установлена'
                 )
-        if join_type == 'from_now':
+        if join_type == 'autumn':
             glog_autumn.error(
                 student_amo_id=student_id,
                 student_hh_id=student['Id'],
@@ -447,6 +448,7 @@ async def send_report_join_to_forming_group(
         datetime_first_summer_lesson_client_tz: int,
         datetime_second_summer_lesson_moscow: int,
         datetime_second_summer_lesson_client_tz: int,
+        join_type: str,
         date_end: int,
 ) -> bool:
     """
@@ -463,6 +465,7 @@ async def send_report_join_to_forming_group(
     @param datetime_first_summer_lesson_client_tz: timestamp Дата и время старта вводного модуля первого урока на лето по TZ клиента
     @param datetime_second_summer_lesson_moscow: timestamp Дата и время старта вводного модуля второго урока на лето по москве
     @param datetime_second_summer_lesson_client_tz: timestamp Дата и время старта вводного модуля второго урока на лето по TZ клиента
+    @param join_type:
     @param date_end: Дата окончания вводного модуля
     @return:
     """
@@ -483,6 +486,7 @@ async def send_report_join_to_forming_group(
                     'datetime_first_summer_lesson_client_tz': datetime_first_summer_lesson_client_tz,
                     'datetime_second_summer_lesson_moscow': datetime_second_summer_lesson_moscow,
                     'datetime_second_summer_lesson_client_tz': datetime_second_summer_lesson_client_tz,
+                    'join_type': join_type,
                     'date_end': date_end,
                 },
         ) as response:

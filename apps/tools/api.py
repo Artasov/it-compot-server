@@ -227,7 +227,7 @@ async def forming_groups_for_join(request) -> Response:
             learningTypes='Занятия в микро-группах (russian language)',
             extraFieldName='Стартовый модуль',
             extraFieldValue=module_for_join,
-            join_type='from_now',
+            join_type='autumn',
         )
         pprint(len(ed_units))
         ed_units['student_id'] = HHM.get_student_or_student_unit_extra_field_value(student, 'id ученика')
