@@ -190,22 +190,30 @@ async def forming_groups_for_join(request) -> Response:
             return Response({'success': False, 'error': 'Ученик уже есть в группе по данной дисциплине.'}, 409)
 
         last_ed_unit_s = await HHM.get_latest_ed_unit_s_for_student_on_discipline(student['ClientId'], discipline)
+        pprint('last_ed_unit_s')
+        pprint(last_ed_unit_s)
         if not last_ed_unit_s:
             return Response({'success': False, 'error': 'Не найдена предыдущая группа по данной дисциплине.'}, 404)
         level = last_ed_unit_s['EdUnitLevel']
+        pprint('level unit')
+        pprint(level)
         age = calculate_age(student['Birthday']) if student.get('Birthday') else base_ages.get(f'{discipline} {level}')
         if not age:
             return Response({'success': False, 'error': 'Возраст не определен.'}, 409)
+        pprint(f'{age=}')
         last_comment: LessonComment = parse_lesson_comment(HHM.get_last_day_desc(last_ed_unit_s))
         if not last_comment:
             return Response({'success': False,
                              'error': 'Не найден последний комментарий ученика по данной дисциплине, либо формат комментария неверный.'},
                             404)
+        pprint('last_comment')
+        pprint(last_comment)
         if not last_comment['finish_percent']:
             last_comment['finish_percent'] = 100
         module_for_join = get_module_for_autumn_by_lesson_number(
             last_comment['number'] if last_comment['finish_percent'] > 50 else (
                 last_comment["number"] - 1 if last_comment['number'] > 1 else last_comment['number']), discipline)
+        pprint(f'{module_for_join=}')
         if module_for_join == 'Переход':
             module_for_join = get_module_by_lesson_number(
                 lesson_number=1,
@@ -221,6 +229,7 @@ async def forming_groups_for_join(request) -> Response:
             extraFieldValue=module_for_join,
             join_type='from_now',
         )
+        pprint(len(ed_units))
         ed_units['student_id'] = HHM.get_student_or_student_unit_extra_field_value(student, 'id ученика')
         return Response(ed_units, status=HTTP_200_OK)
 

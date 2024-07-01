@@ -2,41 +2,26 @@ from datetime import datetime
 
 from django.conf import settings
 
-from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptions, ColumnWidth
+from service.tools.gsheet.classes.gsheetsclient import GSDocument, ColumnWidth, GSFormatOptionVariant
 
 
-class GSheetsSignUpFormingGroupLogger:
-    def __init__(self, doc_id=settings.GSDOCID_LOG_JOIN_FORMING_GROUPS):
-        self.client = GSDocument(doc_id)
+class GSLoggerDayBase:
+    def __init__(self,
+                 header: list | tuple,
+                 doc_id: str,
+                 column_widths: list[ColumnWidth, ...] | tuple[ColumnWidth, ...] = None
+                 ):
+        self.column_widths = column_widths
+        self.doc = GSDocument(doc_id)
+        self.sheet_name = datetime.now().strftime('%Y-%m-%d')
+        if self.sheet_name not in self.doc.sheets:
+            self.doc.create_sheet(self.sheet_name)
+            self.doc.append_row(row=header, sheet_name=self.sheet_name)
+            self.doc.resize_columns_width(sheet_name=self.sheet_name, columns_widths=column_widths, )
+            self.doc.format_range(0, 0, self.sheet_name, GSFormatOptionVariant.BASE_HEADER, 1, )
 
-        # Добавим заголовочную часть.
-        all_sheets_names = self.client.get_sheets_titles()
-        sheet_name = datetime.now().strftime('%Y-%m-%d')
-        if sheet_name not in all_sheets_names:
-            self.client.append_row(
-                row=('Status', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
-                sheet_name=sheet_name
-            )
-            format_options_header = GSFormatOptions(
-                background_color={'red': 0.3, 'green': 0.5, 'blue': 1},  # Красный фон
-                text_color={'red': 1.0, 'green': 1.0, 'blue': 1.0},  # Белый текст
-                font_size=16,  # Размер шрифта
-                bold=True,
-                vertical_alignment='MIDDLE',  # Вертикальное выравнивание по центру
-                horizontal_alignment='CENTER',  # Горизонтальное выравнивание по центру
-                wrap_strategy='WRAP'  # Включить перенос текста
-            )
-            self.client.format_range(0, 0, sheet_name, format_options_header, 1, )
-            self.client.resize_columns_width(sheet_name=sheet_name, columns_widths=[
-                ColumnWidth(column_index=1, width=170),
-                ColumnWidth(column_index=2, width=250),
-                ColumnWidth(column_index=3, width=280),
-                ColumnWidth(column_index=4, width=155),
-                ColumnWidth(column_index=5, width=250),
-            ]
 
-                                             )
-
+class GSheetLoggerJoinFormingGroup(GSLoggerDayBase):
     def log(self, status: str, student_amo_id: int, student_hh_id: int, groups_ids: list | tuple = None,
             comment: str = ''):
         if groups_ids is None:
@@ -46,7 +31,7 @@ class GSheetsSignUpFormingGroupLogger:
             [f'{group_id.split(": ")[0]} {base_url}/Learner/Group/{group_id.split(": ")[1]}/' for group_id in
              groups_ids])
         now = datetime.now().strftime('%Y-%m-%d')
-        self.client.append_row(
+        self.doc.append_row(
             row=[
                 status,
                 str(student_amo_id),
@@ -57,16 +42,7 @@ class GSheetsSignUpFormingGroupLogger:
             ],
             sheet_name=now,
         )
-        format_options = GSFormatOptions(
-            background_color=None,
-            text_color=None,
-            font_size=None,
-            bold=None,
-            vertical_alignment="MIDDLE",
-            horizontal_alignment="CENTER",
-            wrap_strategy="WRAP"
-        )
-        self.client.format_range(1, 0, now, format_options)
+        self.doc.format_range(1, 0, now, GSFormatOptionVariant.BASE_ROW)
 
     def error(self, student_amo_id: int, student_hh_id: int, groups_ids: list | tuple = None, comment: str = ''):
         self.log('ERROR', student_amo_id, student_hh_id, groups_ids, comment)

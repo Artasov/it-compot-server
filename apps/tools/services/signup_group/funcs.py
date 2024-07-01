@@ -6,10 +6,11 @@ from django.conf import settings
 from django.template.defaultfilters import pprint
 
 from apps.tools.exceptions.common import UnitAlreadyFullException
-from apps.tools.services.loggers.gsheet_logger import GSheetsSignUpFormingGroupLogger as GLog
+from apps.tools.services.loggers.gsheet_logger import GSheetLoggerJoinFormingGroup as GLog
 from service.common.common import calculate_age
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from service.hollihop.consts import amo_hh_disciplines_map
+from service.tools.gsheet.classes.gsheetsclient import ColumnWidth
 
 log = logging.getLogger('base')
 
@@ -168,7 +169,19 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
     @return: Если хоть что-то пойдет не так вернется False либо raise Error, иначе True.
     """
     HHManager = CustomHHApiV2Manager()
-    glog = GLog()
+    column_widths = (
+        ColumnWidth(column_index=1, width=170),
+        ColumnWidth(column_index=2, width=250),
+        ColumnWidth(column_index=3, width=280),
+        ColumnWidth(column_index=4, width=155),
+        ColumnWidth(column_index=5, width=250),
+    )
+    glog = GLog(doc_id=settings.GSDOCID_LOG_JOIN_FORMING_GROUPS,
+                header=('Status', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
+                column_widths=column_widths)
+    glog_autumn = GLog(doc_id=settings.GSDOCID_LOG_JOIN_FORMING_GROUPS_AUTUMN,
+                       header=('Status', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
+                       column_widths=column_widths)
     student = await HHManager.get_student_by_amo_id(student_amo_id=student_id)
 
     # 1 ГРУППА
@@ -246,13 +259,31 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             date_end=int(start_forming_unit_date2.timestamp()) if start_forming_unit_date2 else 0,  # Дата окончания ВМ
         )
         if not report_result:
-            glog.error(
-                student_amo_id=student_id,
-                student_hh_id=student['Id'],
-                groups_ids=(f'{result1.get("success", False)}: {group_id}',
-                            f'{result1.get("success", False)}: '),
-                comment='Не смог отправить отчет в AMO'
-            )
+            if join_type == 'from_now':
+                glog_autumn.error(
+                    student_amo_id=student_id,
+                    student_hh_id=student['Id'],
+                    groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                                f'{result1.get("success", False)}: '),
+                    comment='Не смог отправить отчет в AMO'
+                )
+            else:
+
+                glog.error(
+                    student_amo_id=student_id,
+                    student_hh_id=student['Id'],
+                    groups_ids=(f'{result1.get("success", False)}: {group_id}',
+                                f'{result1.get("success", False)}: '),
+                    comment='Не смог отправить отчет в AMO'
+                )
+    if join_type == 'from_now':
+        glog_autumn.success(
+            student_amo_id=student_id,
+            student_hh_id=student['Id'],
+            groups_ids=(f'{result1.get("success", False)}: {group_id}',),
+            comment='Записал'
+        )
+    else:
         glog.success(
             student_amo_id=student_id,
             student_hh_id=student['Id'],
@@ -346,12 +377,20 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             password='2146648'
         )
         if not open_personal_profile_result.get('success'):
-            glog.error(
-                student_amo_id=student_id,
-                student_hh_id=student['Id'],
-                groups_ids=groups_ids,
-                comment='Не смог открыть личный кабинет'
-            )
+            if join_type == 'from_now':
+                glog_autumn.error(
+                    student_amo_id=student_id,
+                    student_hh_id=student['Id'],
+                    groups_ids=groups_ids,
+                    comment='Не смог открыть личный кабинет'
+                )
+            else:
+                glog.error(
+                    student_amo_id=student_id,
+                    student_hh_id=student['Id'],
+                    groups_ids=groups_ids,
+                    comment='Не смог открыть личный кабинет'
+                )
 
         # Устанавливаем ссылку на amo в пользовательские поля
         result_add_amo_link = await HHManager.add_user_extra_field(
@@ -361,18 +400,34 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                         f'{next((field["Value"] for field in student["ExtraFields"] if field["Name"] == "id ученика"), None)}'
         )
         if not result_add_amo_link.get("success"):
-            glog.error(
+            if join_type == 'from_now':
+                glog_autumn.error(
+                    student_amo_id=student_id,
+                    student_hh_id=student['Id'],
+                    groups_ids=groups_ids,
+                    comment='Личный кабинет открыт, amo ссылка НЕ установлена'
+                )
+            else:
+                glog.error(
+                    student_amo_id=student_id,
+                    student_hh_id=student['Id'],
+                    groups_ids=groups_ids,
+                    comment='Личный кабинет открыт, amo ссылка НЕ установлена'
+                )
+        if join_type == 'from_now':
+            glog_autumn.error(
                 student_amo_id=student_id,
                 student_hh_id=student['Id'],
                 groups_ids=groups_ids,
                 comment='Личный кабинет открыт, amo ссылка НЕ установлена'
             )
-        glog.success(
-            student_amo_id=student_id,
-            student_hh_id=student['Id'],
-            groups_ids=groups_ids,
-            comment='Личный кабинет открыт, amo ссылка установлена'
-        )
+        else:
+            glog.success(
+                student_amo_id=student_id,
+                student_hh_id=student['Id'],
+                groups_ids=groups_ids,
+                comment='Личный кабинет открыт, amo ссылка установлена'
+            )
 
 
 def calc_base_age_by_level(level):
@@ -411,10 +466,6 @@ async def send_report_join_to_forming_group(
     @param date_end: Дата окончания вводного модуля
     @return:
     """
-    print(datetime_first_summer_lesson_moscow)
-    print(datetime_first_summer_lesson_client_tz)
-    print(datetime_second_summer_lesson_moscow)
-    print(datetime_second_summer_lesson_client_tz)
     async with aiohttp.ClientSession() as session:
         async with session.post(
                 url=settings.AMOLINK_REPORT_JOIN_TO_INTRODUCTION_GROUPS,

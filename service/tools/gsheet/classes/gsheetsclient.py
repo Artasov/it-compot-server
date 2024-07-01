@@ -54,6 +54,15 @@ class GSFormatOptionVariant:
         horizontal_alignment='CENTER',
         wrap_strategy='WRAP'
     )
+    BASE_ROW = GSFormatOptions(
+        background_color=None,
+        text_color=None,
+        font_size=None,
+        bold=None,
+        vertical_alignment="MIDDLE",
+        horizontal_alignment="CENTER",
+        wrap_strategy="WRAP"
+    )
 
 
 class GSDocument:
@@ -136,7 +145,7 @@ class GSDocument:
                 id=sheet['properties']['sheetId'],
             )
 
-    def resize_columns_width(self, sheet_name: str, columns_widths: list[ColumnWidth]):
+    def resize_columns_width(self, sheet_name: str, columns_widths: list[ColumnWidth, ...]):
         """
         Изменяет ширину указанных столбцов в Google Sheets.
 
