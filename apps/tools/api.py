@@ -190,13 +190,12 @@ async def forming_groups_for_join(request) -> Response:
             return Response({'success': False, 'error': 'Ученик уже есть в группе по данной дисциплине.'}, 409)
 
         last_ed_unit_s = await HHM.get_latest_ed_unit_s_for_student_on_discipline(student['ClientId'], discipline)
-        pprint('last_ed_unit_s')
-        pprint(last_ed_unit_s)
+        # pprint('last_ed_unit_s')
+        # pprint(last_ed_unit_s)
         if not last_ed_unit_s:
             return Response({'success': False, 'error': 'Не найдена предыдущая группа по данной дисциплине.'}, 404)
         level = last_ed_unit_s['EdUnitLevel']
-        pprint('level unit')
-        pprint(level)
+        pprint(f'{level=}')
         age = calculate_age(student['Birthday']) if student.get('Birthday') else base_ages.get(f'{discipline} {level}')
         if not age:
             return Response({'success': False, 'error': 'Возраст не определен.'}, 409)

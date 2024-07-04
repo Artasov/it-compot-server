@@ -122,16 +122,17 @@ async def get_forming_groups_for_join(level: str,
             join_type = 'autumn'
         else:  # академический год
             join_type = 'academic_year'
-
+    # print('UNITS')
+    # print(ed_units)
     if join_type == 'summer':
         ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=datetime(now.year, 6, 3))
         ed_units = HHM.filter_ed_units_where_first_day_earlier_than_date(
             units=ed_units, date=now + timedelta(days=7)
         )
-    elif join_type == 'autumn':
-        ed_units = HHM.filter_ed_units_with_days_later_than_date(
-            units=ed_units, date=datetime(now.year, 8, 30))
+    # elif join_type == 'autumn':
+    #     ed_units = HHM.filter_ed_units_with_days_later_than_date(
+    #         units=ed_units, date=datetime(now.year, 8, 30))
     elif join_type == 'autumn':
         ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=now)

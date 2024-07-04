@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 
 import aiohttp
+from django.template.defaultfilters import pprint
 
 from apps.tools.exceptions.common import PaymentException, StudentByAmoIdNotFound
 from service.common.common import calculate_age
@@ -318,7 +319,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             disciplines=discipline,
             dateFrom=(now - timedelta(days=60)).strftime("%Y-%m-%d"),
             dateTo=(now + timedelta(days=60)).strftime("%Y-%m-%d"),
-            maxTake=10000,
+            maxTake=5000,
             batchSize=1000,
             **kwargs
         )
@@ -332,7 +333,8 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
 
         # print(f'edUnitsAvailableForJoinFromToday count: {len(edUnitsAvailableForJoinFromToday)}')
         # print([int(unit['Id']) for unit in edUnitsAvailableForJoinFromToday])
-        # pprint(edUnitsAvailableForJoinFromToday)
+        # print('edUnitsAvailableForJoinFromToday')
+        # print(edUnitsAvailableForJoinFromToday)
         # Фильтруем по времени позже чем сейчас
         # для каждого преподавателя побывавшего в группе
         edUnitsFromNowAvailableForJoin = [
@@ -370,9 +372,9 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         # print(f'{students_info_dict.keys()=}')
         # Проверяем каждую группу
         resultUnits = []
-        # pprint('edUnitsFromNowAvailableForJoin')
-        # pprint(len(edUnitsFromNowAvailableForJoin))
-        # pprint(edUnitsFromNowAvailableForJoin)
+        # print('edUnitsFromNowAvailableForJoin')
+        # print(len(edUnitsFromNowAvailableForJoin))
+        # print(edUnitsFromNowAvailableForJoin)
         for unit in edUnitsFromNowAvailableForJoin:
             allow = True
             students_ids = [int(unitS['StudentClientId']) for unitS in edUnitsStudent if
@@ -419,8 +421,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                 resultUnits.append(unit)
                 # print(f'EdUnit {unit["Id"]}: Подходит')
 
-        # pprint('resultUnits')
-        # pprint(len(resultUnits))
         return resultUnits
 
     async def add_hh_payment_by_amo(self, student_amo_id: int, amo_currency: str,

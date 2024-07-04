@@ -405,11 +405,9 @@ async function main() {
             params.discipline = queryParams['discipline'];
             getAvailableFormingGroups(params).then(response => {
                 if (response.status === 200) {
+                    console.log(response)
                     const units = response.data.groups;
                     loadedGroups = units;
-                    if (units && units.length === 0) {
-                        raiseErrorModal('Не найдено подходящих групп.');
-                    }
                     studentId = response.data.student_id;
                     if (!units.length) {
                         document.getElementById('nothing_fit_user_textarea').setAttribute(
@@ -417,7 +415,6 @@ async function main() {
                             'К сожалению система не смогла подобрать группу. ' +
                             'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂');
                         nothingFitModal.show();
-                        groupLoadingStatusContainerEl.innerHTML = '';
                         return;
                     }
                     attachTZEventHandlers();
