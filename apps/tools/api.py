@@ -35,7 +35,6 @@ from service.common.common import calculate_age, get_number, now_date
 from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
 from service.hollihop.consts import base_ages, get_next_discipline
 from service.pickler import Pickler, PicklerNotFoundDumpFile
-from service.piedis import Piedis, PiedisCacheNotFound
 from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
 
 log = logging.getLogger('base')
@@ -116,6 +115,7 @@ async def get_course_themes_view(request):
 @permission_classes((IsAuthenticated,))
 async def get_teacher_lesson_for_report(request) -> Response:
     HHM = CustomHHApiV2Manager()
+    start_time = datetime.now()  # ЗАМЕР
     try:
         filtered_units = pickler.cache(f'{request.user.username}_lessons')
     except PicklerNotFoundDumpFile as e:
@@ -147,6 +147,11 @@ async def get_teacher_lesson_for_report(request) -> Response:
             )
             filtered_units[i]['Students'] = unit_students
         pickler.cache(f'{request.user.username}_lessons', filtered_units)
+
+    end_time = datetime.now()
+    elapsed_time = (end_time - start_time).total_seconds()
+    print(f"!!! Lessons {request.user.email} GET BY: {elapsed_time} seconds")
+
     return Response({'units': filtered_units}, 200)
 
 
