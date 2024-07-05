@@ -129,7 +129,8 @@ async def get_teacher_lesson_for_report(request) -> Response:
             end_date=now,
             types='Group,MiniGroup,Individual',
             statuses='Forming',
-            teacherId=teacher['Id']
+            teacherId=teacher['Id'],
+            maxTake=200,
         )
         # Убираем школьные события
         filtered_units = []

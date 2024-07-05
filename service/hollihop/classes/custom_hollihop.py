@@ -239,8 +239,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
     ) -> list[dict]:
         """Возвращает учебные единицы имеющие хотя бы один день в указанном диапазоне"""
         ed_units = await self.getEdUnits(
-            maxTake=10000,
-            batchSize=1000,
             queryDays=True,
             **kwargs
         )
