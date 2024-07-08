@@ -10,7 +10,11 @@ from service.pickler import Pickler as PicklerCache
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
 BASE_DATA_DIR = BASE_DIR / 'data'
-BASE_TEMP_DIR = BASE_DATA_DIR / 'cache'
+BASE_CACHE_DIR = BASE_DATA_DIR / 'cache'
+BASE_TEMP_DIR = BASE_DATA_DIR / 'temp'
+WHISPER_DIR = BASE_DATA_DIR / 'whisper'
+WHISPER_MODELS_DIR = WHISPER_DIR / 'models'
+
 # Environment helpers
 env = os.environ.get
 
@@ -156,6 +160,7 @@ INSTALLED_APPS = [
     'apps.link_shorter',
     'apps.Core',
     'apps.tools',
+    'apps.transcribe',
 ]
 
 if DEV:
@@ -255,7 +260,7 @@ if not DEV:
                 'encoding': 'utf-8',
             },
             'console': {
-                'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+                'level': 'DEBUG' if DEBUG and DEV else 'INFO',
                 'class': 'logging.StreamHandler',
                 'formatter': 'base_formatter',
             },
@@ -263,7 +268,7 @@ if not DEV:
         'loggers': {
             'base': {
                 'handlers': ['console', 'file'],
-                'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+                'level': 'DEBUG' if DEBUG and DEV else 'INFO',
                 'propagate': True,
             },
             # 'django.db.backends': {  # All SQL
@@ -345,7 +350,7 @@ WSGI_APPLICATION = None  # 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
 PICKLER_SETTINGS = {
-    'base_temp_dir': BASE_TEMP_DIR,
+    'base_temp_dir': BASE_CACHE_DIR,
     'separator': '--',
     'delete_expired': True,
 }

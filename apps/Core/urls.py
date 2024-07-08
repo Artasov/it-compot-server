@@ -12,6 +12,7 @@ urlpatterns = [
     path('', include(('apps.link_shorter.urls', 'apps.link_shorter'), namespace='link_shorter')),
     path('tools/', include(('apps.tools.urls', 'apps.tools'), namespace='tools')),
     path('api/v1/tools/', include('apps.tools.urls_api')),
+    path('api/v1/transcribe/', include('apps.transcribe.urls_api')),
     path('login/', stupid_auth, name='stupid_auth'),
     path('signout/', signout, name='signout'),
 

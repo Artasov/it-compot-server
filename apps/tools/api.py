@@ -351,7 +351,7 @@ async def add_hh_payment_by_amo_view(request) -> Response:
 @acontroller('Выгрузка средней цены урока для каждого ученика')
 @api_view(('GET',))
 async def upload_average_price_per_lesson_student(request) -> Response:
-    pickler = Pickler(settings.BASE_TEMP_DIR)
+    pickler = Pickler(settings.BASE_CACHE_DIR)
     HHM = CustomHHApiV2Manager()
     try:
         ed_units_s = pickler.cache('upload_average_price_per_lesson/ed_units_s')
@@ -512,7 +512,7 @@ async def upload_average_price_per_lesson_student(request) -> Response:
 
 
 async def upload_days_with_wrong_comment(request) -> Response:
-    pickler = Pickler(settings.BASE_TEMP_DIR)
+    pickler = Pickler(settings.BASE_CACHE_DIR)
     HHM = CustomHHApiV2Manager()
     try:
         ed_units_s = pickler.cache('upload_days_with_wrong_comment/ed_units_s')
