@@ -24,7 +24,7 @@ log = logging.getLogger('base')
 
 @api_view(('GET',))
 @permission_classes((IsStaff,))
-async def clean_cache():
+async def clean_cache(request):
     pickler_delete_expired_cache.delay()
     return Response('Cache clear task initiated.', status=200)
 
