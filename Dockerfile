@@ -19,6 +19,10 @@ RUN dos2unix /srv/entrypoint.prod.sh
 RUN apk del dos2unix
 RUN chmod +x /srv/entrypoint.prod.sh
 
+# Cache | Temp | Folders
+RUN mkdir -p /srv/data/cache/ && chmod +x /srv/data/cache/ && \
+    mkdir -p /srv/data/temp/ && chmod +x /srv/data/temp/
+
 # Установка Chrony для синхронизации времени
 RUN apk add --no-cache chrony
 # Запуск Chrony и настройка времени при старте контейнера
