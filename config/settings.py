@@ -353,7 +353,7 @@ ASGI_APPLICATION = 'config.asgi.application'
 PICKLER_SETTINGS = {
     'base_temp_dir': BASE_CACHE_DIR,
     'separator': '--',
-    'delete_expired': True,
+    'auto_delete_expired': True,
 }
 log = logging.getLogger('base')
 

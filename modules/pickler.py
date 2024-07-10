@@ -19,18 +19,18 @@ SECONDS_IN_DAY = 24 * 60 * 60
 
 
 class Pickler:
-    def __init__(self, base_temp_dir, separator='--', delete_expired=True):
+    def __init__(self, base_temp_dir, separator='--', auto_delete_expired=True):
         """
         Initializes the Pickler instance.
 
         @param base_temp_dir: The base directory for storing cache files.
         @param separator: The separator for name, timestamp, and timeout in the filename.
-        @param delete_expired: Whether to delete expired cache files automatically.
+        @param auto_delete_expired: Whether to delete expired cache files automatically.
         """
         self.base_temp_dir = Path(base_temp_dir)
         self.base_temp_dir.mkdir(parents=True, exist_ok=True)
         self.separator = separator
-        self.delete_expired = delete_expired
+        self.auto_delete_expired = auto_delete_expired
 
     def _get_dump_file_path(self, name, timestamp, timeout):
         """
