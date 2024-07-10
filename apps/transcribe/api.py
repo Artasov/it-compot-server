@@ -5,8 +5,6 @@ from django.conf import settings
 from rest_framework.response import Response
 
 from apps.Core.services.base import acontroller
-from modules.common.common import download_file
-from modules.gpt.classes.whisper import Whisper
 from modules.pickler import Pickler
 
 log = logging.getLogger('base')

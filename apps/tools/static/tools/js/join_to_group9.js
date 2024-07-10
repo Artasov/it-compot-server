@@ -291,7 +291,7 @@ function showGroupsWithTZ(TZ) {
 
             const confirmJoinBtn = document.getElementById('confirmJoin');
             confirmJoinBtn.onclick = () => {
-                document.getElementById('confirmSpinner').classList.remove('d-none');
+                confirmJoinBtn.querySelector('.spinner').classList.remove('d-none');
                 joinStudentToGroup(studentId, loadedGroups[i], TZ);
                 confirmJoinBtn.setAttribute('disabled', 'true');
             };
@@ -331,6 +331,8 @@ function attachTZEventHandlers() {
         chooseTZModal.show();
     });
 }
+
+const btnSubmitFindStudent = document.querySelector('#btnSubmitFindStudent');
 
 async function main() {
     if (Object.keys(queryParams).length === 4) {
@@ -390,8 +392,9 @@ async function main() {
             else value = value.replace(/\+/g, '');
             telInput.value = value;
         });
-        const btnSubmitFindStudent = document.querySelector('#btnSubmitFindStudent');
-        btnSubmitFindStudent.addEventListener('click', () => {
+        btnSubmitFindStudent.addEventListener('click', (e) => {
+            const spinner = document.querySelector('#btnSubmitFindStudent > .spinner');
+            spinner.classList.remove('d-none');
             const params = {};
 
             if (studentFullNameInput.value) {
@@ -415,13 +418,14 @@ async function main() {
                             'К сожалению система не смогла подобрать группу. ' +
                             'Напишите подходящие вам дни и время для занятия, мы с вами свяжемся 🙂');
                         nothingFitModal.show();
-                        return;
+                    } else {
+                        attachTZEventHandlers();
+                        chooseTZModal.show();
                     }
-                    attachTZEventHandlers();
-                    chooseTZModal.show();
                 } else {
                     raiseErrorModal(response.data.error);
                 }
+                spinner.classList.add('d-none');
             });
         });
     } else {
@@ -429,4 +433,4 @@ async function main() {
     }
 }
 
-await main();
+main()
