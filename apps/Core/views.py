@@ -3,8 +3,7 @@ import logging
 from adrf.decorators import api_view
 from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.contrib.auth import login, alogout, aauthenticate
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import alogout, aauthenticate, alogin
 from django.contrib.auth.models import User
 from django.db import connections
 from django.http import HttpResponse
@@ -14,8 +13,9 @@ from django_redis import get_redis_connection
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 
+from apps.Core.async_django import alogin_required
 from apps.Core.permissions import IsStaff
-from apps.Core.services.base import add_user_to_group
+from apps.Core.services.base import add_user_to_group, controller, acontroller
 from apps.Core.tasks.cache_tasks import pickler_delete_expired_cache
 from apps.tools.forms.teachers_salary import StupidAuthForm
 
@@ -34,7 +34,11 @@ async def signout(request):
     return redirect('stupid_auth')
 
 
+@acontroller('Тупая авторизация')
+@api_view(('GET', 'POST'))
 async def stupid_auth(request) -> HttpResponse:
+    if request.user.is_authenticated:
+        return redirect('menu')
     form = StupidAuthForm(request.POST or None)
     if form.is_valid():
         email = form.cleaned_data['email']
@@ -47,17 +51,17 @@ async def stupid_auth(request) -> HttpResponse:
                 username=username, email=email,
                 password=settings.TEACHER_SALARY_PASSWORD
             )
-        user = aauthenticate(request, username=username, password=password)
+        user = await aauthenticate(request, username=username, password=password)
         if user:
-            login(request, user)
+            await alogin(request, user)
             await sync_to_async(add_user_to_group)(user, 'teacher')
             return redirect('menu')
         else:
             form.add_error(None, 'Что-то пошло не так.')
-    return render(request, 'Core/stupid_auth.html', {'form': form})
+    return await sync_to_async(render)(request, 'Core/stupid_auth.html', {'form': form})
 
 
-@login_required(login_url='/login/')
+@alogin_required(login_url='/login/')
 async def menu(request) -> HttpResponse:
     return render(request, 'Core/menu.html')
 
