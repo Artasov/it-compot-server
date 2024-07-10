@@ -21,7 +21,7 @@ urlpatterns = [
          RedirectView.as_view(pattern_name='tools:teachers_salary'),
          name='old_teachers_salary_redirect'),
 
-    path('endpoints/', include('endpoints.urls')),
+    path('endpoints/', include('apps.endpoints.urls')),
 ]
 
 if settings.DEV:
