@@ -1,7 +1,9 @@
 import logging
 
+from adrf.decorators import api_view
+from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, alogout, aauthenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import connections
@@ -9,35 +11,46 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django_minio_backend import MinioBackend
 from django_redis import get_redis_connection
+from rest_framework.decorators import permission_classes
+from rest_framework.response import Response
 
+from apps.Core.permissions import IsStaff
 from apps.Core.services.base import add_user_to_group
+from apps.Core.tasks.cache_tasks import pickler_delete_expired_cache
 from apps.tools.forms.teachers_salary import StupidAuthForm
 
 log = logging.getLogger('base')
 
 
-def signout(request):
-    logout(request)
+@api_view(('GET',))
+@permission_classes((IsStaff,))
+async def clean_cache():
+    pickler_delete_expired_cache.delay()
+    return Response('Cache clear task initiated.', status=200)
+
+
+async def signout(request):
+    await alogout(request)
     return redirect('stupid_auth')
 
 
-def stupid_auth(request) -> HttpResponse:
+async def stupid_auth(request) -> HttpResponse:
     form = StupidAuthForm(request.POST or None)
     if form.is_valid():
         email = form.cleaned_data['email']
         username = email.split('@')[0]
         password = form.cleaned_data['password']
         try:
-            User.objects.get(email=email)
+            await User.objects.aget(email=email)
         except User.DoesNotExist:
-            User.objects.create_user(
+            await sync_to_async(User.objects.create_user)(
                 username=username, email=email,
                 password=settings.TEACHER_SALARY_PASSWORD
             )
-        user = authenticate(request, username=username, password=password)
+        user = aauthenticate(request, username=username, password=password)
         if user:
             login(request, user)
-            add_user_to_group(user, 'teacher')
+            await sync_to_async(add_user_to_group)(user, 'teacher')
             return redirect('menu')
         else:
             form.add_error(None, 'Что-то пошло не так.')
@@ -45,7 +58,7 @@ def stupid_auth(request) -> HttpResponse:
 
 
 @login_required(login_url='/login/')
-def menu(request) -> HttpResponse:
+async def menu(request) -> HttpResponse:
     return render(request, 'Core/menu.html')
 
 

@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 import django
 from celery import Celery
 from celery.schedules import crontab
@@ -34,7 +32,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'clean_cache': {
         'task': 'apps.Core.tasks.cache_tasks.pickler_delete_expired_cache',
-        'schedule': timedelta(days=1),
+        'schedule': crontab(hour='0', minute='0'),
     },
     'upload_lasts_themes_task-every-day-10pm': {
         'task': 'apps.tools.tasks.tasks.upload_lasts_themes_task',
