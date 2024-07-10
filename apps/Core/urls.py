@@ -11,8 +11,8 @@ urlpatterns = [
     path('', menu, name='menu'),
     path('', include(('apps.link_shorter.urls', 'apps.link_shorter'), namespace='link_shorter')),
     path('tools/', include(('apps.tools.urls', 'apps.tools'), namespace='tools')),
-    path('api/v1/tools/', include(('apps.tools.urls_api', 'app.tools'), namespace='tools-api')),
-    path('api/v1/transcribe/', include(('apps.transcribe.urls_api', 'app.transcribe'), namespace='transcribe-api')),
+    path('api/v1/tools/', include(('apps.tools.urls_api', 'apps.tools'), namespace='tools-api')),
+    path('api/v1/transcribe/', include(('apps.transcribe.urls_api', 'apps.transcribe'), namespace='transcribe-api')),
     path('login/', stupid_auth, name='stupid_auth'),
     path('signout/', signout, name='signout'),
 
