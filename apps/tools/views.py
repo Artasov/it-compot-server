@@ -1,6 +1,10 @@
+from adrf.decorators import api_view
 from django.http import HttpResponse
 from django.shortcuts import render
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
 
+from apps.Core.async_django import alogin_required
 from apps.Core.services.base import acontroller
 from apps.tools.forms.other import LoadHHTeachersScheduleXLSXForm
 from apps.tools.services.teachers_salary.funcs import (
@@ -41,12 +45,14 @@ async def teacher_salary(request) -> HttpResponse:
     })
 
 
-@acontroller('Отчет за урок по email & unipass педагога', auth=True)
+@acontroller('Отчет за урок по email & unipass педагога')
+@alogin_required(login_url='/login/')
 async def teacher_set_lesson_report(request) -> HttpResponse:
     return render(request, 'tools/set_lesson_report.html')
 
 
 @acontroller('Выбор дисциплины для присоединения в группу')
+@api_view(('GET',))
 async def select_discipline_for_join(request) -> HttpResponse:
     disciplines = await CustomHHApiV2Manager().getDisciplines()
     disciplines_filtered = []
@@ -60,7 +66,6 @@ async def select_discipline_for_join(request) -> HttpResponse:
                 'вне программы' not in discipline and \
                 'Архив' not in discipline:
             disciplines_filtered.append(discipline)
-    print(disciplines_filtered)
     return render(request, 'tools/select_discipline_for_join.html', {
         'disciplines': disciplines_filtered
     })
