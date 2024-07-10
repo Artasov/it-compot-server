@@ -8,6 +8,7 @@ from apps.tools.services.teachers_salary.funcs import (
     filter_and_aggregate_teacher_lessons
 )
 from apps.tools.services.teachers_shedule.funcs import handle_teachers_schedule_upload
+from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
 
 @acontroller('Страница для записи на вводный модуль', True)
@@ -43,3 +44,23 @@ async def teacher_salary(request) -> HttpResponse:
 @acontroller('Отчет за урок по email & unipass педагога', auth=True)
 async def teacher_set_lesson_report(request) -> HttpResponse:
     return render(request, 'tools/set_lesson_report.html')
+
+
+@acontroller('Выбор дисциплины для присоединения в группу')
+async def select_discipline_for_join(request) -> HttpResponse:
+    disciplines = await CustomHHApiV2Manager().getDisciplines()
+    disciplines_filtered = []
+    for discipline in disciplines:
+        if 'ОУ' not in discipline and \
+                'Клуб' not in discipline and \
+                'Хакатон' not in discipline and \
+                'Марафон' not in discipline and \
+                'диагностика' not in discipline and \
+                'Внутренние мероприятия' not in discipline and \
+                'вне программы' not in discipline and \
+                'Архив' not in discipline:
+            disciplines_filtered.append(discipline)
+    print(disciplines_filtered)
+    return render(request, 'tools/select_discipline_for_join.html', {
+        'disciplines': disciplines_filtered
+    })

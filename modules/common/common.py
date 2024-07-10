@@ -1,7 +1,12 @@
 import csv
+import os
 import re
 from datetime import datetime
 from io import StringIO
+from urllib.parse import urlparse
+
+import aiohttp
+from django.conf import settings
 
 
 def now_date():
@@ -44,3 +49,22 @@ def create_virtual_csv(data) -> StringIO:
 
     string_buffer.seek(0)
     return string_buffer
+
+
+async def download_file(url: str) -> str:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                content_disposition = response.headers.get('Content-Disposition')
+                if content_disposition and 'filename=' in content_disposition:
+                    file_name = content_disposition.split('filename=')[1].strip('"')
+                else:
+                    parsed_url = urlparse(url)
+                    file_name = os.path.basename(parsed_url.path)
+                file_path = settings.BASE_TEMP_DIR / file_name
+                if file_path.exists(): return str(file_path)
+                with open(file_path, 'wb') as f:
+                    f.write(await response.read())
+            else:
+                raise Exception(f"Failed to download file from {url}. Status code: {response.status}")
+    return str(file_path)

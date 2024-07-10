@@ -1,0 +1,18 @@
+{% extends 'Core/base.html' %}
+{% load static %}
+{% block title %}it-compot | Choose Disciplines{% endblock %}
+
+{% block meta_keywords %}Choose Disciplines{% endblock %}
+{% block meta_description %}Choose Disciplines{% endblock %}
+{% block meta_og_description %}Choose Disciplines{% endblock %}
+{% block meta_twitter_description %}Choose Disciplines{% endblock %}
+
+{% block content %}
+    <div id="content" class="container d-none fcc flex-grow-1"
+         data-bs-theme="dark"
+         style="max-width: 700px;">
+        {% for discipline in disciplines %}
+            <a href="{% url 'tools:join_to_forming_group' %}?discipline={{ discipline }}">{{ discipline }}</a>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -11,8 +11,8 @@ urlpatterns = [
     path('', menu, name='menu'),
     path('', include(('apps.link_shorter.urls', 'apps.link_shorter'), namespace='link_shorter')),
     path('tools/', include(('apps.tools.urls', 'apps.tools'), namespace='tools')),
-    path('api/v1/tools/', include('apps.tools.urls_api')),
-    path('api/v1/transcribe/', include('apps.transcribe.urls_api')),
+    path('api/v1/tools/', include(('apps.tools.urls_api', 'app.tools'), namespace='tools API')),
+    path('api/v1/transcribe/', include(('apps.transcribe.urls_api', 'app.transcribe'), namespace='transcribe API')),
     path('login/', stupid_auth, name='stupid_auth'),
     path('signout/', signout, name='signout'),
 
@@ -20,6 +20,8 @@ urlpatterns = [
     path('teachers_salary/',
          RedirectView.as_view(pattern_name='tools:teachers_salary'),
          name='old_teachers_salary_redirect'),
+
+    path('endpoints/', include('endpoints.urls')),
 ]
 
 if settings.DEV:

@@ -1,7 +1,7 @@
 import pandas as pd
 from django.conf import settings
 
-from service.tools.gsheet.classes.gsheetsclient import GSDocument
+from modules.gsheet.classes.gsheetsclient import GSDocument
 
 
 async def get_course_themes(course_name) -> list[str] | None:

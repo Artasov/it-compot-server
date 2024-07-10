@@ -7,10 +7,10 @@ from django.template.defaultfilters import pprint
 
 from apps.tools.exceptions.common import UnitAlreadyFullException
 from apps.tools.services.loggers.gsheet_logger import GSheetLoggerJoinFormingGroup as GLog
-from service.common.common import calculate_age
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
-from service.hollihop.consts import amo_hh_disciplines_map
-from service.tools.gsheet.classes.gsheetsclient import ColumnWidth
+from modules.common.common import calculate_age
+from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
+from modules.hollihop.consts import amo_hh_disciplines_map
+from modules.gsheet.classes.gsheetsclient import ColumnWidth
 
 log = logging.getLogger('base')
 
@@ -128,7 +128,7 @@ async def get_forming_groups_for_join(level: str,
         ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=datetime(now.year, 6, 3))
         ed_units = HHM.filter_ed_units_where_first_day_earlier_than_date(
-            units=ed_units, date=now + timedelta(days=7)
+            units=ed_units, date=now + timedelta(days=14)
         )
     # elif join_type == 'autumn':
     #     ed_units = HHM.filter_ed_units_with_days_later_than_date(

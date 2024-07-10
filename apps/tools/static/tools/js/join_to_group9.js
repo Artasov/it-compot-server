@@ -377,6 +377,7 @@ async function main() {
             chooseTZModal.show();
         });
     } else if (Object.keys(queryParams).length === 1 && queryParams['discipline']) {
+        join_type = 'autumn';
         findGroupsForUText.classList.add('d-none');
         inputStudentInfoContainer.classList.remove('d-none');
         const studentFullNameInput = document.querySelector('input[name="student_full_name"]');
@@ -405,7 +406,6 @@ async function main() {
             params.discipline = queryParams['discipline'];
             getAvailableFormingGroups(params).then(response => {
                 if (response.status === 200) {
-                    console.log(response)
                     const units = response.data.groups;
                     loadedGroups = units;
                     studentId = response.data.student_id;

@@ -5,8 +5,8 @@ from typing import TypedDict
 
 from django.conf import settings
 
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
-from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptions
+from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
+from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptions
 
 
 class LessonComment(TypedDict):

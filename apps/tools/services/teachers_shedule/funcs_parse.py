@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
+from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 
 
 def find_header_row(df, header_name):

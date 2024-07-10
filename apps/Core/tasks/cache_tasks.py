@@ -1,7 +1,7 @@
 from celery import shared_task
 from django.conf import settings
 
-from service.pickler import Pickler
+from modules.pickler import Pickler
 
 
 @shared_task(autoretry_for=(Exception,), retry_kwargs={'max_retries': 10, 'countdown': 20})

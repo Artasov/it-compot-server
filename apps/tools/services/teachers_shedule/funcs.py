@@ -1,6 +1,6 @@
 from pandas import DataFrame
 
-from service.tools.gsheet.classes.gsheetsclient import GSDocument
+from modules.gsheet.classes.gsheetsclient import GSDocument
 from apps.tools.forms.other import LoadHHTeachersScheduleXLSXForm
 from apps.tools.services.teachers_shedule.funcs_parse import parse_teachers_schedule_from_dj_mem, create_schedule
 

@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from service.pickler import Pickler as PicklerCache
+from modules.pickler import Pickler as PicklerCache
 
 # Base directories
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -113,14 +113,15 @@ USE_I18N = True
 USE_TZ = True
 
 # Additional settings
-SERVICE_ROOT = BASE_DIR / 'service'
+SERVICE_ROOT = BASE_DIR / 'modules'
 DEVELOPER_EMAIL = 'ivanhvalevskey@gmail.com'
 HOLLIHOP_DOMAIN = env('HOLLIHOP_DOMAIN')
 HOLLIHOP_AUTHKEY = env('HOLLIHOP_AUTHKEY')
 TEACHER_SALARY_PASSWORD = env('TEACHER_SALARY_PASSWORD')
 AMOLINK_NOTHING_FIT_INTRODUCTION_GROUPS = env('AMOLINK_NOTHING_FIT_INTRODUCTION_GROUPS')
 AMOLINK_REPORT_JOIN_TO_INTRODUCTION_GROUPS = env('AMOLINK_REPORT_JOIN_TO_INTRODUCTION_GROUPS')
-
+AMOLINK_REPORT_CALL_TRANSCRIBTION = env('AMOLINK_REPORT_CALL_TRANSCRIBTION')
+GPT_TOKEN = env('GPT_TOKEN')
 # Google Sheets
 GOOGLE_API_JSON_CREDS_PATH = BASE_DIR / env('GSCREDS_FILE_NAME', '__NONE__')
 GSDOCID_LOG_JOIN_FORMING_GROUPS = env('GSDOCID_LOG_JOIN_FORMING_GROUPS', '__NONE__')
@@ -161,6 +162,7 @@ INSTALLED_APPS = [
     'apps.Core',
     'apps.tools',
     'apps.transcribe',
+    'apps.endpoints',
 ]
 
 if DEV:
@@ -230,54 +232,53 @@ logs_sql_dev_dir = os.path.join(logs_dev_dir, 'sql')
 for path in [logs_prod_dir, logs_dev_dir, logs_sql_prod_dir, logs_sql_dev_dir]:
     os.makedirs(path, exist_ok=True)
 
-if not DEV:
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'base_formatter': {
-                'format': '{levelname} {asctime} {module}: {message}',
-                'style': '{',
-            }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'base_formatter': {
+            'format': '{levelname} {asctime} {module}: {message}',
+            'style': '{',
+        }
+    },
+    'handlers': {
+        'file_sql': {
+            'level': 'DEBUG' if DEBUG and DEV else 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(logs_sql_dev_dir if DEBUG and DEV else logs_sql_prod_dir, 'sql.log'),
+            'when': 'midnight',
+            'backupCount': 30,  # How many days to keep logs
+            'formatter': 'base_formatter',
+            'encoding': 'utf-8',
         },
-        'handlers': {
-            'file_sql': {
-                'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
-                'class': 'logging.handlers.TimedRotatingFileHandler',
-                'filename': os.path.join(logs_sql_dev_dir if DEBUG and DEV else logs_sql_prod_dir, 'sql.log'),
-                'when': 'midnight',
-                'backupCount': 30,  # How many days to keep logs
-                'formatter': 'base_formatter',
-                'encoding': 'utf-8',
-            },
-            'file': {
-                'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
-                'class': 'logging.handlers.TimedRotatingFileHandler',
-                'filename': os.path.join(logs_dev_dir if DEBUG and DEV else logs_prod_dir, 'django.log'),
-                'when': 'midnight',
-                'backupCount': 30,  # How many days to keep logs
-                'formatter': 'base_formatter',
-                'encoding': 'utf-8',
-            },
-            'console': {
-                'level': 'DEBUG' if DEBUG and DEV else 'INFO',
-                'class': 'logging.StreamHandler',
-                'formatter': 'base_formatter',
-            },
+        'file': {
+            'level': 'DEBUG' if DEBUG and DEV else 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(logs_dev_dir if DEBUG and DEV else logs_prod_dir, 'django.log'),
+            'when': 'midnight',
+            'backupCount': 30,  # How many days to keep logs
+            'formatter': 'base_formatter',
+            'encoding': 'utf-8',
         },
-        'loggers': {
-            'base': {
-                'handlers': ['console', 'file'],
-                'level': 'DEBUG' if DEBUG and DEV else 'INFO',
-                'propagate': True,
-            },
-            # 'django.db.backends': {  # All SQL
-            #     'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
-            #     'handlers': ['file_sql'],
-            #     'propagate': False,
-            # },
+        'console': {
+            'level': 'DEBUG' if DEBUG and DEV else 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'base_formatter',
         },
-    }
+    },
+    'loggers': {
+        'base': {
+            'handlers': ['console', 'file'] if not DEV else ['console'],
+            'level': 'DEBUG' if DEBUG and DEV else 'INFO',
+            'propagate': True,
+        },
+        # 'django.db.backends': {  # All SQL
+        #     'level': 'DEBUG' if DEBUG and DEV else 'WARNING',
+        #     'handlers': ['file_sql'],
+        #     'propagate': False,
+        # },
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

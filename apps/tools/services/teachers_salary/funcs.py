@@ -2,7 +2,7 @@ from pprint import pprint
 
 import pandas as pd
 
-from service.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
+from modules.hollihop.funcs.teachers_salary import get_teacher_salary_by_email
 
 
 async def fetch_teacher_lessons_data_by_email(email) -> list[dict]:

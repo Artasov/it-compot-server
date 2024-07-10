@@ -6,9 +6,9 @@ import aiohttp
 from django.template.defaultfilters import pprint
 
 from apps.tools.exceptions.common import PaymentException, StudentByAmoIdNotFound
-from service.common.common import calculate_age
-from service.hollihop.classes.hollihop import HolliHopApiV2Manager
-from service.hollihop.consts import amo_hh_currencies, amo_hh_pay_methods
+from modules.common.common import calculate_age
+from modules.hollihop.classes.hollihop import HolliHopApiV2Manager
+from modules.hollihop.consts import amo_hh_currencies, amo_hh_pay_methods
 
 log = logging.getLogger('base')
 

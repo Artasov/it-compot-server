@@ -1,0 +1,32 @@
+{% extends 'Core/base.html' %}
+{% load static %}
+{% block title %}it-compot | Endpoints{% endblock %}
+
+{% block content %}
+    <div id="content" class="container d-none fcc flex-grow-1 w-min"
+         data-bs-theme="dark"
+         style="max-width: 700px;">
+        {% for app_name, urls in app_urls.items %}
+            {% if app_name != 'admin' %}
+                <h3 class="mt-3 mb-0">{{ app_name|capfirst }}</h3>
+                <ul>
+                    {% for url in urls %}
+                        <li><a href="/{{ url }}">{{ url }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endfor %}
+        <h3 class="mt-3 mb-0">Media</h3>
+        <ul>
+            {% for url in media_urls %}
+                <li><a href="/{{ url }}">{{ url }}</a></li>
+            {% endfor %}
+        </ul>
+        <h3 class="mt-4 mb-0">Static</h3>
+        <ul>
+            {% for url in static_urls %}
+                <li><a href="/{{ url }}">{{ url }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

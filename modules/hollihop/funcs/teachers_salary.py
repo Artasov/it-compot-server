@@ -1,7 +1,7 @@
 from config.settings import TABLE_TEACHERS_SALARY
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
-from service.hollihop.classes.exeptions import TeacherNotFound
-from service.tools.gsheet.classes.gspread_client import GSDocumentGSpread
+from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
+from modules.hollihop.classes.exeptions import TeacherNotFound
+from modules.gsheet.classes.gspread_client import GSDocumentGSpread
 
 
 async def get_teacher_salary_by_email(email: str) -> list:

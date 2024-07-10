@@ -2,7 +2,8 @@ import os
 
 from celery import shared_task
 
-from transcribe.services.common import transcribe, send_transcribe_lead_call_report
+from transcribe.services.common import send_transcribe_lead_call_report
+from modules.whisper.service import transcribe
 
 
 @shared_task(autoretry_for=(Exception,), retry_kwargs={'max_retries': 3, 'countdown': 320})

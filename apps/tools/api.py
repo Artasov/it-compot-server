@@ -31,11 +31,11 @@ from apps.tools.services.other import get_course_themes
 from apps.tools.services.signup_group.funcs import (
     add_student_to_forming_group, send_nothing_fit_units_to_amo, get_forming_groups_for_join
 )
-from service.common.common import calculate_age, get_number, now_date
-from service.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
-from service.hollihop.consts import base_ages, get_next_discipline
-from service.pickler import Pickler, PicklerNotFoundDumpFile
-from service.tools.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
+from modules.common.common import calculate_age, get_number, now_date
+from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
+from modules.hollihop.consts import base_ages, get_next_discipline
+from modules.pickler import Pickler, PicklerNotFoundDumpFile
+from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
 
 log = logging.getLogger('base')
 pickler = Pickler(**settings.PICKLER_SETTINGS)

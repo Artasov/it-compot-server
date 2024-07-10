@@ -1,8 +1,6 @@
 from datetime import datetime
 
-from django.conf import settings
-
-from service.tools.gsheet.classes.gsheetsclient import GSDocument, ColumnWidth, GSFormatOptionVariant
+from modules.gsheet.classes.gsheetsclient import GSDocument, ColumnWidth, GSFormatOptionVariant
 
 
 class GSLoggerDayBase:
