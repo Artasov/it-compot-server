@@ -15,8 +15,8 @@ from rest_framework.response import Response
 
 from apps.Core.async_django import alogin_required
 from apps.Core.permissions import IsStaff
-from apps.Core.services.base import add_user_to_group, controller, acontroller
-from apps.Core.tasks.cache_tasks import pickler_delete_expired_cache
+from apps.Core.services.base import add_user_to_group, acontroller
+from apps.Core.tasks.cache_tasks import pickler_delete_expired_cache, pickler_delete_all_cache
 from apps.tools.forms.teachers_salary import StupidAuthForm
 
 log = logging.getLogger('base')
@@ -24,9 +24,16 @@ log = logging.getLogger('base')
 
 @api_view(('GET',))
 @permission_classes((IsStaff,))
-async def clean_cache(request):
+async def delete_expired_cache(request):
     pickler_delete_expired_cache.delay()
-    return Response('Cache clear task initiated.', status=200)
+    return Response('Cache EXPIRED clear task initiated.', status=200)
+
+
+@api_view(('GET',))
+@permission_classes((IsStaff,))
+async def delete_all_cache(request):
+    pickler_delete_all_cache.delay()
+    return Response('Cache ALL clear task initiated.', status=200)
 
 
 async def signout(request):

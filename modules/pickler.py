@@ -170,6 +170,13 @@ class Pickler:
                 except ValueError:
                     continue
 
+    def delete_all(self):
+        """
+        Deletes all cache files in the base temporary directory.
+        """
+        for file in self.base_temp_dir.glob('*.pkl'):
+            file.unlink()
+
     def delete(self, name):
         """
         Deletes the cache file for the given name.

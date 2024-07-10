@@ -2,13 +2,18 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 
-from apps.Core.views import menu, health_test, stupid_auth, signout, clean_cache
+from apps.Core.views import (
+    menu, health_test, stupid_auth,
+    signout, delete_expired_cache,
+    delete_all_cache
+)
 
 urlpatterns = [
     path('health_test/', health_test),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('clean_cache/', clean_cache),
+    path('delete_expired_cache/', delete_expired_cache),
+    path('delete_all_cache/', delete_all_cache),
 
     path('', menu, name='menu'),
     path('', include(('apps.link_shorter.urls', 'apps.link_shorter'), namespace='link_shorter')),

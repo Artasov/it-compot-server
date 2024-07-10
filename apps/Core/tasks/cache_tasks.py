@@ -10,5 +10,11 @@ log = logging.getLogger('base')
 
 @shared_task(autoretry_for=(Exception,), retry_kwargs={'max_retries': 10, 'countdown': 20})
 def pickler_delete_expired_cache():
-    log.warning('Deleting expired cache')
+    log.warning('Deleting EXPIRED cache.')
     Pickler(**settings.PICKLER_SETTINGS).delete_expired()
+
+
+@shared_task(autoretry_for=(Exception,), retry_kwargs={'max_retries': 10, 'countdown': 20})
+def pickler_delete_all_cache():
+    log.warning('Deleting ALL cache.')
+    Pickler(**settings.PICKLER_SETTINGS).delete_all()

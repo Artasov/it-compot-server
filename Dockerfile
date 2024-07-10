@@ -14,14 +14,17 @@ RUN apk add ffmpeg # Для whisper
 # RUN python -m venv /venv
 # ENV PATH="/srv/venv/bin:$PATH"
 RUN python -m pip install --upgrade pip
+RUN echo -e "\e[1;31mRequirements installing...\e[0m"
 RUN python -m pip install -r /srv/requirements.txt
+RUN echo -e "\e[1;31mRequirements successfully installed.\e[0m"
 RUN dos2unix /srv/entrypoint.prod.sh
 RUN apk del dos2unix
 RUN chmod +x /srv/entrypoint.prod.sh
 
 # Cache | Temp | Folders
-RUN mkdir -p /srv/data/cache/ && chmod +x /srv/data/cache/ && \
-    mkdir -p /srv/data/temp/ && chmod +x /srv/data/temp/
+RUN mkdir -p /srv/data/cache/ && chmod -R 777 /srv/data/cache/ && \
+    mkdir -p /srv/data/temp/ && chmod -R 777 /srv/data/temp/
+RUN echo -e "\e[1;31mPermissions applied.\e[0m"
 
 # Установка Chrony для синхронизации времени
 RUN apk add --no-cache chrony

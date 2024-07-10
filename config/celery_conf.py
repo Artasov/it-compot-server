@@ -30,7 +30,7 @@ app.conf.CELERY_IMPORTS = (
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    'clean_cache': {
+    'delete_expired_cache': {
         'task': 'apps.Core.tasks.cache_tasks.pickler_delete_expired_cache',
         'schedule': crontab(hour='0', minute='0'),
     },
