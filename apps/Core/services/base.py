@@ -77,10 +77,7 @@ def acontroller(name=None, log_time=False, auth: bool = False) -> callable:
                 return await fn(request, *args, **kwargs)
             else:
                 try:
-                    if log_time:
-                        end_time = time()
-                        elapsed_time = end_time - start_time
-                        log.info(f"Execution time of {fn_name}: {elapsed_time:.2f} seconds")
+                    if log_time: log.info(f"Execution time of {fn_name}: {(time() - start_time):.2f} seconds")
                     return await fn(request, *args, **kwargs)
                 except Exception as e:
                     log.critical(f"ERROR in {fn_name}: {str(e)}", exc_info=True)

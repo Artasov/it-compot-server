@@ -211,23 +211,29 @@ try {
                 }
             }
         }
-        const response = await getThemesByDiscipline(unit.Discipline);
-        if (response.themes) {
-            // add select title
+        if (unit.Discipline.includes('вне программы')) {
             themeSelectEl.innerHTML = '';
-            const themeBaseOptionEl = document.createElement('option');
-            themeBaseOptionEl.textContent = 'Выберите тему урока';
-            themeBaseOptionEl.value = 0;
-            themeSelectEl.appendChild(themeBaseOptionEl);
-            // add themes options
-            for (let i = 0; i < response.themes.length; i++) {
-                const themeOptionEl = document.createElement('option');
-                themeOptionEl.textContent = `${i + 1}. ` + response.themes[i][0];
-                themeOptionEl.value = i + 1;
-                themeSelectEl.appendChild(themeOptionEl);
-            }
-        } else {
+            themeSelectEl.value = 'Занятия вне программы.'
             themeSelectEl.classList.add('d-none')
+        } else {
+            const response = await getThemesByDiscipline(unit.Discipline);
+            if (response.themes) {
+                // add select title
+                themeSelectEl.innerHTML = '';
+                const themeBaseOptionEl = document.createElement('option');
+                themeBaseOptionEl.textContent = 'Выберите тему урока';
+                themeBaseOptionEl.value = 0;
+                themeSelectEl.appendChild(themeBaseOptionEl);
+                // add themes options
+                for (let i = 0; i < response.themes.length; i++) {
+                    const themeOptionEl = document.createElement('option');
+                    themeOptionEl.textContent = `${i + 1}. ` + response.themes[i][0];
+                    themeOptionEl.value = i + 1;
+                    themeSelectEl.appendChild(themeOptionEl);
+                }
+            } else {
+                themeSelectEl.classList.add('d-none')
+            }
         }
         lessonSetInfoContainer.classList.remove('d-none');
         setLoading(false);
