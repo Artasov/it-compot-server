@@ -100,7 +100,6 @@ async def get_forming_groups_for_join(level: str,
         'groups': Список с найденными группами по параметрам по api HolliHop,
         'join_type': 'academic_year' если сейчас НЕ лето, иначе summer
     }
-
     """
     HHM = CustomHHApiV2Manager()
     ed_units = await HHM.get_available_future_starting_ed_units(

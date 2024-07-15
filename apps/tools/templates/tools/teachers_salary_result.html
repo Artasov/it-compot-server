@@ -15,7 +15,6 @@
         <h1 class="text-white fs-1 text-center mt-4">Оплата за уроки</h1>
         <p class="fs-2 mb-2">Итог: <span style="color: #8dff97">{% get_beauty_int total_salary %} ₽</span></p>
         <div class="accordion" id="accordionExample">
-            <a href="{% url '' %}"></a>
             {% for month, details in teacher_month_lessons_list.items %}
                 <div class="accordion-item">
                     <h2 class="accordion-header">
