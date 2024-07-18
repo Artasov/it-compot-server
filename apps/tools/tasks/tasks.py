@@ -4,7 +4,6 @@ from asgiref.sync import async_to_sync
 from celery import shared_task
 from django.conf import settings
 
-from apps.tools.api import pickler
 from apps.tools.services.lesson_report.funcs import upload_lasts_themes_for_unit_student, send_gs_lesson_report
 from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
 from modules.pickler import PicklerNotFoundDumpFile
@@ -32,6 +31,7 @@ def process_lesson_report_task(
         user_email,
         username
 ):
+    from apps.tools.api import pickler
     HHManager = CustomHHApiV2Manager()
     try:
         teacher_name = pickler.cache(f'{username}_full_teacher_name')
