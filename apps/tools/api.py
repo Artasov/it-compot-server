@@ -25,24 +25,26 @@ from apps.tools.serializers import (
     SendNothingFitSerializer,
     BuildLinkForJoinToFormingGroupSerializer, AddHhPaymentByAmoSerializer,
 )
-from apps.tools.services.lesson_report.funcs import send_gs_lesson_report, parse_lesson_comment, LessonComment, \
+from apps.tools.services.lesson_report.funcs import parse_lesson_comment, LessonComment, \
     get_module_for_autumn_by_lesson_number, get_module_by_lesson_number
 from apps.tools.services.other import get_course_themes
 from apps.tools.services.signup_group.funcs import (
     add_student_to_forming_group, send_nothing_fit_units_to_amo, get_forming_groups_for_join
 )
+from apps.tools.tasks.tasks import process_lesson_report_task
 from modules.common.common import calculate_age, get_number, now_date
-from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
+from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
+from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from modules.hollihop.consts import base_ages, get_next_discipline
 from modules.pickler import Pickler, PicklerNotFoundDumpFile
-from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
 
 log = logging.getLogger('base')
 pickler = Pickler(**settings.PICKLER_SETTINGS)
 
 
-@acontroller('Отправка отчета по занятию.', auth=True)
+@acontroller('Отправка отчета по занятию.')
 @asemaphore_handler
+@permission_classes((IsAuthenticated,))
 @api_view(('POST',))
 async def send_lesson_report(request):
     ed_unit_id = request.data.get('ed_unit_id')
@@ -58,40 +60,17 @@ async def send_lesson_report(request):
         students_comments = json.loads(students_comments)
     except json.JSONDecodeError:
         return Response({'success': False, 'error': 'Неверный формат данных студентов.'}, 400)
-
-    HHManager = CustomHHApiV2Manager()
-    try:
-        teacher_name = pickler.cache(f'{request.user.username}_full_teacher_name')
-    except PicklerNotFoundDumpFile:
-        teacher_name = await HHManager.get_full_teacher_name_by_email(request.user.email)
-        pickler.cache(f'{request.user.username}_full_teacher_name', teacher_name, 24 * 60 * 60 * 4)
-
-    for student_comment in students_comments:
-        try:
-            await HHManager.set_comment_for_student_ed_unit(
-                ed_unit_id=ed_unit_id,
-                student_client_id=student_comment['ClientId'],
-                date=day_date,
-                passed=student_comment['Pass'],
-                description=f'* {theme_number}{". " if theme_number else ""}{theme_name}\n'
-                            f'* Завершено на: {lesson_completion_percentage}%\n'
-                            f'* {student_comment["Description"]}'
-            )
-            await send_gs_lesson_report(
-                teacher_name=teacher_name,
-                type_ed_unit=type_ed_unit,
-                ed_unit_id=ed_unit_id,
-                student_name=student_comment['StudentName'],
-                student_amo_id=student_comment['StudentAmoId'],
-                student_client_id=student_comment['ClientId'],
-                date=day_date,
-                description=f'* {theme_number}. {theme_name}\n'
-                            f'* Завершено на: {lesson_completion_percentage}%\n'
-                            f'* {student_comment["Description"]}'
-            )
-        except SetCommentError:
-            return Response({'success': False, 'error': 'Ошибка при добавлении комментария в HH'}, 400)
-    pickler.delete(f'{request.user.username}_lessons')
+    process_lesson_report_task.delay(
+        ed_unit_id=ed_unit_id,
+        day_date=day_date,
+        theme_number=theme_number,
+        theme_name=theme_name,
+        lesson_completion_percentage=lesson_completion_percentage,
+        students_comments=students_comments,
+        type_ed_unit=type_ed_unit,
+        user_email=request.user.email,
+        username=request.user.username
+    )
     return Response({'success': True}, 200)
 
 
@@ -119,7 +98,6 @@ async def get_teacher_lesson_for_report(request) -> Response:
     try:
         filtered_units = pickler.cache(f'{request.user.username}_lessons')
     except PicklerNotFoundDumpFile as e:
-        print(e)
         email = request.user.email
         HHManager = CustomHHApiV2Manager()
         now = datetime.now()

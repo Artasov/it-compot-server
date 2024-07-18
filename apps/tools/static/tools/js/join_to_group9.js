@@ -333,6 +333,21 @@ function attachTZEventHandlers() {
 }
 
 const btnSubmitFindStudent = document.querySelector('#btnSubmitFindStudent');
+document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('.btn-choose-tz');
+
+    buttons.forEach(button => {
+        const offset = parseInt(button.value, 10);
+        const currentTime = new Date();
+        const localTime = new Date(currentTime.getTime() + (offset * 60 * 60 * 1000));
+
+        const hours = String(localTime.getUTCHours()).padStart(2, '0');
+        const minutes = String(localTime.getUTCMinutes()).padStart(2, '0');
+        const formattedTime = `${hours}:${minutes}`;
+
+        button.textContent = `${formattedTime}`;
+    });
+});
 
 async function main() {
     if (Object.keys(queryParams).length === 4) {
