@@ -60,6 +60,7 @@ async def send_lesson_report(request):
         students_comments = json.loads(students_comments)
     except json.JSONDecodeError:
         return Response({'success': False, 'error': 'Неверный формат данных студентов.'}, 400)
+    pickler.delete(f'{request.user.username}_lessons')
     process_lesson_report_task.delay(
         ed_unit_id=ed_unit_id,
         day_date=day_date,
