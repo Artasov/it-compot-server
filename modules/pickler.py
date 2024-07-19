@@ -15,6 +15,11 @@ class PicklerTimeoutExpired(Exception):
     pass
 
 
+class PicklerLoadError(Exception):
+    """Exception raised when the dump file load failed."""
+    pass
+
+
 SECONDS_IN_DAY = 24 * 60 * 60
 
 
@@ -81,7 +86,10 @@ class Pickler:
         if obj is None:
             if existing_file and existing_file.exists():
                 with open(existing_file, 'rb') as f:
-                    return pickle.load(f)
+                    try:
+                        return pickle.load(f)
+                    except Exception:
+                        raise PicklerLoadError(f'Failed to upload file {name}')
             else:
                 if raise_timeout:
                     raise PicklerTimeoutExpired(f'Timeout expired for {name}')

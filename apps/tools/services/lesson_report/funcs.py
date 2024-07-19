@@ -7,7 +7,7 @@ from django.conf import settings
 
 from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptions
 from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
-from modules.pickler import PicklerNotFoundDumpFile
+from modules.pickler import PicklerNotFoundDumpFile, PicklerLoadError
 
 
 class LessonComment(TypedDict):
@@ -32,7 +32,7 @@ async def send_lesson_report(
     HHManager = CustomHHApiV2Manager()
     try:
         teacher_name = pickler.cache(f'{username}_full_teacher_name')
-    except (PicklerNotFoundDumpFile, EOFError):
+    except (PicklerNotFoundDumpFile, PicklerLoadError):
         teacher_name = await HHManager.get_full_teacher_name_by_email(user_email)
         pickler.cache(f'{username}_full_teacher_name', teacher_name, 24 * 60 * 60 * 4)
 

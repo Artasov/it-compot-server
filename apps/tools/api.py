@@ -36,7 +36,7 @@ from modules.common.common import calculate_age, get_number, now_date
 from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
 from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from modules.hollihop.consts import base_ages, get_next_discipline
-from modules.pickler import Pickler, PicklerNotFoundDumpFile
+from modules.pickler import Pickler, PicklerNotFoundDumpFile, PicklerLoadError
 
 log = logging.getLogger('base')
 pickler = Pickler(**settings.PICKLER_SETTINGS)
@@ -81,7 +81,7 @@ async def get_course_themes_view(request):
     discipline = request.GET['discipline']
     try:
         themes = pickler.cache(f'{discipline}_{now_date()}')
-    except PicklerNotFoundDumpFile as e:
+    except (PicklerNotFoundDumpFile, PicklerLoadError) as e:
         print(e)
         themes = await get_course_themes(discipline)
         pickler.cache(f'{discipline}_{now_date()}', obj=themes)
@@ -97,7 +97,7 @@ async def get_teacher_lesson_for_report(request) -> Response:
     start_time = datetime.now()  # ЗАМЕР
     try:
         filtered_units = pickler.cache(f'{request.user.username}_lessons')
-    except PicklerNotFoundDumpFile as e:
+    except (PicklerNotFoundDumpFile, PicklerLoadError) as e:
         email = request.user.email
         HHManager = CustomHHApiV2Manager()
         now = datetime.now()
@@ -333,7 +333,7 @@ async def upload_average_price_per_lesson_student(request) -> Response:
     HHM = CustomHHApiV2Manager()
     try:
         ed_units_s = pickler.cache('upload_average_price_per_lesson/ed_units_s')
-    except PicklerNotFoundDumpFile:
+    except (PicklerNotFoundDumpFile, PicklerLoadError):
         ed_units_s = await HHM.getEdUnitStudents(maxTake=6000, queryDays=True, dateFrom='2024-05-01',
                                                  dateTo='2024-07-01')
         pickler.cache('upload_average_price_per_lesson/ed_units_s', ed_units_s)
@@ -347,7 +347,7 @@ async def upload_average_price_per_lesson_student(request) -> Response:
 
     try:
         students = pickler.cache('upload_average_price_per_lesson/students')
-    except PicklerNotFoundDumpFile:
+    except (PicklerNotFoundDumpFile, PicklerLoadError):
         students = []
 
         async def fetch_student(sunit):
@@ -381,7 +381,7 @@ async def upload_average_price_per_lesson_student(request) -> Response:
 
     try:
         result = pickler.cache('upload_average_price_per_lesson/result')
-    except PicklerNotFoundDumpFile:
+    except (PicklerNotFoundDumpFile, PicklerLoadError):
         result = []
         batch_size = 500
         total_students = len(students)
@@ -494,7 +494,7 @@ async def upload_days_with_wrong_comment(request) -> Response:
     HHM = CustomHHApiV2Manager()
     try:
         ed_units_s = pickler.cache('upload_days_with_wrong_comment/ed_units_s')
-    except PicklerNotFoundDumpFile:
+    except (PicklerNotFoundDumpFile, PicklerLoadError):
         ed_units_s = await HHM.getEdUnitStudents(maxTake=6000, queryDays=True, dateFrom='2024-05-01',
                                                  dateTo='2024-07-01')
         pickler.cache('upload_days_with_wrong_comment/ed_units_s', ed_units_s)
