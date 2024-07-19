@@ -30,12 +30,7 @@ async def send_lesson_report(
 ):
     HHManager = CustomHHApiV2Manager()
 
-    pickler = Pickler(**settings.PICKLER_SETTINGS)
-    try:
-        teacher_name = pickler.cache(f'{username}_full_teacher_name')
-    except (PicklerNotFoundDumpFile, PicklerLoadError):
-        teacher_name = await HHManager.get_full_teacher_name_by_email(user_email)
-        pickler.cache(f'{username}_full_teacher_name', teacher_name, 24 * 60 * 60 * 4)
+    teacher_name = await HHManager.get_full_teacher_name_by_email(user_email)
 
     for student_comment in students_comments:
         try:
@@ -62,7 +57,6 @@ async def send_lesson_report(
             )
         except SetCommentError:
             return {'success': False, 'error': 'Ошибка при добавлении комментария в HH'}
-    pickler.delete(f'{username}_lessons')
 
 
 def parse_lesson_comment(comment: str) -> LessonComment | None:
