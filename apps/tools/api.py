@@ -490,7 +490,6 @@ async def upload_average_price_per_lesson_student(request) -> Response:
 
 
 async def upload_days_with_wrong_comment(request) -> Response:
-    pickler = Pickler(settings.BASE_CACHE_DIR)
     HHM = CustomHHApiV2Manager()
     try:
         ed_units_s = pickler.cache('upload_days_with_wrong_comment/ed_units_s')
