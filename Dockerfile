@@ -1,4 +1,4 @@
-FROM python:3.11 as base
+FROM python:3.11-alpine as base
 
 COPY . /srv
 WORKDIR /srv
@@ -13,8 +13,8 @@ RUN apk add netcat-openbsd
 RUN apk add ffmpeg # Для whisper
 # RUN python -m venv /venv
 # ENV PATH="/srv/venv/bin:$PATH"
-RUN pip install --upgrade pip
-RUN pip install -r /srv/requirements.txt
+RUN python -m pip install --upgrade pip
+RUN python -m pip install -r /srv/requirements.txt
 RUN dos2unix /srv/entrypoint.prod.sh
 RUN apk del dos2unix
 RUN chmod +x /srv/entrypoint.prod.sh
