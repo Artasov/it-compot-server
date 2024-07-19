@@ -107,7 +107,6 @@ services:
 
   celery:
     container_name: celery
-    user: "1000:1000"
     hostname: celery
     build:
       context: .

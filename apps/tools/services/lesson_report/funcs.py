@@ -32,7 +32,7 @@ async def send_lesson_report(
     HHManager = CustomHHApiV2Manager()
     try:
         teacher_name = pickler.cache(f'{username}_full_teacher_name')
-    except PicklerNotFoundDumpFile:
+    except (PicklerNotFoundDumpFile, EOFError):
         teacher_name = await HHManager.get_full_teacher_name_by_email(user_email)
         pickler.cache(f'{username}_full_teacher_name', teacher_name, 24 * 60 * 60 * 4)
 
