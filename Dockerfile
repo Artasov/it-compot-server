@@ -21,7 +21,8 @@ RUN chmod +x /srv/entrypoint.prod.sh
 
 # Cache | Temp | Folders
 RUN mkdir -p /srv/data/cache/ && chmod -R 777 /srv/data/cache/ && \
-    mkdir -p /srv/data/temp/ && chmod -R 777 /srv/data/temp/
+    mkdir -p /srv/data/temp/ && chmod -R 777 /srv/data/temp/ && \
+    mkdir -p /srv/data/rabbitmq/ && chmod -R 777 /srv/data/rabbitmq/
 
 # Установка Chrony для синхронизации времени
 RUN apk add --no-cache chrony
