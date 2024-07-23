@@ -70,7 +70,6 @@ async def send_lesson_report(request):
         students_comments=students_comments,
         type_ed_unit=type_ed_unit,
         user_email=request.user.email,
-        username=request.user.username
     )
     return Response({'success': True}, 200)
 

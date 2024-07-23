@@ -7,6 +7,7 @@ from django.conf import settings
 
 from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptions
 from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
+from modules.hollihop.classes.custom_hollihop_sync import CustomHHApiV2SyncManager
 from modules.pickler import PicklerNotFoundDumpFile, PicklerLoadError, Pickler
 
 
@@ -17,7 +18,7 @@ class LessonComment(TypedDict):
     add_info: str
 
 
-async def send_lesson_report(
+def send_lesson_report(
         ed_unit_id,
         day_date,
         theme_number,
@@ -26,15 +27,14 @@ async def send_lesson_report(
         students_comments,
         type_ed_unit,
         user_email,
-        username,
 ):
-    HHManager = CustomHHApiV2Manager()
+    HHManager = CustomHHApiV2SyncManager()
 
-    teacher_name = await HHManager.get_full_teacher_name_by_email(user_email)
+    teacher_name = HHManager.get_full_teacher_name_by_email(user_email)
 
     for student_comment in students_comments:
         try:
-            await HHManager.set_comment_for_student_ed_unit(
+            HHManager.set_comment_for_student_ed_unit(
                 ed_unit_id=ed_unit_id,
                 student_client_id=student_comment['ClientId'],
                 date=day_date,
@@ -43,7 +43,7 @@ async def send_lesson_report(
                             f'* Завершено на: {lesson_completion_percentage}%\n'
                             f'* {student_comment["Description"]}'
             )
-            await send_gs_lesson_report(
+            send_gs_lesson_report(
                 teacher_name=teacher_name,
                 type_ed_unit=type_ed_unit,
                 ed_unit_id=ed_unit_id,
@@ -87,7 +87,7 @@ def get_module_for_autumn_by_lesson_number(lesson_number: int, discipline) -> st
     return doc.get_cell(lesson_number + 2, 6, discipline)
 
 
-async def send_gs_lesson_report(
+def send_gs_lesson_report(
         teacher_name: str,
         type_ed_unit: str,
         ed_unit_id: int,

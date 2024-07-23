@@ -46,6 +46,16 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         if not result.get('success'):
             raise SetCommentError('Ошибка при добавлении комментария')
 
+    async def get_teacher_by_email(self, email):
+        teachers = await self.get_active_teachers()
+        for teacher in teachers:
+            if teacher['EMail'].lower() == email.lower():
+                return teacher
+
+    async def get_full_teacher_name_by_email(self, email):
+        teacher = await self.get_teacher_by_email(email)
+        return f'{teacher["LastName"]} {teacher["FirstName"]} {teacher["MiddleName"]}'
+
     @staticmethod
     def get_student_or_student_unit_extra_field_value(obj: dict, extra_field_name: str):
         extra_fields = obj.get('StudentExtraFields', []) + obj.get('ExtraFields', [])
@@ -179,15 +189,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
                 return False
         return True
 
-    async def get_teacher_by_email(self, email):
-        teachers = await self.get_active_teachers()
-        for teacher in teachers:
-            if teacher['EMail'].lower() == email.lower():
-                return teacher
-
-    async def get_full_teacher_name_by_email(self, email):
-        teacher = await self.get_teacher_by_email(email)
-        return f'{teacher["LastName"]} {teacher["FirstName"]} {teacher["MiddleName"]}'
 
     @staticmethod
     def filter_ed_units_with_days_later_than_date(units: list, date: datetime) -> list[dict]:

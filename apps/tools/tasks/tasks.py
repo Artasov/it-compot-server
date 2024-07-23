@@ -27,9 +27,8 @@ def process_lesson_report_task(
         students_comments,
         type_ed_unit,
         user_email,
-        username
 ):
-    async_to_sync(send_lesson_report)(
+    send_lesson_report(
         ed_unit_id=ed_unit_id,
         day_date=day_date,
         theme_number=theme_number,
@@ -38,6 +37,5 @@ def process_lesson_report_task(
         students_comments=students_comments,
         type_ed_unit=type_ed_unit,
         user_email=user_email,
-        username=username
     )
     return {'success': True}
