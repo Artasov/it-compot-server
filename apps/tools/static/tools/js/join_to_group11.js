@@ -149,7 +149,7 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
     const dateP = document.createElement('div');
     dateP.className = 'frcc gap-2 fs-5 w-100';
 
-    const schedule = unit.ScheduleItems[unit.ScheduleItems-1];
+    const schedule = unit.ScheduleItems[0];
     const first_day = unit.Days[0];
 
     const moscowTZ = 3;

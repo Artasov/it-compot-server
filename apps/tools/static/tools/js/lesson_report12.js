@@ -257,7 +257,7 @@ try {
         } else {
             for (const scheduleItem of unit.ScheduleItems) {
                 if (isDateInRange(unit.Days[day_index].Date), scheduleItem.BeginDate, scheduleItem.EndDate) {
-                    timeEl.textContent = `${unit.Days[day_index].Date} ${scheduleItem.BeginTime}`;
+                    timeEl.textContent = `${unit.Days[day_index].Date} ${unit.ScheduleItems[unit.ScheduleItems.length - 1].BeginTime}`;
                     break;
                 }
             }
