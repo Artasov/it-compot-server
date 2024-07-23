@@ -1,0 +1,5 @@
+# DockerfileRabbitMQ
+FROM rabbitmq:3-management
+
+# Включение плагина
+RUN rabbitmq-plugins enable rabbitmq_amqp1_0
