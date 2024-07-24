@@ -21,7 +21,7 @@ class GSLoggerDayBase:
 
 class GSheetLoggerJoinFormingGroup(GSLoggerDayBase):
     def log(self, status: str, student_amo_id: int, student_hh_id: int, groups_ids: list | tuple = None,
-            comment: str = ''):
+            comment: str = '', student_full_name: str = ''):
         if groups_ids is None:
             groups_ids = []
         base_url = 'https://it-school.t8s.ru'
@@ -32,6 +32,7 @@ class GSheetLoggerJoinFormingGroup(GSLoggerDayBase):
         self.doc.append_row(
             row=[
                 status,
+                student_full_name,
                 str(student_amo_id),
                 f'{base_url}/Profile/{student_hh_id}/',
                 groups_links,
@@ -42,8 +43,8 @@ class GSheetLoggerJoinFormingGroup(GSLoggerDayBase):
         )
         self.doc.format_range(1, 0, now, GSFormatOptionVariant.BASE_ROW)
 
-    def error(self, student_amo_id: int, student_hh_id: int, groups_ids: list | tuple = None, comment: str = ''):
-        self.log('ERROR', student_amo_id, student_hh_id, groups_ids, comment)
+    def error(self, student_amo_id: int, student_hh_id: int, groups_ids: list | tuple = None, comment: str = '', student_full_name: str = ''):
+        self.log('ERROR', student_amo_id, student_hh_id, groups_ids, comment, student_full_name)
 
-    def success(self, student_amo_id: int, student_hh_id: int, groups_ids: list | tuple = None, comment: str = ''):
-        self.log('SUCCESS', student_amo_id, student_hh_id, groups_ids, comment)
+    def success(self, student_amo_id: int, student_hh_id: int, groups_ids: list | tuple = None, comment: str = '', student_full_name: str = ''):
+        self.log('SUCCESS', student_amo_id, student_hh_id, groups_ids, comment, student_full_name)

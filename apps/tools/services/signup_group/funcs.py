@@ -8,9 +8,9 @@ from django.template.defaultfilters import pprint
 from apps.tools.exceptions.common import UnitAlreadyFullException
 from apps.tools.services.loggers.gsheet_logger import GSheetLoggerJoinFormingGroup as GLog
 from modules.common.common import calculate_age
+from modules.gsheet.classes.gsheetsclient import ColumnWidth
 from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
 from modules.hollihop.consts import amo_hh_disciplines_map
-from modules.gsheet.classes.gsheetsclient import ColumnWidth
 
 log = logging.getLogger('base')
 
@@ -95,10 +95,9 @@ async def get_forming_groups_for_join(level: str,
     @param discipline: Одно из направлений из списка в amo_levels consts.py
     @param age: Количество полных лет будущего ученика
     @param join_type: Стиль временной фильтрации
-    @return: Словарь вида
-    {
+    @return: Словарь вида {
         'groups': Список с найденными группами по параметрам по api HolliHop,
-        'join_type': 'academic_year' если сейчас НЕ лето, иначе summer
+        'join_type': 'academic_year' если сейчас НЕ лето, иначе summer.
     }
     """
     HHM = CustomHHApiV2Manager()
@@ -183,6 +182,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                        header=('Status', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
                        column_widths=column_widths)
     student = await HHManager.get_student_by_amo_id(student_amo_id=student_id)
+    student_full_name = f'{student.get("LastName")} {student.get("FirstName")} {student.get("MiddleName")}'
 
     # 1 ГРУППА
     forming_unit = (await HHManager.getEdUnits(
@@ -216,6 +216,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
     else:
         start_forming_unit_date2 = 0
         glog.error(
+            student_full_name=student_full_name,
             student_amo_id=student_id,
             student_hh_id=student['Id'],
             groups_ids=(f'{result1.get("success", False)}: {group_id}',),
@@ -223,7 +224,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
         )
 
     if result1.get('success'):
-        # Отправляем отчет в амо тригер чтобы проставились данные в сделку.
+        # Отправляем отчет в Амо тригер чтобы проставились данные в сделку.
         datatime_start_moscow = datetime.combine(
             start_forming_unit_date_lesson1.date(),
             start_forming_group_time.time()
@@ -262,6 +263,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
         if not report_result:
             if join_type == 'autumn':
                 glog_autumn.error(
+                    student_full_name=student_full_name,
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
                     groups_ids=(f'{result1.get("success", False)}: {group_id}',
@@ -271,6 +273,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             else:
 
                 glog.error(
+                    student_full_name=student_full_name,
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
                     groups_ids=(f'{result1.get("success", False)}: {group_id}',
@@ -279,6 +282,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                 )
     if join_type == 'autumn':
         glog_autumn.success(
+            student_full_name=student_full_name,
             student_amo_id=student_id,
             student_hh_id=student['Id'],
             groups_ids=(f'{result1.get("success", False)}: {group_id}',),
@@ -286,6 +290,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
         )
     else:
         glog.success(
+            student_full_name=student_full_name,
             student_amo_id=student_id,
             student_hh_id=student['Id'],
             groups_ids=(f'{result1.get("success", False)}: {group_id}',),
@@ -317,6 +322,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                 course_unit_id = course_unit[0]['Id']
                 if course_unit_error:
                     glog.error(
+                        student_full_name=student_full_name,
                         student_amo_id=student_id,
                         student_hh_id=student['Id'],
                         groups_ids=(f'{result1.get("success", False)}: {group_id}',),
@@ -335,6 +341,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                     )
                     if result2.get('success'):
                         glog.success(
+                            student_full_name=student_full_name,
                             student_amo_id=student_id,
                             student_hh_id=student['Id'],
                             groups_ids=(f'{result2.get("success", False)}: {course_unit_id}',),
@@ -347,6 +354,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                             func=1
                         )
                         glog.error(
+                            student_full_name=student_full_name,
                             student_amo_id=student_id,
                             student_hh_id=student['Id'],
                             groups_ids=(f'{result1.get("success", False)}: {group_id}',
@@ -356,6 +364,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
         # Если не найдены пользовательские поля которые нужны для обнаружения второй группы.
         else:
             glog.error(
+                student_full_name=student_full_name,
                 student_amo_id=student_id,
                 student_hh_id=student['Id'],
                 groups_ids=(f'{result1.get("success", False)}: {group_id}',),
@@ -380,6 +389,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
         if not open_personal_profile_result.get('success'):
             if join_type == 'autumn':
                 glog_autumn.error(
+                    student_full_name=student_full_name,
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
                     groups_ids=groups_ids,
@@ -387,6 +397,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                 )
             else:
                 glog.error(
+                    student_full_name=student_full_name,
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
                     groups_ids=groups_ids,
@@ -403,6 +414,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
         if not result_add_amo_link.get("success"):
             if join_type == 'autumn':
                 glog_autumn.error(
+                    student_full_name=student_full_name,
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
                     groups_ids=groups_ids,
@@ -410,6 +422,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                 )
             else:
                 glog.error(
+                    student_full_name=student_full_name,
                     student_amo_id=student_id,
                     student_hh_id=student['Id'],
                     groups_ids=groups_ids,
@@ -417,6 +430,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                 )
         if join_type == 'autumn':
             glog_autumn.error(
+                student_full_name=student_full_name,
                 student_amo_id=student_id,
                 student_hh_id=student['Id'],
                 groups_ids=groups_ids,
@@ -424,15 +438,12 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             )
         else:
             glog.success(
+                student_full_name=student_full_name,
                 student_amo_id=student_id,
                 student_hh_id=student['Id'],
                 groups_ids=groups_ids,
                 comment='Личный кабинет открыт, amo ссылка установлена'
             )
-
-
-def calc_base_age_by_level(level):
-    pass
 
 
 async def send_report_join_to_forming_group(

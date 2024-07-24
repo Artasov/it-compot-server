@@ -191,14 +191,12 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
         dateP.innerHTML = `
             <div class="fc w-100">
                 <div class="frc gap-2">
-                    <img src="/static/tools/img/join_to_group/time.svg" width="24" alt="">
                     <p class="schedule_item-date">${day}.${month}</p>
                     <p class="schedule_item-time">
                         ${startHours}:${startMinutes} - ${endHours}:${endMinutes}
                     </p>
                 </div>
                 <div class="frc gap-2">
-                    <img src="/static/tools/img/join_to_group/time.svg" width="24" alt="" class="opacity-0">
                     <p class="schedule_item-date">${day2}.${month2}</p>
                     <p class="schedule_item-time">
                         ${startHours2}:${startMinutes2} - ${endHours2}:${endMinutes2}
@@ -210,7 +208,6 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
         dateP.innerHTML = `
             <div class="fc w-100">
                 <div class="frc gap-2">
-                    <img src="/static/tools/img/join_to_group/time.svg" width="24" alt="">
                     <p class="schedule_item-date">${day}.${month}</p>
                     <p class="schedule_item-time">
                         ${startHours}:${startMinutes} - ${endHours}:${endMinutes}
@@ -304,8 +301,13 @@ function showGroupsWithTZ(TZ) {
     groupLoadingStatusContainerEl.className = '';
     const successEl = document.createElement('p');
     successEl.className = 'fs-1 mb-0 mt-3 text-center welcome-text';
-    successEl.innerHTML = 'Добро пожаловать<br>в компьютерную школу будущего!<br>' +
-        '<p id="help-text" class="text-center fs-5 fw-bold my-2 opacity-this85">Выберите удобную для вас группу</p>';
+    if (join_type === 'autumn') {
+         successEl.innerHTML = 'Предлагаем выбрать расписание на весь учебный год!<br>' +
+            '<p id="help-text" class="text-center fs-5 fw-bold my-2 opacity-this85">Выберите удобную для вас группу</p>';
+    } else {
+        successEl.innerHTML = 'Добро пожаловать<br>в компьютерную школу будущего!<br>' +
+            '<p id="help-text" class="text-center fs-5 fw-bold my-2 opacity-this85">Выберите удобную для вас группу</p>';
+    }
     groupLoadingStatusContainerEl.appendChild(successEl);
     inputStudentInfoContainer.classList.add('d-none');
 }
