@@ -323,10 +323,15 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             **kwargs
         )
         # Фильтруем по вместимости
-        edUnitsAvailableForJoin = [
-            unit for unit in edUnits if
-            int(unit.get('Vacancies')) > 0
-        ]
+
+        edUnitsAvailableForJoin = []
+        for unit in edUnits:
+            try:
+                if int(unit.get('Vacancies')) > 0:
+                    edUnitsAvailableForJoin.append(unit)
+            except Exception:
+                pass
+
         edUnitsAvailableForJoinFromToday = self.filter_ed_units_with_days_later_than_date(
             edUnitsAvailableForJoin, now)
 
