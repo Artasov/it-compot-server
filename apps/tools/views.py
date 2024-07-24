@@ -54,18 +54,4 @@ async def teacher_set_lesson_report(request) -> HttpResponse:
 @acontroller('Выбор дисциплины для присоединения в группу')
 @api_view(('GET',))
 async def select_discipline_for_join(request) -> HttpResponse:
-    disciplines = await CustomHHApiV2Manager().getDisciplines()
-    disciplines_filtered = []
-    for discipline in disciplines:
-        if 'ОУ' not in discipline and \
-                'Клуб' not in discipline and \
-                'Хакатон' not in discipline and \
-                'Марафон' not in discipline and \
-                'диагностика' not in discipline and \
-                'Внутренние мероприятия' not in discipline and \
-                'вне программы' not in discipline and \
-                'Архив' not in discipline:
-            disciplines_filtered.append(discipline)
-    return render(request, 'tools/select_discipline_for_join.html', {
-        'disciplines': disciplines_filtered
-    })
+    return render(request, 'tools/select_discipline_for_join.html')
