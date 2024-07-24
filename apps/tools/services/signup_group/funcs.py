@@ -176,10 +176,10 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
         ColumnWidth(column_index=5, width=250),
     )
     glog = GLog(doc_id=settings.GSDOCID_LOG_JOIN_FORMING_GROUPS,
-                header=('Status', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
+                header=('Status', 'StudentFullName', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
                 column_widths=column_widths)
     glog_autumn = GLog(doc_id=settings.GSDOCID_LOG_JOIN_FORMING_GROUPS_AUTUMN,
-                       header=('Status', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
+                       header=('Status', 'StudentFullName', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
                        column_widths=column_widths)
     student = await HHManager.get_student_by_amo_id(student_amo_id=student_id)
     student_full_name = f'{student.get("LastName")} {student.get("FirstName")} {student.get("MiddleName")}'
