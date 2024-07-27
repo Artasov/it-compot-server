@@ -33,8 +33,12 @@ class CustomHHApiV2SyncManager(HolliHopApiV2SyncManager):
     def get_teacher_by_email(self, email):
         teachers = self.getTeachers()
         for teacher in teachers:
-            if teacher['EMail'].lower() == email.lower():
-                return teacher
+            try:
+                if teacher['EMail'].lower() == email.lower():
+                    return teacher
+            except KeyError as e:
+                print(teacher)
+                raise e
 
     def get_full_teacher_name_by_email(self, email):
         teacher = self.get_teacher_by_email(email)
