@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from modules.hollihop.classes.custom_hollihop import SetCommentError
 from modules.hollihop.classes.hollihop_sync import HolliHopApiV2SyncManager
 
@@ -31,14 +33,9 @@ class CustomHHApiV2SyncManager(HolliHopApiV2SyncManager):
             raise SetCommentError('Ошибка при добавлении комментария')
 
     def get_teacher_by_email(self, email):
-        teachers = self.getTeachers()
-        for teacher in teachers:
-            try:
-                if teacher['EMail'].lower() == email.lower():
-                    return teacher
-            except KeyError as e:
-                print(teacher)
-                raise e
+        for teacher in self.getTeachers():
+            if teacher.get('EMail') and (teacher['EMail'].lower() == email.lower()):
+                return teacher
 
     def get_full_teacher_name_by_email(self, email):
         teacher = self.get_teacher_by_email(email)
