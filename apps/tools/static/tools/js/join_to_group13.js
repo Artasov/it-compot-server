@@ -317,7 +317,7 @@ function attachTZEventHandlers() {
     for (const btnTz of btnsChooseTz) {
         btnTz.addEventListener('click', function handleClick() {
             chooseTZModal.hide();
-            if (join_type === 'summer' || join_type === 'autumn') {
+            if (join_type === 'summer') {
                 summerInfoModal.show();
             }
             document.getElementById('tz-info').classList.remove('d-none');
