@@ -1,4 +1,5 @@
 import logging
+from random import randint
 
 from adrf.decorators import api_view
 from asgiref.sync import sync_to_async
@@ -16,6 +17,7 @@ from rest_framework.response import Response
 from apps.Core.async_django import alogin_required
 from apps.Core.permissions import IsStaff
 from apps.Core.services.base import add_user_to_group, acontroller
+from apps.Core.services.djrediser import DjRediser
 from apps.Core.tasks.cache_tasks import pickler_delete_expired_cache, pickler_delete_all_cache
 from apps.tools.forms.teachers_salary import StupidAuthForm
 
@@ -78,6 +80,9 @@ def health_test(request) -> HttpResponse:
     if not get_redis_connection().flushall():
         log.error('Redis have not yet come to life')
         return HttpResponse("Redis error", status=500)
+
+    print(DjRediser().cache('health_test_cache', lambda: randint(1000, 10000)))
+
     try:
         connections['default'].cursor()
     except Exception as e:
