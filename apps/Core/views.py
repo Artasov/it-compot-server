@@ -75,7 +75,7 @@ async def menu(request) -> HttpResponse:
 
 def health_test(request) -> HttpResponse:
     # Проверка Redis
-    if not get_redis_connection().flushall():
+    if not get_redis_connection():
         log.error('Redis have not yet come to life')
         return HttpResponse("Redis error", status=500)
 
