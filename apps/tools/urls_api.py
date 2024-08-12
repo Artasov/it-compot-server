@@ -10,7 +10,7 @@ from apps.tools.api import (
     add_hh_payment_by_amo_view,
     get_teacher_lesson_for_report,
     get_course_themes_view,
-    send_lesson_report, upload_days_with_wrong_comment,
+    send_lesson_report, upload_days_with_wrong_comment, reload_corrected_comments,
 )
 
 urlpatterns = [
@@ -45,4 +45,7 @@ urlpatterns = [
     path('upload_days_with_wrong_comment/',
          upload_days_with_wrong_comment,
          name='upload_days_with_wrong_comment'),
+    path('reload_corrected_comments/',
+         reload_corrected_comments,
+         name='reload_corrected_comments'),
 ]

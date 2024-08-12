@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from asyncio import sleep
 from datetime import datetime, timedelta
 
 import aiohttp
@@ -34,7 +35,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             'StudentClientId': student_client_id,
             'Pass': first_pass
         }])
-
+        await sleep(0.3)
         result = await self.setStudentPasses(like_array=[{
             'Date': date,
             'EdUnitId': ed_unit_id,

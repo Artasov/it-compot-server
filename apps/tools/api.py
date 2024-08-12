@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from pprint import pprint
+from time import sleep
 from urllib.parse import quote
 
 from adrf.decorators import api_view
@@ -15,7 +16,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT
 
-from apps.Core.services.base import asemaphore_handler, acontroller
+from apps.Core.services.base import asemaphore_handler, acontroller, controller
 from apps.link_shorter.services.common import create_short_link
 from apps.tools.exceptions.common import UnitAlreadyFullException
 from apps.tools.serializers import (
@@ -35,6 +36,7 @@ from apps.tools.tasks.tasks import process_lesson_report_task
 from modules.common.common import calculate_age, get_number, now_date
 from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptionVariant
 from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager
+from modules.hollihop.classes.custom_hollihop_sync import CustomHHApiV2SyncManager
 from modules.hollihop.consts import base_ages, get_next_discipline
 from modules.pickler import Pickler, PicklerNotFoundDumpFile, PicklerLoadError
 
@@ -583,6 +585,29 @@ async def upload_days_with_wrong_comment(request) -> Response:
         format_header=GSFormatOptionVariant.BASE_HEADER
     )
 
+
+@controller('Загрузка откорректированных комментариев обратно в HH')
+def reload_corrected_comments(request):
+    doc = GSDocument(settings.GSDOCID_UPLOAD_BY_LESSON)
+    comments = doc.get_sheet_as_list(sheet_name='Wrong Comments')[1:]
+    HHM = CustomHHApiV2SyncManager()
+    for i, comment in enumerate(comments):
+        if '21536' == comment[1]:
+            comments = comments[i:]
+    for comment in comments:
+        if len(comment) < 7:
+            print(f'Skipped unit={int(comment[1])} student={int(comment[0])}')
+            continue
+        HHM.set_comment_for_student_ed_unit(
+            ed_unit_id=int(comment[1]),
+            student_client_id=int(comment[0]),
+            date=comment[3],
+            passed=False if comment[4] == 'FALSE' else True,
+            description=comment[6]
+        )
+        sleep(0.35)
+        print(f'Setted for unit={int(comment[1])} student={int(comment[0])}')
+    return HttpResponse('OK')
 # len(wrong_days)
 # 13344
 # len(ed_units_s)

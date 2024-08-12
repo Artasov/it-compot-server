@@ -336,7 +336,7 @@ class GSDocument:
         titles = [sheet.get('properties', {}).get('title', '') for sheet in sheets]
         return titles
 
-    def update_sheet(self, sheet_name: str, values: list[list | tuple] | tuple[list | tuple]):
+    def aupdate_sheet(self, sheet_name: str, values: list[list | tuple] | tuple[list | tuple]):
         body = {'values': values}
         request = self.service.spreadsheets().values().update(
             spreadsheetId=self.doc_id,
