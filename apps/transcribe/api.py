@@ -21,36 +21,39 @@ pickler = Pickler(**settings.PICKLER_SETTINGS)
 async def transcribe_lead_call(request):
     print(request.data)
     serializer = AmoCallTranscribeSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    data = serializer.validated_data
-    temp_file_path = await download_file(data['call_audio_url'])
-    whisper = Whisper(
-        proxy='http://user159222:fmvjbk@163.5.226.88:2127'
-    )
-    transcript = await whisper.transcribe_audio(temp_file_path)
-    print('RECOGNITION')
-    print(transcript)
-    os.remove(temp_file_path)
-    GSDocument(settings.GSDOCID_UPLOAD_BY_LESSON).update_sheet_with_format_header(
-        sheet_name='Wrong Comments',
-        header=(
-            'LeadId',
-            'ContactId',
-            'AudioUrl',
-            'Responsible',
-            'Duration',
-            'Status',
-            'Reason',
-        ),
-        values=((
-                    f'https://itbestonlineschool.amocrm.ru/leads/detail/{data["lead_id"]}',
-                    f'https://itbestonlineschool.amocrm.ru/contacts/detail/{data["contact_id"]}',
-                    data['call_audio_url'],
-                    data['responsible'],
-                    data['duration'],
-                    data['status'],
-                    data['reason'],
-                ),),
-        format_header=GSFormatOptionVariant.BASE_HEADER
-    )
-    return Response({'success': True}, 200)
+    if serializer.is_valid():
+        data = serializer.validated_data
+        temp_file_path = await download_file(data['call_audio_url'])
+        whisper = Whisper(
+            proxy='http://user159222:fmvjbk@163.5.226.88:2127'
+        )
+        transcript = await whisper.transcribe_audio(temp_file_path)
+        print('RECOGNITION')
+        print(transcript)
+        os.remove(temp_file_path)
+        GSDocument(settings.GSDOCID_UPLOAD_BY_LESSON).update_sheet_with_format_header(
+            sheet_name='Wrong Comments',
+            header=(
+                'LeadId',
+                'ContactId',
+                'AudioUrl',
+                'Responsible',
+                'Duration',
+                'Status',
+                'Reason',
+            ),
+            values=((
+                        f'https://itbestonlineschool.amocrm.ru/leads/detail/{data["lead_id"]}',
+                        f'https://itbestonlineschool.amocrm.ru/contacts/detail/{data["contact_id"]}',
+                        data['call_audio_url'],
+                        data['responsible'],
+                        data['duration'],
+                        data['status'],
+                        data['reason'],
+                    ),),
+            format_header=GSFormatOptionVariant.BASE_HEADER
+        )
+        return Response({'success': True}, 200)
+    else:
+        print(serializer.errors)
+        return Response({'success': False}, 400)
