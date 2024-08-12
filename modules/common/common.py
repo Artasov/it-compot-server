@@ -58,10 +58,6 @@ async def download_file(url: str) -> str:
 
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url) as response:
-            # Логирование статуса и заголовков для отладки
-            print(f"Status: {response.status}")
-            print(f"Headers: {response.headers}")
-
             if response.status == 200:
                 content_disposition = response.headers.get('Content-Disposition')
                 if content_disposition and 'filename=' in content_disposition:
@@ -69,12 +65,9 @@ async def download_file(url: str) -> str:
                 else:
                     parsed_url = urlparse(url)
                     file_name = os.path.basename(parsed_url.path)
-
                 file_path = settings.BASE_TEMP_DIR / file_name
-                file_path.parent.mkdir(parents=True, exist_ok=True)  # Создаем директорию, если она не существует
-
+                file_path.parent.mkdir(parents=True, exist_ok=True)
                 if file_path.exists(): return str(file_path)
-
                 with open(file_path, 'wb') as f:
                     f.write(await response.read())
             else:

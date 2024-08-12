@@ -351,7 +351,7 @@ class GSDocument:
             self,
             sheet_name: str,
             header: list | tuple,
-            values: list[list | tuple] | tuple[list | tuple],
+            values: list[list | tuple],
             format_header: GSFormatOptions):
         values.insert(0, header)
         self.clear_sheet(sheet_name=sheet_name)

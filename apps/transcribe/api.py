@@ -42,15 +42,15 @@ async def transcribe_lead_call(request):
                 'Status',
                 'Reason',
             ),
-            values=((
-                        f'https://itbestonlineschool.amocrm.ru/leads/detail/{data["lead_id"]}',
-                        f'https://itbestonlineschool.amocrm.ru/contacts/detail/{data["contact_id"]}',
-                        data['call_audio_url'],
-                        data['responsible'],
-                        data['duration'],
-                        data['status'],
-                        data['reason'],
-                    ),),
+            values=[(
+                f'https://itbestonlineschool.amocrm.ru/leads/detail/{data["lead_id"]}',
+                f'https://itbestonlineschool.amocrm.ru/contacts/detail/{data["contact_id"]}',
+                data['call_audio_url'],
+                data['responsible'],
+                data['duration'],
+                data['status'],
+                data['reason'],
+            )],
             format_header=GSFormatOptionVariant.BASE_HEADER
         )
         return Response({'success': True}, 200)
