@@ -61,10 +61,15 @@ async def download_file(url: str) -> str:
                 else:
                     parsed_url = urlparse(url)
                     file_name = os.path.basename(parsed_url.path)
+
                 file_path = settings.BASE_TEMP_DIR / file_name
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+
                 if file_path.exists(): return str(file_path)
+
                 with open(file_path, 'wb') as f:
                     f.write(await response.read())
             else:
                 raise Exception(f"Failed to download file from {url}. Status code: {response.status}")
+
     return str(file_path)
