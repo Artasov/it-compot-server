@@ -17,7 +17,7 @@ pickler = Pickler(**settings.PICKLER_SETTINGS)
 
 
 @acontroller('Транскрибация звонка клиента')
-@api_view(('GET',))
+@api_view(('GET', 'POST',))
 async def transcribe_lead_call(request):
     print(request.data)
     serializer = AmoCallTranscribeSerializer(data=request.data)
