@@ -25,7 +25,7 @@ async def transcribe_lead_call(request):
         data = serializer.validated_data
         temp_file_path = await download_file(data['call_audio_url'])
         whisper = Whisper(
-            proxy='http://user159222:fmvjbk@163.5.226.88:2127'
+            proxy='http://user203097:50y9sd@140.99.236.87:1848'
         )
         transcript = await whisper.transcribe_audio(temp_file_path)
         print('RECOGNITION')
