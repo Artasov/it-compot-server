@@ -136,7 +136,7 @@ async def get_forming_groups_for_join(level: str,
             units=ed_units, date=now)
     elif join_type == 'academic_year':
         ed_units = HHM.filter_ed_units_with_days_earlier_than_date(
-            units=ed_units, date=datetime(now.year, 6, 2))
+            units=ed_units, date=datetime(now.year, 9, 1))
 
     ed_units = sort_groups_by_datetime(ed_units)
     units_result = []
