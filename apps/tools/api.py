@@ -264,8 +264,7 @@ async def get_is_student_in_group_on_discipline(request) -> Response:
 @asemaphore_handler
 async def send_nothing_fit(request) -> Response:
     serializer = SendNothingFitSerializer(data=request.POST)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if not serializer.is_valid(): return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(await send_nothing_fit_units_to_amo(
         student_id=serializer.validated_data['student_id'],
         msg=serializer.validated_data['msg']
