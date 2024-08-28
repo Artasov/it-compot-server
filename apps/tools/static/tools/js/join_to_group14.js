@@ -302,7 +302,7 @@ function showGroupsWithTZ(TZ) {
     const successEl = document.createElement('p');
     successEl.className = 'fs-1 mb-0 mt-3 text-center welcome-text';
     if (join_type === 'autumn') {
-         successEl.innerHTML = 'Предлагаем выбрать расписание на весь учебный год!<br>' +
+        successEl.innerHTML = 'Предлагаем выбрать расписание на весь учебный год!<br>' +
             '<p id="help-text" class="text-center fs-5 fw-bold my-2 opacity-this85">Выберите удобную для вас группу</p>';
     } else {
         successEl.innerHTML = 'Добро пожаловать<br>в компьютерную школу будущего!<br>' +
@@ -353,24 +353,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function main() {
     if (Object.keys(queryParams).length === 4) {
-        const formNothingFit = document.getElementById('form-nothing_fit');
-        formNothingFit.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const submitButton = document.getElementById('btn-nothing-fit-submit');
-            const msg = document.getElementById('nothing_fit_user_textarea').value;
-
-            submitButton.disabled = true;
-            send_nothing_fit(studentId, msg)
-                .then(response => {
-                    if (response.ok) {
-                        raiseSuccessModal(
-                            'Отлично, мы получили ваше сообщение, с вами свяжется менеджер 😉',
-                            null, null
-                        );
-                    }
-                });
-        });
-
         const response = await getIsStudentOnDiscipline();
         const alreadyStudying = response.data;
         if (alreadyStudying) {
@@ -448,6 +430,23 @@ async function main() {
     } else {
         raiseErrorModal(`Неверное количество параметров.`);
     }
+    const formNothingFit = document.getElementById('form-nothing_fit');
+    formNothingFit.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const submitButton = document.getElementById('btn-nothing-fit-submit');
+        const msg = document.getElementById('nothing_fit_user_textarea').value;
+
+        submitButton.disabled = true;
+        send_nothing_fit(studentId, msg)
+            .then(response => {
+                if (response.ok) {
+                    raiseSuccessModal(
+                        'Отлично, мы получили ваше сообщение, с вами свяжется менеджер 😉',
+                        null, null
+                    );
+                }
+            });
+    });
 }
 
 main()

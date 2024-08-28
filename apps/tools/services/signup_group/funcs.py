@@ -114,10 +114,9 @@ async def get_forming_groups_for_join(level: str,
     now = datetime.now()
     # now = datetime(now.year, 5, 26)
     if not join_type:
-        if datetime(now.year, 5, 26) <= now <= datetime(now.year, 8, 29):  # Если лето
+        # autumn передается всегда
+        if datetime(now.year, 5, 26) <= now <= datetime(now.year, 8, 27):  # Если лето
             join_type = 'summer'
-        elif datetime(now.year, 8, 30) <= now <= datetime(now.year, 11, 30):  # Если осень
-            join_type = 'autumn'
         else:  # академический год
             join_type = 'academic_year'
     # print('UNITS')
@@ -179,7 +178,8 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                 header=('Status', 'StudentFullName', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
                 column_widths=column_widths)
     glog_autumn = GLog(doc_id=settings.GSDOCID_LOG_JOIN_FORMING_GROUPS_AUTUMN,
-                       header=('Status', 'StudentFullName', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
+                       header=(
+                       'Status', 'StudentFullName', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
                        column_widths=column_widths)
     student = await HHManager.get_student_by_amo_id(student_amo_id=student_id)
     student_full_name = f'{student.get("LastName")} {student.get("FirstName")} {student.get("MiddleName")}'
