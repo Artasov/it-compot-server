@@ -110,48 +110,48 @@ async def get_forming_groups_for_join(level: str,
         age=age,
         **kwargs
     )
-    a = [
-        {
-            'Id': 29322,
-            'Type': 'Group',
-            'Name': 'SCR-1-ВASE',
-            'Discipline': 'Scratch математика', 'Level': '[All]',
-            'LearningType': 'Вводный модуль курса (russian language)',
-            'ScheduleItems': [
-                {
-                    'Id': 143274,
-                    'BeginDate': '2024-09-05',
-                    'EndDate': '2024-09-12',
-                    'BeginTime': '18:30',
-                    'EndTime': '20:00',
-                }
-            ],
-            'Days': [
-                {'Date': '2024-09-05'},
-                {'Date': '2024-09-12'}
-            ],
-        },
-        {
-            'Id': 29336,
-            'Type': 'Group',
-            'Name': 'SCR-1-ВASE',
-            'Discipline': 'Scratch математика', 'Level': '[All]',
-            'LearningType': 'Вводный модуль курса (russian language)',
-            'ScheduleItems': [
-                {
-                    'Id': 143349,
-                    'BeginDate': '2024-09-08',
-                    'EndDate': '2024-09-15',
-                    'BeginTime': '10:15',
-                    'EndTime': '11:45',
-                }
-            ],
-            'Days': [
-                {'Date': '2024-09-08'},
-                {'Date': '2024-09-15'}
-            ],
-        }
-    ]
+    # a = [
+    #     {
+    #         'Id': 29322,
+    #         'Type': 'Group',
+    #         'Name': 'SCR-1-ВASE',
+    #         'Discipline': 'Scratch математика', 'Level': '[All]',
+    #         'LearningType': 'Вводный модуль курса (russian language)',
+    #         'ScheduleItems': [
+    #             {
+    #                 'Id': 143274,
+    #                 'BeginDate': '2024-09-05',
+    #                 'EndDate': '2024-09-12',
+    #                 'BeginTime': '18:30',
+    #                 'EndTime': '20:00',
+    #             }
+    #         ],
+    #         'Days': [
+    #             {'Date': '2024-09-05'},
+    #             {'Date': '2024-09-12'}
+    #         ],
+    #     },
+    #     {
+    #         'Id': 29336,
+    #         'Type': 'Group',
+    #         'Name': 'SCR-1-ВASE',
+    #         'Discipline': 'Scratch математика', 'Level': '[All]',
+    #         'LearningType': 'Вводный модуль курса (russian language)',
+    #         'ScheduleItems': [
+    #             {
+    #                 'Id': 143349,
+    #                 'BeginDate': '2024-09-08',
+    #                 'EndDate': '2024-09-15',
+    #                 'BeginTime': '10:15',
+    #                 'EndTime': '11:45',
+    #             }
+    #         ],
+    #         'Days': [
+    #             {'Date': '2024-09-08'},
+    #             {'Date': '2024-09-15'}
+    #         ],
+    #     }
+    # ]
     now = datetime.now()
     # now = datetime(now.year, 5, 26)
     if not join_type:
@@ -160,8 +160,8 @@ async def get_forming_groups_for_join(level: str,
             join_type = 'summer'
         else:  # академический год
             join_type = 'academic_year'
-    print('UNITS')
-    print(ed_units)
+    # print('UNITS')
+    # print(ed_units)
     if join_type == 'summer':
         ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=datetime(now.year, 6, 3))
