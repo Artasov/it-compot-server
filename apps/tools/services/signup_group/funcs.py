@@ -110,7 +110,48 @@ async def get_forming_groups_for_join(level: str,
         age=age,
         **kwargs
     )
-
+    a = [
+        {
+            'Id': 29322,
+            'Type': 'Group',
+            'Name': 'SCR-1-ВASE',
+            'Discipline': 'Scratch математика', 'Level': '[All]',
+            'LearningType': 'Вводный модуль курса (russian language)',
+            'ScheduleItems': [
+                {
+                    'Id': 143274,
+                    'BeginDate': '2024-09-05',
+                    'EndDate': '2024-09-12',
+                    'BeginTime': '18:30',
+                    'EndTime': '20:00',
+                }
+            ],
+            'Days': [
+                {'Date': '2024-09-05'},
+                {'Date': '2024-09-12'}
+            ],
+        },
+        {
+            'Id': 29336,
+            'Type': 'Group',
+            'Name': 'SCR-1-ВASE',
+            'Discipline': 'Scratch математика', 'Level': '[All]',
+            'LearningType': 'Вводный модуль курса (russian language)',
+            'ScheduleItems': [
+                {
+                    'Id': 143349,
+                    'BeginDate': '2024-09-08',
+                    'EndDate': '2024-09-15',
+                    'BeginTime': '10:15',
+                    'EndTime': '11:45',
+                }
+            ],
+            'Days': [
+                {'Date': '2024-09-08'},
+                {'Date': '2024-09-15'}
+            ],
+        }
+    ]
     now = datetime.now()
     # now = datetime(now.year, 5, 26)
     if not join_type:
@@ -119,8 +160,8 @@ async def get_forming_groups_for_join(level: str,
             join_type = 'summer'
         else:  # академический год
             join_type = 'academic_year'
-    # print('UNITS')
-    # print(ed_units)
+    print('UNITS')
+    print(ed_units)
     if join_type == 'summer':
         ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=datetime(now.year, 6, 3))
@@ -134,8 +175,10 @@ async def get_forming_groups_for_join(level: str,
         ed_units = HHM.filter_ed_units_with_days_later_than_date(
             units=ed_units, date=now)
     elif join_type == 'academic_year':
-        ed_units = HHM.filter_ed_units_with_days_earlier_than_date(
-            units=ed_units, date=datetime(now.year, 9, 1))
+        # ed_units = HHM.filter_ed_units_with_days_earlier_than_date(
+        #     units=ed_units, date=datetime(now.year, 9, 1))
+        ed_units = HHM.filter_ed_units_with_days_later_than_date(
+            units=ed_units, date=datetime(now.year, 8, 31))
 
     ed_units = sort_groups_by_datetime(ed_units)
     units_result = []
@@ -179,7 +222,8 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                 column_widths=column_widths)
     glog_autumn = GLog(doc_id=settings.GSDOCID_LOG_JOIN_FORMING_GROUPS_AUTUMN,
                        header=(
-                       'Status', 'StudentFullName', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0', 'Comment'),
+                           'Status', 'StudentFullName', 'StudentAmoId', 'StudentHH', 'Groups', 'DateTime +0',
+                           'Comment'),
                        column_widths=column_widths)
     student = await HHManager.get_student_by_amo_id(student_amo_id=student_id)
     student_full_name = f'{student.get("LastName")} {student.get("FirstName")} {student.get("MiddleName")}'
