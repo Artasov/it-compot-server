@@ -267,7 +267,8 @@ async def send_nothing_fit(request) -> Response:
     if not serializer.is_valid(): return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(await send_nothing_fit_units_to_amo(
         student_id=serializer.validated_data['student_id'],
-        msg=serializer.validated_data['msg']
+        msg=serializer.validated_data['msg'],
+        join_type=serializer.validated_data['join_type'],
     ), status=status.HTTP_200_OK)
 
 

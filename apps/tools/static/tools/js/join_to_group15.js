@@ -245,14 +245,15 @@ function createUnitEl(unit, TZ, wrapperFilterStyle = '') {
     return li;
 }
 
-async function send_nothing_fit(student_id, msg) {
+async function sendNothingFit(student_id, msg) {
     try {
         return await Client.sendPost(
             Client.getProtocolAndDomain() +
             '/api/v1/tools/send_nothing_fit/',
             {
                 'student_id': student_id,
-                'msg': msg
+                'msg': msg,
+                'join_type': join_type
             }
         );
     } catch (error) {
@@ -437,7 +438,7 @@ async function main() {
         const msg = document.getElementById('nothing_fit_user_textarea').value;
 
         submitButton.disabled = true;
-        send_nothing_fit(studentId, msg)
+        sendNothingFit(studentId, msg)
             .then(response => {
                 if (response.ok) {
                     raiseSuccessModal(

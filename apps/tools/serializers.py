@@ -30,6 +30,7 @@ class StudentAlreadyStudyingOnDisciplineSerializer(AsyncSerializer):
 class SendNothingFitSerializer(AsyncSerializer):
     msg = serializers.CharField(max_length=1000)
     student_id = serializers.IntegerField()
+    join_type = serializers.CharField(max_length=50)
 
 
 class AddHhPaymentByAmoSerializer(AsyncSerializer):

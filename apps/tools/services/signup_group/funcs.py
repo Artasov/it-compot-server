@@ -375,7 +375,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                     await send_nothing_fit_units_to_amo(
                         student_id=student_id,
                         msg=course_unit_error,
-                        func=1
+                        join_tupe=join_type
                     )
                 else:
                     result2 = await HHManager.addEdUnitStudent(
@@ -395,7 +395,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
                         await send_nothing_fit_units_to_amo(
                             student_id=student_id,
                             msg='Не смог записать в группу курса.',
-                            func=1
+                            join_tupe=join_type
                         )
                         glog.error(
                             student_full_name=student_full_name,
@@ -417,7 +417,7 @@ async def add_student_to_forming_group(student_id: int, group_id: int, client_tz
             await send_nothing_fit_units_to_amo(
                 student_id=student_id,
                 msg='Не найдено пользовательских полей у группы ВМ для обнаружения группы курса.',
-                func=1
+                join_tupe=join_type
             )
     if result1.get("success"):
         # Открывает личный кабинет родителю
@@ -557,11 +557,11 @@ async def send_report_join_to_forming_group(
                 return False
 
 
-async def send_nothing_fit_units_to_amo(student_id, msg, func: int = 0) -> bool:
+async def send_nothing_fit_units_to_amo(student_id, msg, join_type) -> bool:
     """
     Отправляет в AMO информацию от клиента, что группы на вводный модуль ему не подошли.
     Отправляется student_id, msg, tel_number на указанный адрес.
-    @param func: 0 - не подошло родителю, 1 неверный код-слот или не найдена группа
+    @param join_type: join_type
     @param student_id: Сквозное поле между HH и AMO.
     @param msg: Сообщение от клиента.
     @return:
@@ -573,8 +573,7 @@ async def send_nothing_fit_units_to_amo(student_id, msg, func: int = 0) -> bool:
                 url=settings.AMOLINK_NOTHING_FIT_INTRODUCTION_GROUPS,
                 headers={'Content-Type': 'application/json'},
                 json={
-                    'func': func,
-                    # 'func': 1,
+                    'join_type': join_type,
                     'student_id': student_id,
                     'msg': msg,
                     'tel_number': student['Agents'][0]['Mobile']
