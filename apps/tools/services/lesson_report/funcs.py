@@ -8,7 +8,6 @@ from django.conf import settings
 from modules.gsheet.classes.gsheetsclient import GSDocument, GSFormatOptions
 from modules.hollihop.classes.custom_hollihop import CustomHHApiV2Manager, SetCommentError
 from modules.hollihop.classes.custom_hollihop_sync import CustomHHApiV2SyncManager
-from modules.pickler import PicklerNotFoundDumpFile, PicklerLoadError, Pickler
 
 
 class LessonComment(TypedDict):
@@ -27,6 +26,8 @@ def send_lesson_report(
         students_comments,
         type_ed_unit,
         user_email,
+        reflection_text,
+        satisfaction_rate,
 ):
     HHManager = CustomHHApiV2SyncManager()
 
@@ -57,6 +58,14 @@ def send_lesson_report(
             )
         except SetCommentError:
             return {'success': False, 'error': 'Ошибка при добавлении комментария в HH'}
+    send_gs_reflection_report(
+        teacher_name=teacher_name,
+        type_ed_unit=type_ed_unit,
+        ed_unit_id=ed_unit_id,
+        date=day_date,
+        reflection_text=reflection_text,
+        satisfaction_rate=satisfaction_rate,
+    )
 
 
 def parse_lesson_comment(comment: str) -> LessonComment | None:
@@ -107,6 +116,29 @@ def send_gs_lesson_report(
             f'https://itbestonlineschool.amocrm.ru/leads/detail/{student_amo_id}/',
             student_amo_id,
             student_client_id
+        ),
+        sheet_name=sheet_name
+    )
+    doc.auto_resize_last_row(sheet_name)
+
+
+def send_gs_reflection_report(
+        teacher_name: str,
+        type_ed_unit: str,
+        ed_unit_id: int,
+        date: str,
+        reflection_text: int,
+        satisfaction_rate: int, ):
+    sheet_name = 'Lesson Reflection'
+    doc = GSDocument(settings.GSDOCID_UPLOAD_BY_LESSON)
+    doc.append_row(
+        row=(
+            teacher_name,
+            ed_unit_id,
+            date,
+            f'https://it-school.t8s.ru/Learner/{type_ed_unit}/{ed_unit_id}/',
+            reflection_text,
+            satisfaction_rate
         ),
         sheet_name=sheet_name
     )

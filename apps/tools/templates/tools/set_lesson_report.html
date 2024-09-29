@@ -18,7 +18,8 @@
         <div class="row disable-tap-and-selection ">
             <div class="frcc gap-1">
                 <h1 class="text-dark-emphasis fs-2 text-center m-0 text-nowrap">Комментарий к уроку</h1>
-                <button id="btn-back-to-choose-unit" class="bg-opacity-25 bg-secondary px-2 rounded-2 d-none">Назад</button>
+                <button id="btn-back-to-choose-unit" class="bg-opacity-25 bg-secondary px-2 rounded-2 d-none">Назад
+                </button>
             </div>
             <form class="px-3 py-1 text-center" method="post" action="{% url 'stupid_auth' %}">
                 {% csrf_token %}
@@ -55,6 +56,19 @@
                             <span id="lesson_completion_percentage-count"></span>
                         </div>
                     </div>
+                    <div class="fc mb-2">
+                        <label for="satisfaction_rate" class="text-left">Удовлетворенность уроком</label>
+                        <div class="frcc gap-2">
+                            <input type="range" class="form-range" min="0" max="100" value="0"
+                                   name="satisfaction_rate"
+                                   id="satisfaction_rate">
+                            <span id="satisfaction_rate-count"></span>
+                        </div>
+                    </div>
+
+                    <textarea name="reflection_text" rows="6" placeholder="Рефлексия"
+                              class="bg-secondary bg-opacity-25 w-100 border-0 mb-2 rounded-2 p-2"></textarea>
+
                     <textarea name="additional_info_text" rows="6" placeholder="Дополнительная информация"
                               class="bg-secondary bg-opacity-25 w-100 border-0 mb-2 rounded-2 p-2"></textarea>
                     <button id="btn-report-submit" type="submit" class="fw-bold px-2 btn btn-success">

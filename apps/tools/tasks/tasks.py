@@ -27,6 +27,8 @@ def process_lesson_report_task(
         students_comments,
         type_ed_unit,
         user_email,
+        reflection_text,
+        satisfaction_rate,
 ):
     send_lesson_report(
         ed_unit_id=ed_unit_id,
@@ -37,5 +39,7 @@ def process_lesson_report_task(
         students_comments=students_comments,
         type_ed_unit=type_ed_unit,
         user_email=user_email,
+        reflection_text=reflection_text,
+        satisfaction_rate=satisfaction_rate,
     )
     return {'success': True}

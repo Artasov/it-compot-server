@@ -56,7 +56,10 @@ async def send_lesson_report(request):
     lesson_completion_percentage = request.data.get('lesson_completion_percentage')
     students_comments = request.data.get('students_comments')
     type_ed_unit = request.data.get('type')
-    if not all((ed_unit_id, day_date, theme_name, lesson_completion_percentage)):
+    reflection_text = request.data.get('reflection_text')
+    satisfaction_rate = request.data.get('satisfaction_rate')
+
+    if not all((ed_unit_id, day_date, theme_name, lesson_completion_percentage, reflection_text, satisfaction_rate)):
         return Response({'success': False, 'error': 'Неверные данные для отправки отчета.'}, 400)
     try:
         students_comments = json.loads(students_comments)
@@ -72,7 +75,10 @@ async def send_lesson_report(request):
         students_comments=students_comments,
         type_ed_unit=type_ed_unit,
         user_email=request.user.email,
+        reflection_text=reflection_text,
+        satisfaction_rate=satisfaction_rate,
     )
+
     return Response({'success': True}, 200)
 
 

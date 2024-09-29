@@ -52,7 +52,11 @@ try {
     }
 
 
-    async function postSendReport(ed_unit_id, day_date, theme_number, theme_name, students_comments, lessonCompletionPercentage, type) {
+    async function postSendReport(
+        ed_unit_id, day_date, theme_number,
+        theme_name, students_comments,
+        lessonCompletionPercentage, type,
+        reflectionText, satisfactionRate,) {
         try {
             const response = await Client.sendPost(
                 Client.getProtocolAndDomain() +
@@ -65,6 +69,8 @@ try {
                     lesson_completion_percentage: lessonCompletionPercentage,
                     students_comments: students_comments,
                     type: type,
+                    reflection_text: reflectionText,
+                    satisfaction_rate: satisfactionRate,
                 }
             );
             return response.data;
@@ -88,6 +94,7 @@ try {
 
     const themeSelectEl = document.querySelector('.lesson_theme_select');
     const additionalInfoTextEl = document.querySelector('textarea[name="additional_info_text"]');
+    const reflectionText = document.querySelector('textarea[name="reflection_text"]');
     btnReportSubmit.addEventListener('click', sendReport);
     const lessonCompletionPercentage = document.getElementById('lesson_completion_percentage');
     const lessonCompletionPercentageCount = document.getElementById('lesson_completion_percentage-count');
@@ -95,7 +102,12 @@ try {
     lessonCompletionPercentage.oninput = function () {
         lessonCompletionPercentageCount.textContent = this.value;
     }
-
+    const satisfactionRate = document.getElementById('satisfaction_rate');
+    const satisfactionRateCount = document.getElementById('satisfaction_rate-count');
+    satisfactionRateCount.textContent = satisfactionRate.value;
+    satisfactionRate.oninput = function () {
+        satisfactionRateCount.textContent = this.value;
+    }
     let choosedEdUnitDay = [];
 
     async function sendReport(e) {
@@ -109,7 +121,15 @@ try {
             setError('Урок пройден менее чем на 1%.')
             return;
         }
+        // if (satisfactionRate.value < 1) {
+        //     setError('Удовлетворенность')
+        //     return;
+        // }
 
+        if (reflectionText.value.length < 10) {
+            setError('Рефлексия должна быть не менее 10 символов.')
+            return;
+        }
         lessonSetInfoContainer.classList.add('d-none');
         setError('');
         setLoading(true);
@@ -153,6 +173,8 @@ try {
             studentsComments,
             lessonCompletionPercentage.value,
             choosedEdUnitDay[0]['Type'],
+            reflectionText.value,
+            satisfactionRate.value,
         )
         console.log(result)
         if (result.success) {
