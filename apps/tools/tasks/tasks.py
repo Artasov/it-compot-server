@@ -27,8 +27,12 @@ def process_lesson_report_task(
         students_comments,
         type_ed_unit,
         user_email,
-        reflection_text,
+        growth_points,
+        what_was_positive,
         satisfaction_rate,
+        self_feeling_rate,
+        students_feeling_rate,
+        other_general_questions,
 ):
     send_lesson_report(
         ed_unit_id=ed_unit_id,
@@ -39,7 +43,11 @@ def process_lesson_report_task(
         students_comments=students_comments,
         type_ed_unit=type_ed_unit,
         user_email=user_email,
-        reflection_text=reflection_text,
+        growth_points=growth_points,
+        what_was_positive=what_was_positive,
         satisfaction_rate=satisfaction_rate,
+        self_feeling_rate=self_feeling_rate,
+        students_feeling_rate=students_feeling_rate,
+        other_general_questions=other_general_questions,
     )
     return {'success': True}

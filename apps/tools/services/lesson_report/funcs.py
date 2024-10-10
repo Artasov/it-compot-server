@@ -26,8 +26,12 @@ def send_lesson_report(
         students_comments,
         type_ed_unit,
         user_email,
-        reflection_text,
+        growth_points,
+        what_was_positive,
         satisfaction_rate,
+        self_feeling_rate,
+        students_feeling_rate,
+        other_general_questions,
 ):
     HHManager = CustomHHApiV2SyncManager()
 
@@ -42,6 +46,12 @@ def send_lesson_report(
                 passed=student_comment['Pass'],
                 description=f'* {theme_number}{". " if theme_number else ""}{theme_name}\n'
                             f'* Завершено на: {lesson_completion_percentage}%\n'
+                            f'* growth_points: {growth_points}\n'
+                            f'* what_was_positive: {what_was_positive}\n'
+                            f'* satisfaction_rate: {satisfaction_rate}\n'
+                            f'* self_feeling_rate: {self_feeling_rate}\n'
+                            f'* students_feeling_rate: {students_feeling_rate}\n'
+                            f'* other_general_questions: {other_general_questions}\n'
                             f'* {student_comment["Description"]}'
             )
             send_gs_lesson_report(
@@ -63,8 +73,12 @@ def send_lesson_report(
         type_ed_unit=type_ed_unit,
         ed_unit_id=ed_unit_id,
         date=day_date,
-        reflection_text=reflection_text,
+        growth_points=growth_points,
+        what_was_positive=what_was_positive,
         satisfaction_rate=satisfaction_rate,
+        self_feeling_rate=self_feeling_rate,
+        students_feeling_rate=students_feeling_rate,
+        other_general_questions=other_general_questions,
     )
 
 
@@ -127,8 +141,12 @@ def send_gs_reflection_report(
         type_ed_unit: str,
         ed_unit_id: int,
         date: str,
-        reflection_text: int,
-        satisfaction_rate: int, ):
+        growth_points: int,
+        what_was_positive: str,
+        satisfaction_rate: int,
+        self_feeling_rate: int,
+        students_feeling_rate: int,
+        other_general_questions: str, ):
     sheet_name = 'Lesson Reflection'
     doc = GSDocument(settings.GSDOCID_UPLOAD_BY_LESSON)
     doc.append_row(
@@ -137,8 +155,12 @@ def send_gs_reflection_report(
             ed_unit_id,
             date,
             f'https://it-school.t8s.ru/Learner/{type_ed_unit}/{ed_unit_id}/',
-            reflection_text,
-            satisfaction_rate
+            growth_points,
+            what_was_positive,
+            satisfaction_rate,
+            self_feeling_rate,
+            students_feeling_rate,
+            other_general_questions,
         ),
         sheet_name=sheet_name
     )

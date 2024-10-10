@@ -8,7 +8,7 @@
 {% block meta_twitter_description %}Lesson Report{% endblock %}
 
 {% block head %}
-    <script defer type="module" src="{% static 'tools/js/lesson_report12.js' %}"></script>
+    <script defer type="module" src="{% static 'tools/js/lesson_report13.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -59,18 +59,46 @@
                     <div class="fc mb-2">
                         <label for="satisfaction_rate" class="text-left">Удовлетворенность уроком</label>
                         <div class="frcc gap-2">
-                            <input type="range" class="form-range" min="0" max="100" value="0"
+                            <input type="range" class="form-range" min="0" max="10" value="0"
                                    name="satisfaction_rate"
                                    id="satisfaction_rate">
                             <span id="satisfaction_rate-count"></span>
                         </div>
                     </div>
+                    <div class="fc mb-2">
+                        <label for="self_feeling_rate" class="text-left">Как я себя чувствовал?</label>
+                        <div class="frcc gap-2">
+                            <input type="range" class="form-range" min="0" max="10" value="0"
+                                   name="self_feeling_rate"
+                                   id="self_feeling_rate">
+                            <span id="self_feeling_rate-count"></span>
+                        </div>
+                    </div>
 
-                    <textarea name="reflection_text" rows="6" placeholder="Рефлексия"
+                    <div class="fc mb-2">
+                        <label for="students_feeling_rate" class="text-left">Как чувствовали себя ученики?</label>
+                        <div class="frcc gap-2">
+                            <input type="range" class="form-range" min="0" max="10" value="0"
+                                   name="students_feeling_rate"
+                                   id="students_feeling_rate">
+                            <span id="students_feeling_rate-count"></span>
+                        </div>
+                    </div>
+
+
+                    <textarea name="what_was_positive" rows="5" placeholder="Что было позитивного на занятии?"
+                              class="bg-secondary bg-opacity-25 w-100 border-0 mb-2 rounded-2 p-2"></textarea>
+                    <textarea name="growth_points" rows="5"
+                              placeholder="Какие точки роста видишь у себя в опыте, знаниях?"
+                              class="bg-secondary bg-opacity-25 w-100 border-0 mb-2 rounded-2 p-2"></textarea>
+                    <textarea name="additional_info" rows="5"
+                              placeholder="Дополнительная информация от себя."
+                              class="bg-secondary bg-opacity-25 w-100 border-0 mb-2 rounded-2 p-2"></textarea>
+                    <textarea name="other_general_questions" rows="5"
+                              placeholder="Общие вопросы к другим подразделениям школы."
                               class="bg-secondary bg-opacity-25 w-100 border-0 mb-2 rounded-2 p-2"></textarea>
 
-                    <textarea name="additional_info_text" rows="6" placeholder="Дополнительная информация"
-                              class="bg-secondary bg-opacity-25 w-100 border-0 mb-2 rounded-2 p-2"></textarea>
+
                     <button id="btn-report-submit" type="submit" class="fw-bold px-2 btn btn-success">
                         Подтвердить
                     </button>

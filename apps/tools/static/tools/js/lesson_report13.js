@@ -55,8 +55,11 @@ try {
     async function postSendReport(
         ed_unit_id, day_date, theme_number,
         theme_name, students_comments,
-        lessonCompletionPercentage, type,
-        reflectionText, satisfactionRate,) {
+        lesson_completion_percentage, type,
+        growth_points, what_was_positive,
+        satisfaction_rate, self_feeling_rate,
+        students_feeling_rate, other_general_questions, additional_info
+    ) {
         try {
             const response = await Client.sendPost(
                 Client.getProtocolAndDomain() +
@@ -66,11 +69,16 @@ try {
                     day_date: day_date,
                     theme_number: theme_number,
                     theme_name: theme_name,
-                    lesson_completion_percentage: lessonCompletionPercentage,
+                    lesson_completion_percentage: lesson_completion_percentage,
                     students_comments: students_comments,
                     type: type,
-                    reflection_text: reflectionText,
-                    satisfaction_rate: satisfactionRate,
+                    growth_points: growth_points,
+                    what_was_positive: what_was_positive,
+                    satisfaction_rate: satisfaction_rate,
+                    self_feeling_rate: self_feeling_rate,
+                    students_feeling_rate: students_feeling_rate,
+                    other_general_questions: other_general_questions,
+                    additional_info: additional_info,
                 }
             );
             return response.data;
@@ -93,8 +101,10 @@ try {
     btnBackToChooseUnit.addEventListener('click', backToChooseUnit);
 
     const themeSelectEl = document.querySelector('.lesson_theme_select');
-    const additionalInfoTextEl = document.querySelector('textarea[name="additional_info_text"]');
-    const reflectionText = document.querySelector('textarea[name="reflection_text"]');
+    const additionalInfo = document.querySelector('textarea[name="additional_info"]');
+    const otherGeneralQuestions = document.querySelector('textarea[name="other_general_questions"]');
+    const whatWasPositive = document.querySelector('textarea[name="what_was_positive"]');
+    const growthPoints = document.querySelector('textarea[name="growth_points"]');
     btnReportSubmit.addEventListener('click', sendReport);
     const lessonCompletionPercentage = document.getElementById('lesson_completion_percentage');
     const lessonCompletionPercentageCount = document.getElementById('lesson_completion_percentage-count');
@@ -108,6 +118,20 @@ try {
     satisfactionRate.oninput = function () {
         satisfactionRateCount.textContent = this.value;
     }
+    const selfFeelingRate = document.getElementById('self_feeling_rate');
+    const selfFeelingRateCount = document.getElementById('self_feeling_rate-count');
+    selfFeelingRateCount.textContent = selfFeelingRate.value;
+    selfFeelingRate.oninput = function () {
+        selfFeelingRateCount.textContent = this.value;
+    }
+    const studentsFeelingRate = document.getElementById('students_feeling_rate');
+    const studentsFeelingRateCount = document.getElementById('students_feeling_rate-count');
+    studentsFeelingRateCount.textContent = studentsFeelingRate.value;
+    studentsFeelingRate.oninput = function () {
+        studentsFeelingRateCount.textContent = this.value;
+    }
+
+
     let choosedEdUnitDay = [];
 
     async function sendReport(e) {
@@ -126,8 +150,12 @@ try {
         //     return;
         // }
 
-        if (reflectionText.value.length < 10) {
-            setError('Рефлексия должна быть не менее 10 символов.')
+        if (whatWasPositive.value.length < 10) {
+            setError('Что было позитивного? (не заполнено)')
+            return;
+        }
+        if (growthPoints.value.length < 10) {
+            setError('Какие точки роста видишь у себя в опыте, знаниях? (не заполнено)')
             return;
         }
         lessonSetInfoContainer.classList.add('d-none');
@@ -151,7 +179,7 @@ try {
                         StudentName: student['StudentName'],
                         StudentAmoId: studentAmoId,
                         Pass: sDay.Pass,
-                        Description: (description.toLowerCase().includes('перенос') ? false : description) || additionalInfoTextEl.value
+                        Description: (description.toLowerCase().includes('перенос') ? false : description) || additionalInfo.value
                     });
                 }
             }
@@ -173,8 +201,13 @@ try {
             studentsComments,
             lessonCompletionPercentage.value,
             choosedEdUnitDay[0]['Type'],
-            reflectionText.value,
+            growthPoints.value,
+            whatWasPositive.value,
             satisfactionRate.value,
+            selfFeelingRate.value,
+            studentsFeelingRate.value,
+            otherGeneralQuestions.value,
+            additionalInfo.value,
         )
         console.log(result)
         if (result.success) {
