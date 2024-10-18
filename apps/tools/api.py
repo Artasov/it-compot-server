@@ -145,7 +145,7 @@ async def get_teacher_lesson_for_report(request) -> Response:
                 dateTo=now.strftime('%Y-%m-%d'),
             )
             filtered_units[i]['Students'] = unit_students
-        pickler.cache(f'{request.user.username}_lessons', filtered_units)
+        if len(filtered_units): pickler.cache(f'{request.user.username}_lessons', filtered_units)
 
     end_time = datetime.now()
     elapsed_time = (end_time - start_time).total_seconds()
