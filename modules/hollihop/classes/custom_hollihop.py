@@ -4,7 +4,6 @@ from asyncio import sleep
 from datetime import datetime, timedelta
 
 import aiohttp
-from django.template.defaultfilters import pprint
 
 from apps.tools.exceptions.common import PaymentException, StudentByAmoIdNotFound
 from modules.common.common import calculate_age
@@ -47,7 +46,7 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
         if not result.get('success'):
             raise SetCommentError('Ошибка при добавлении комментария')
 
-    async def get_teacher_by_email(self, email):
+    async def get_teacher_by_email(self, email) -> dict | None:
         teachers = await self.get_active_teachers()
         for teacher in teachers:
             if teacher['EMail'].lower() == email.lower():
@@ -189,7 +188,6 @@ class CustomHHApiV2Manager(HolliHopApiV2Manager):
             if not await self.is_ed_unit_start_in_date_range(group, start_date, end_date):
                 return False
         return True
-
 
     @staticmethod
     def filter_ed_units_with_days_later_than_date(units: list, date: datetime) -> list[dict]:

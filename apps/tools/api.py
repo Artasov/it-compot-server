@@ -8,7 +8,8 @@ from urllib.parse import quote
 
 from adrf.decorators import api_view
 from django.conf import settings
-from django.http import HttpResponse
+from django.core.cache import cache
+from django.http import HttpResponse, Http404
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.decorators import permission_classes
@@ -62,7 +63,6 @@ async def send_lesson_report(request):
     self_feeling_rate = request.data.get('self_feeling_rate')
     students_feeling_rate = request.data.get('students_feeling_rate')
     other_general_questions = request.data.get('other_general_questions')
-    additional_info = request.data.get('additional_info')
 
     if not all((ed_unit_id, day_date, theme_name,
                 lesson_completion_percentage, growth_points,
@@ -74,6 +74,7 @@ async def send_lesson_report(request):
     except json.JSONDecodeError:
         return Response({'success': False, 'error': 'Неверный формат данных студентов.'}, 400)
     pickler.delete(f'{request.user.username}_lessons')
+    cache.delete(f'{request.user.username}_lessons')
     process_lesson_report_task.delay(
         ed_unit_id=ed_unit_id,
         day_date=day_date,
@@ -113,40 +114,39 @@ async def get_course_themes_view(request):
 @api_view(('GET', 'POST'))
 @permission_classes((IsAuthenticated,))
 async def get_teacher_lesson_for_report(request) -> Response:
-    HHM = CustomHHApiV2Manager()
     start_time = datetime.now()  # ЗАМЕР
-    try:
-        filtered_units = pickler.cache(f'{request.user.username}_lessons')
-    except (PicklerNotFoundDumpFile, PicklerLoadError) as e:
-        email = request.user.email
-        HHManager = CustomHHApiV2Manager()
-        now = datetime.now()
-        teacher = await HHManager.get_teacher_by_email(email=email)
-        units = await HHManager.get_ed_units_with_filtered_days_in_daterange(
-            start_date=now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT),
-            end_date=now,
-            types='Group,MiniGroup,Individual',
-            statuses='Forming',
-            teacherId=teacher['Id'],
-            maxTake=1000,
-        )
-        # Убираем школьные события
-        filtered_units = []
-        for unit in units:
-            if 'EVENTS' not in unit['Name']:
-                filtered_units.append(unit)
-        # Добавляем информацию по ученикам с днями для каждой учебной единицы
-        for i in range(0, len(filtered_units)):
-            unit_students = await HHManager.getEdUnitStudents(
-                edUnitId=filtered_units[i]['Id'],
-                queryDays=True,
-                maxTake=100,
-                dateFrom=(now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT)).strftime('%Y-%m-%d'),
-                dateTo=now.strftime('%Y-%m-%d'),
-            )
-            filtered_units[i]['Students'] = unit_students
-        if len(filtered_units): pickler.cache(f'{request.user.username}_lessons', filtered_units)
+    filtered_units = cache.get(f'{request.user.username}_lessons', None)
+    if filtered_units is not None: return Response({'units': filtered_units}, 200)
 
+    email = request.user.email
+    HHManager = CustomHHApiV2Manager()
+    now = datetime.now()
+    teacher = await HHManager.get_teacher_by_email(email=email)
+    if not teacher: raise Http404('Учитель не найден')
+    units = await HHManager.get_ed_units_with_filtered_days_in_daterange(
+        start_date=now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT),
+        end_date=now,
+        types='Group,MiniGroup,Individual',
+        statuses='Forming',
+        teacherId=teacher['Id'],
+        maxTake=1000,
+    )
+    # Убираем школьные события
+    filtered_units = []
+    for unit in units:
+        if 'EVENTS' not in unit['Name']:
+            filtered_units.append(unit)
+    # Добавляем информацию по ученикам с днями для каждой учебной единицы
+    for i in range(0, len(filtered_units)):
+        unit_students = await HHManager.getEdUnitStudents(
+            edUnitId=filtered_units[i]['Id'],
+            queryDays=True,
+            maxTake=100,
+            dateFrom=(now - timedelta(days=settings.ALLOWED_DAYS_FOR_LESSON_REPORT)).strftime('%Y-%m-%d'),
+            dateTo=now.strftime('%Y-%m-%d'),
+        )
+        filtered_units[i]['Students'] = unit_students
+    if len(filtered_units): cache.set(f'{request.user.username}_lessons', filtered_units, timeout=60 * 60)
     end_time = datetime.now()
     elapsed_time = (end_time - start_time).total_seconds()
     print(f"!!! Lessons {request.user.email} GET BY: {elapsed_time} seconds")
