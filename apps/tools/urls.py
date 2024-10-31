@@ -14,7 +14,7 @@ urlpatterns = [
     path('teachers_salary/', teacher_salary,
          name='teachers_salary'),
     path('parse_teachers_schedule/', daily_teacher_schedule_by_interval_gsheet_export,
-         name='daily_teacher_schedule_by_interval_gsheet_export'),
+         name='daily_teacher_schedule_by_interval_gsheet_export'), # Выгрузка Натальи
     path('join_to_forming_group/', join_to_forming_group,
          name='join_to_forming_group'),
     path('select_discipline_for_join/', select_discipline_for_join,
