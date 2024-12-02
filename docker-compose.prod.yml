@@ -53,7 +53,7 @@ services:
       - "6379:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-      # interval: 60s
+      interval: 60s
       timeout: 5s
       retries: 10
       start_period: 5s
@@ -103,6 +103,8 @@ services:
       start_period: 5s
     depends_on:
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       postgres:
         condition: service_healthy
